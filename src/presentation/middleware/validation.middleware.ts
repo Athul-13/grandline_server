@@ -2,6 +2,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate, ValidationError } from 'class-validator';
 import { NextFunction, Request, Response } from 'express';
 import { HTTP_STATUS } from '../../shared/constants';
+import { logger } from '../../shared/logger';
 
 type ClassConstructor<T = object> = new (...args: unknown[]) => T;
 
@@ -83,7 +84,7 @@ export const validationMiddleware = <T extends object>(dtoClass: ClassConstructo
       req.body = dtoObj;
       next();
     } catch (error) {
-      console.error('Validation Middleware Error:', error);
+      logger.error('Validation middleware error:', error);
       res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: 'Internal validation error',

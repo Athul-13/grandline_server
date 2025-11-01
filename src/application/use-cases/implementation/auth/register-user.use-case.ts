@@ -11,6 +11,7 @@ import { UserMapper } from '../../../mapper/user.mapper';
 import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
+import { logger } from '../../../../shared/logger';
 
 @injectable()
 export class RegisterUserUseCase {
@@ -58,6 +59,8 @@ export class RegisterUserUseCase {
       expiryMinutes: OTP_CONFIG.EXPIRY_TIME / 60000,
     };
     await this.emailService.sendEmail(EmailType.OTP, emailData);
+
+    logger.info(`User registered successfully: ${user.email}`);
 
     return UserMapper.toRegisterUserResponse(user);
   }

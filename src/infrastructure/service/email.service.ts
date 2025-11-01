@@ -4,6 +4,7 @@ import { IEmailService } from '../../domain/services/email_service.interface';
 import { EmailType } from '../../shared/types/email.types';
 import { EMAIL_CONFIG } from '../../shared/config';
 import { getEmailTemplate } from '../../shared/templates/email';
+import { logger } from '../../shared/logger';
 
 /**
  * Email service implementation
@@ -43,7 +44,7 @@ export class EmailServiceImpl implements IEmailService {
         text,
       });
     } catch (error) {
-      console.error('Failed to send email:', error);
+      logger.error('Failed to send email:', error);
       throw new Error('Failed to send email. Please try again later.');
     }
   }

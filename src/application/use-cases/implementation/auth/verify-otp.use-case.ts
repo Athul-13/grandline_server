@@ -5,6 +5,7 @@ import { VerifyOtpRequest, VerifyOtpResponse } from '../../../dtos/user.dto';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { logger } from '../../../../shared/logger';
 
 @injectable()
 export class VerifyOtpUseCase {
@@ -28,6 +29,8 @@ export class VerifyOtpUseCase {
 
     const updatedUser = await this.userRepository.updateVerificationStatus(user.userId, true);
     await this.otpService.deleteOTP(request.email);
+
+    logger.info(`OTP verified successfully for user: ${user.email}`);
 
     return UserMapper.toVerifyOtpResponse(updatedUser);
   }

@@ -10,6 +10,7 @@ import { ERROR_MESSAGES, OTP_CONFIG } from '../../../../shared/constants';
 import { generateOTP } from '../../../../shared/utils/otp.util';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
+import { logger } from '../../../../shared/logger';
 
 @injectable()
 export class LoginUserUseCase {
@@ -27,6 +28,7 @@ export class LoginUserUseCase {
   async execute(request: LoginUserRequest): Promise<LoginUserResponse> {
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
+      logger.warn(`Login attempt with non-existent email: ${request.email}`);
       throw new Error(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
@@ -42,21 +44,26 @@ export class LoginUserUseCase {
       };
       await this.emailService.sendEmail(EmailType.OTP, emailData);
       
+      logger.warn(`Login attempt by unverified user: ${user.email}`);
       throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_VERIFIED);
     }
 
     if (!user.canLogin()) {
+      logger.warn(`Login attempt by blocked/inactive user: ${user.email}`);
       throw new Error(ERROR_MESSAGES.FORBIDDEN);
     }
 
     const passwordHash = await this.userRepository.getPasswordHash(user.userId);
     const isValidPassword = await comparePassword(request.password, passwordHash);
     if (!isValidPassword) {
+      logger.warn(`Invalid password attempt for user: ${user.email}`);
       throw new Error(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const payload = { userId: user.userId, email: user.email, role: user.role };
     const { accessToken, refreshToken } = await this.jwtService.generateTokens(payload);
+
+    logger.info(`User logged in successfully: ${user.email}`);
 
     return UserMapper.toLoginResponse(user, accessToken, refreshToken);
   }

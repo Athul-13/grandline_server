@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../../shared/logger';
 
 export const errorHandler = (
   err: Error,
@@ -6,7 +7,7 @@ export const errorHandler = (
   res: Response,
   next: NextFunction
 ): void => {
-  console.error('Error:', err);
+  logger.error('Request error:', err);
 
   const statusCode = res.statusCode !== 200 ? res.statusCode : 500;
   
