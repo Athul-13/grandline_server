@@ -1,19 +1,19 @@
-import { injectable } from 'tsyringe';
-import { IRedisService } from '../../domain/services/redis_service.interface';
+import { injectable, inject } from 'tsyringe';
+import { IOTPService } from '../../domain/services/otp_service.interface';
 import { OTP_CONFIG } from '../../shared/constants';
 import { RedisConnection } from '../database/redis';
+import { CONFIG_TOKENS } from '../di/tokens';
 
 /**
- * Redis service implementation for OTP operations
- * Provides temporary storage and retrieval of verification codes
+ * OTP service implementation
+ * Provides temporary storage and retrieval of verification codes using Redis
  */
 @injectable()
-export class RedisServiceImpl implements IRedisService {
-  private redisConnection: RedisConnection;
-
-  constructor() {
-    this.redisConnection = RedisConnection.getInstance();
-  }
+export class OTPServiceImpl implements IOTPService {
+  constructor(
+    @inject(CONFIG_TOKENS.RedisConnection)
+    private readonly redisConnection: RedisConnection
+  ) {}
 
   async setOTP(email: string, otp: string): Promise<void> {
     const key = `${OTP_CONFIG.REDIS_PREFIX}${email}`;

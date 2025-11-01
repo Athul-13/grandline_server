@@ -1,16 +1,13 @@
 import { Driver } from "../entities/driver.entity";
+import { IBaseRepository } from "./base_repository.interface";
 
 /**
  * Repository interface for Driver entity operations
  * Defines the contract for data access layer implementations
  * 
  */
-export interface IDriverRepository {
+export interface IDriverRepository extends IBaseRepository<Driver> {
     findByEmail(email: string): Promise<Driver | null>;
-
-    findById(driverId: string): Promise<Driver | null>;
     
     findAvailableDrivers(): Promise<Driver[]>;
-    
-    save(driver: Driver): Promise<void>;
 }

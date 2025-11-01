@@ -1,24 +1,4 @@
 /**
- * Application configuration constants
- * Centralizes all app-wide settings and environment variable handling
- */
-export const APP_CONFIG = {
-  PORT: process.env.PORT || 3000,
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  MONGODB_URI: process.env.MONGODB_URI || 'mongodb://localhost:27017/blog-api',
-  JWT_SECRET: process.env.JWT_SECRET || 'your-secret-key',
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN || '7d',
-} as const;
-
-/**
- * Redis configuration constants
- * Handles OTP storage and temporary data management
- */
-export const REDIS_CONFIG = {
-  URI: process.env.REDIS_URI || 'redis://172.27.169.219:6379',
-} as const;
-
-/**
  * User role enumeration
  * Defines available user roles in the bus rental system
  */
@@ -56,4 +36,72 @@ export const OTP_CONFIG = {
   LENGTH: 6,                    // OTP is 6 digits
   EXPIRY_TIME: 120000,          // 2 minutes in milliseconds
   REDIS_PREFIX: 'otp:',        
+} as const;
+
+/**
+ * Token blacklist constants
+ */
+export const TOKEN_BLACKLIST = {
+  PREFIX: 'blacklist:',
+} as const;
+
+/**
+ * Cookie configuration constants
+ * Names for HTTP-only cookies storing authentication tokens
+ */
+export const COOKIE_NAMES = {
+  ACCESS_TOKEN: 'accessToken',
+  REFRESH_TOKEN: 'refreshToken',
+} as const;
+
+/**
+ * HTTP status codes used across the application
+ */
+export const HTTP_STATUS = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  TOO_MANY_REQUESTS: 429,
+  INTERNAL_SERVER_ERROR: 500,
+} as const;
+
+/**
+ * Centralized human-readable success and error messages
+ */
+export const SUCCESS_MESSAGES = {
+  USER_REGISTERED: 'User registered successfully. Please verify using OTP',
+  OTP_SENT: 'OTP has been sent',
+  OTP_VERIFIED: 'OTP verified successfully',
+  LOGIN_SUCCESS: 'Login successful',
+  LOGOUT_SUCCESS: 'Logout successful',
+} as const;
+
+export const ERROR_MESSAGES = {
+  USER_NOT_FOUND: 'User not found',
+  EMAIL_ALREADY_EXISTS: 'Email already exists',
+  INVALID_CREDENTIALS: 'Invalid email or password',
+  ACCOUNT_NOT_VERIFIED: 'Please verify your account to continue',
+  OTP_INVALID_OR_EXPIRED: 'OTP is invalid or has expired',
+  TOKEN_REVOKED: 'Token has been revoked',
+  TOKEN_EXPIRED: 'Token has expired',
+  UNAUTHORIZED: 'Unauthorized access',
+  FORBIDDEN: 'You do not have permission to perform this action',
+  BAD_REQUEST: 'Invalid request data',
+  SERVER_ERROR: 'Something went wrong. Please try again later',
+} as const;
+
+/**
+ * Application-specific machine-readable error codes (useful for i18n/logging)
+ */
+export const ERROR_CODES = {
+  AUTH_INVALID_OTP: 'AUTH_INVALID_OTP',
+  AUTH_ACCOUNT_BLOCKED: 'AUTH_ACCOUNT_BLOCKED',
+  AUTH_TOKEN_EXPIRED: 'AUTH_TOKEN_EXPIRED',
+  USER_DUPLICATE_EMAIL: 'USER_DUPLICATE_EMAIL',
+  USER_NOT_FOUND: 'USER_NOT_FOUND',
 } as const;

@@ -21,7 +21,6 @@ export class User {
 
     /**
      * Checks if the user can login
-     * @returns boolean
      */
     canLogin(): boolean {
         return this.status === UserStatus.ACTIVE;
@@ -29,7 +28,6 @@ export class User {
 
     /**
      * Checks if the user is an admin
-     * @returns boolean
      */
     isAdmin(): boolean {
         return this.role === UserRole.ADMIN;

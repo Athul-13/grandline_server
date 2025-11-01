@@ -1,5 +1,5 @@
 import Redis from "ioredis";
-import { REDIS_CONFIG } from "../../../shared/constants";
+import { REDIS_CONFIG } from "../../../shared/config";
 
 /**
  * Redis configuration factory

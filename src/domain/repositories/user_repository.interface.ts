@@ -1,16 +1,17 @@
 import { User } from "../entities/user.entity";
+import { IBaseRepository } from "./base_repository.interface";
 
 /**
  * Repository interface for User entity operations
  * Defines the contract for data access layer implementations
  * 
  */
-export interface IUserRepository {
+export interface IUserRepository extends IBaseRepository<User> {
     findByEmail(email: string): Promise<User | null>;
 
-    findById(userId: string): Promise<User | null>;
+    updateVerificationStatus(userId: string, isVerified: boolean): Promise<User>;
 
-    save(user: User): Promise<void>;
+    createUser(user: User, passwordHash: string): Promise<void>;
 
-    updateVerificationStatus(userId: string, isVerified: boolean): Promise<void>;
+    getPasswordHash(userId: string): Promise<string>;
 }

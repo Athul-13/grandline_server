@@ -1,20 +1,20 @@
 import { User } from "../../domain/entities/user.entity";
-import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse } from "../dtos/user.dto";
+import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse, ResendOtpResponse } from "../dtos/user.dto";
+import { SUCCESS_MESSAGES } from "../../shared/constants";
 
 
 /**
  * Mapper class for converting User entities to response DTOs
- * Follows the Mapper pattern to separate entity structure from API response structure
  */
 export class UserMapper {
     static toRegisterUserResponse(user: User): RegisterUserResponse {
         return {
-            message: 'User registered successfully. Please verify using otp',
+            message: SUCCESS_MESSAGES.USER_REGISTERED,
             email: user.email,
         };
     }
 
-    static toLoginResponse(user: User, token: string): LoginUserResponse {
+    static toLoginResponse(user: User, accessToken: string, refreshToken?: string): LoginUserResponse {
         return {
             user: {
                 userId: user.userId,
@@ -23,13 +23,21 @@ export class UserMapper {
                 role: user.role,
                 createdAt: user.createdAt,
             },
-            token: token,
+            accessToken,
+            refreshToken,
         };
     }
 
     static toVerifyOtpResponse(user: User): VerifyOtpResponse {
         return {
-            message: 'OTP verified successfully',
+            message: SUCCESS_MESSAGES.OTP_VERIFIED,
+            email: user.email,
+        };
+    }
+
+    static toResendOtpResponse(user: User): ResendOtpResponse {
+        return {
+            message: SUCCESS_MESSAGES.OTP_SENT,
             email: user.email,
         };
     }

@@ -1,0 +1,96 @@
+import { Router } from 'express';
+import { AuthController } from '../../controllers/auth/auth.controller';
+import { OtpController } from '../../controllers/auth/otp.controller';
+import { TokenController } from '../../controllers/auth/token.controller';
+import { validationMiddleware } from '../../middleware/validation.middleware';
+import { RegisterUserRequest, LoginUserRequest, VerifyOtpRequest, ResendOtpRequest } from '../../../application/dtos/user.dto';
+
+/**
+ * Route configuration interface
+ * Defines dependencies for route setup
+ */
+interface AuthRoutesConfig {
+  authController: AuthController;
+  otpController: OtpController;
+  tokenController: TokenController;
+}
+
+/**
+ * Creates and configures authentication routes
+ * Factory pattern allows dependency injection and easy testing
+ */
+export function createAuthRoutes(config: AuthRoutesConfig): Router {
+  const router = Router();
+  const { authController, otpController, tokenController } = config;
+
+  /**
+   * User Registration
+   * POST /api/v1/auth/register
+   */
+  router.post(
+    '/register',
+    validationMiddleware(RegisterUserRequest),
+    (req, res) => authController.registerUser(req, res)
+  );
+
+  /**
+   * User Login
+   * POST /api/v1/auth/login
+   */
+  router.post(
+    '/login',
+    validationMiddleware(LoginUserRequest),
+    (req, res) => authController.loginUser(req, res)
+  );
+
+  /**
+   * Verify OTP
+   * POST /api/v1/auth/otp/verify
+   */
+  router.post(
+    '/otp/verify',
+    validationMiddleware(VerifyOtpRequest),
+    (req, res) => otpController.verifyOtp(req, res)
+  );
+
+  /**
+   * Resend OTP
+   * POST /api/v1/auth/otp/resend
+   */
+  router.post(
+    '/otp/resend',
+    validationMiddleware(ResendOtpRequest),
+    (req, res) => otpController.resendOtp(req, res)
+  );
+
+  /**
+   * Refresh Access Token
+   * POST /api/v1/auth/token/refresh
+   */
+  router.post(
+    '/token/refresh',
+    (req, res) => tokenController.refreshToken(req, res)
+  );
+
+  return router;
+}
+
+/**
+ * Factory function to create auth routes with DI resolution
+ * Resolves controllers from DI container when called
+ * This ensures controllers are registered before resolution
+ */
+import { container } from '../../../infrastructure/di';
+import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
+
+export function createAuthRoutesWithDI(): Router {
+  const authController = container.resolve<AuthController>(CONTROLLER_TOKENS.AuthController);
+  const otpController = container.resolve<OtpController>(CONTROLLER_TOKENS.OtpController);
+  const tokenController = container.resolve<TokenController>(CONTROLLER_TOKENS.TokenController);
+
+  return createAuthRoutes({
+    authController,
+    otpController,
+    tokenController,
+  });
+}

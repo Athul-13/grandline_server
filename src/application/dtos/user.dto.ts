@@ -93,8 +93,23 @@ export interface VerifyOtpResponse {
  */ 
 export interface ResendOtpResponse {
   message: string;
-  otp: string;
   email: string;
+}
+
+/**
+ * Request DTO for refresh token
+ * Contains the refresh token to generate new access token
+ */
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+/**
+ * Response DTO for refresh token
+ * Contains the new access token
+ */
+export interface RefreshTokenResponse {
+  accessToken: string;
 }
 
 /**
@@ -109,5 +124,6 @@ export interface LoginUserResponse {
     role: UserRole;
     createdAt: Date;
   };
-  token: string;
+  accessToken: string; // access token
+  refreshToken?: string; // refresh token
 }

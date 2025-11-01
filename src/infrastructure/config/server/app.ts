@@ -1,57 +1,74 @@
-import express, { Application } from 'express';
-import cors from 'cors';
-import { errorHandler } from '../../../presentation/middleware/errorHandler';
-import { MongoDBConnection } from '../../database/mongodb';
-import { RedisConnection } from '../../database/redis';
+import { Application } from 'express';
+import { injectable, inject } from 'tsyringe';
+import { CONFIG_TOKENS } from '../../di/tokens';
+import { MiddlewareConfigurator } from './middleware.configurator';
+import { DatabaseConnector } from './database.connector';
+import { ConnectionStatus } from './database.connector';
+import { createAuthRoutesWithDI } from '../../../presentation/routes/auth/auth.routes';
 
 /**
  * Express application wrapper class
- * Handles Express app configuration and middleware setup
+ * Coordinates application setup (middleware + database connections)
+ * Uses Dependency Injection for all dependencies
  */
+@injectable()
 export class App {
-  private app: Application;
-  private mongoConnection: MongoDBConnection;
+  private middlewareConfigurator: MiddlewareConfigurator;
+  private databaseConnector: DatabaseConnector;
 
-  constructor() {
-    this.app = express();
-    this.mongoConnection = MongoDBConnection.getInstance();
-    this.setupMiddleware();
+  /**
+   * Creates a new App instance
+   * All dependencies are injected via DI
+   */
+  constructor(
+    @inject(CONFIG_TOKENS.ExpressApp)
+    private readonly app: Application,
+    @inject(CONFIG_TOKENS.DatabaseConnector)
+    databaseConnector: DatabaseConnector,
+    @inject(CONFIG_TOKENS.MiddlewareConfigurator)
+    middlewareConfigurator: MiddlewareConfigurator
+  ) {
+    this.databaseConnector = databaseConnector;
+    this.middlewareConfigurator = middlewareConfigurator;
+
+    // Configure all middleware (errorHandler passed during DI registration)
+    this.middlewareConfigurator.configure();
   }
 
   /**
-   * Sets up all middleware for the Express application
+   * Connects to all databases (MongoDB and Redis)
+   * Delegates to DatabaseConnector
    */
-  private setupMiddleware(): void {
-    // CORS middleware
-    this.app.use(cors());
-    
-    // Body parsing middleware
-    this.app.use(express.json());
-    this.app.use(express.urlencoded({ extended: true }));
-
-    // Error handling middleware (must be last)
-    this.app.use(errorHandler);
+  public async connectDatabases(): Promise<void> {
+    await this.databaseConnector.connectAll();
   }
 
   /**
-   * Connects to MongoDB database
-   * @returns Promise<void>
+   * Disconnects from all databases
+   * Delegates to DatabaseConnector
    */
-  public async connectDatabase(): Promise<void> {
-    await this.mongoConnection.connect();
+  public async disconnectDatabases(): Promise<void> {
+    await this.databaseConnector.disconnectAll();
   }
 
   /**
-   * Connects to Redis database
-   * @returns Promise<void>
+   * Gets the connection status of all databases
    */
-    public async connectRedis(): Promise<void> {
-      await RedisConnection.getInstance().connect(); 
-    }
+  public getConnectionStatus(): ConnectionStatus {
+    return this.databaseConnector.getConnectionStatus();
+  }
+
+  /**
+   * Registers API routes
+   * Controllers are resolved here (after DI registration)
+   */
+  public registerRoutes(): void {
+    const authRoutes = createAuthRoutesWithDI();
+    this.app.use(`/api/v1/auth`, authRoutes);
+  }
 
   /**
    * Gets the configured Express application
-   * @returns Express Application instance
    */
   public getApp(): Application {
     return this.app;

@@ -1,27 +1,29 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
 
-// Load environment variables
 dotenv.config();
 
+import { APP_CONFIG } from './shared/config';
+import { registerAllDependencies, container, CONFIG_TOKENS } from './infrastructure/di';
 import { App } from './infrastructure/config/server/app';
-import { APP_CONFIG } from './shared/constants/index';
-import { registerAllDependencies } from './infrastructure/config/di';
 
 /**
  * Starts the Express server with database connection and error handling
  */
 const startServer = async (): Promise<void> => {
   try {
-    // Initialize Dependency Injection (must be first)
+    // Initialize Dependency Injection (must be called before resolving App)
     registerAllDependencies();
     
-    const app = new App();
+    // Resolve App from DI container (will inject DatabaseConnector)
+    const app = container.resolve<App>(CONFIG_TOKENS.App);
     const expressApp = app.getApp();
 
-    // Connect to database
-    await app.connectDatabase();
-    await app.connectRedis();
+    // Connect to all databases (MongoDB and Redis)
+    await app.connectDatabases();
+    
+    // Register API routes
+    app.registerRoutes();
     
     // Start server
     expressApp.listen(APP_CONFIG.PORT, () => {

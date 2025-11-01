@@ -1,28 +1,23 @@
 import Redis from 'ioredis';
+import { injectable } from 'tsyringe';
 import { createRedisInstance } from '../config/redis/redis';
 
 /**
  * Redis connection class
  * Handles Redis connection, disconnection, and status monitoring
  * Similar to MongoDBConnection for consistent connection management
+ * Uses Dependency Injection instead of singleton pattern
  */
+@injectable()
 export class RedisConnection {
-  private static instance: RedisConnection;
   private redis: Redis;
   private isConnected: boolean = false;
 
-  private constructor() {
+  constructor() {
     this.redis = createRedisInstance();
 
     // Set up event listeners
     this.setupEventListeners();
-  }
-
-  public static getInstance(): RedisConnection {
-    if (!RedisConnection.instance) {
-      RedisConnection.instance = new RedisConnection();
-    }
-    return RedisConnection.instance;
   }
 
   /**
