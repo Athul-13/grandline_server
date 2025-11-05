@@ -1,5 +1,5 @@
 import { User } from "../../domain/entities/user.entity";
-import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse, ResendOtpResponse } from "../dtos/user.dto";
+import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse, ResendOtpResponse, LogoutUserResponse, ForgotPasswordResponse, ResetPasswordResponse, GetUserProfileResponse, UpdateUserProfileResponse } from "../dtos/user.dto";
 import { SUCCESS_MESSAGES } from "../../shared/constants";
 
 
@@ -39,6 +39,55 @@ export class UserMapper {
         return {
             message: SUCCESS_MESSAGES.OTP_SENT,
             email: user.email,
+        };
+    }
+
+    static toLogoutResponse(): LogoutUserResponse {
+        return {
+            message: SUCCESS_MESSAGES.LOGOUT_SUCCESS,
+        };
+    }
+
+    static toForgotPasswordResponse(user: User): ForgotPasswordResponse {
+        return {
+            message: SUCCESS_MESSAGES.PASSWORD_RESET_EMAIL_SENT,
+            email: user.email,
+        };
+    }
+
+    static toResetPasswordResponse(): ResetPasswordResponse {
+        return {
+            message: SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS,
+        };
+    }
+
+    static toGetUserProfileResponse(user: User): GetUserProfileResponse {
+        return {
+            user: {
+                userId: user.userId,
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                profilePicture: user.profilePicture,
+                role: user.role,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            },
+        };
+    }
+
+    static toUpdateUserProfileResponse(user: User): UpdateUserProfileResponse {
+        return {
+            message: 'Profile updated successfully',
+            user: {
+                userId: user.userId,
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                profilePicture: user.profilePicture,
+                role: user.role,
+                updatedAt: user.updatedAt,
+            },
         };
     }
 }

@@ -56,6 +56,8 @@ export class EmailServiceImpl implements IEmailService {
     switch (type) {
       case EmailType.OTP:
         return 'Verify Your Email - GRANDLINE';
+      case EmailType.PASSWORD_RESET:
+        return 'Reset Your Password - GRANDLINE';
       default:
         return 'GRANDLINE';
     }

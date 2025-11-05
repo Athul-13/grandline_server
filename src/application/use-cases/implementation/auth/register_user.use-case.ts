@@ -12,9 +12,10 @@ import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
 import { logger } from '../../../../shared/logger';
+import { IRegisterUserUseCase } from '../../interface/auth/register_user_use_case.interface';
 
 @injectable()
-export class RegisterUserUseCase {
+export class RegisterUserUseCase implements IRegisterUserUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,

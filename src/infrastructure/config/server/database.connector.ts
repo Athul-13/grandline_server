@@ -1,6 +1,6 @@
 import { injectable, inject } from 'tsyringe';
-import { MongoDBConnection } from '../../database/mongodb';
-import { RedisConnection } from '../../database/redis';
+import { MongoDBConnection } from '../../database/mongodb/mongodb_connection.impl';
+import { RedisConnection } from '../../database/redis/redis_connection.impl';
 import { CONFIG_TOKENS } from '../../di/tokens';
 
 /**

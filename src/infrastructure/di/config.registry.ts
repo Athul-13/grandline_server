@@ -2,11 +2,11 @@ import express, { Application, ErrorRequestHandler } from 'express';
 import { container } from 'tsyringe';
 import { CONFIG_TOKENS } from './tokens';
 import { DatabaseConnector } from '../config/server/database.connector';
-import { MongoDBConnection } from '../database/mongodb';
-import { RedisConnection } from '../database/redis';
+import { MongoDBConnection } from '../database/mongodb/mongodb_connection.impl';
+import { RedisConnection } from '../database/redis/redis_connection.impl';
 import { App } from '../config/server/app';
 import { MiddlewareConfigurator } from '../config/server/middleware.configurator';
-import { errorHandler } from '../../presentation/middleware/errorHandler';
+import { errorHandler } from '../../presentation/middleware/error_handler';
 import { MiddlewareConfig } from '../config/server/middleware.configurator';
 
 /**

@@ -79,6 +79,9 @@ export const SUCCESS_MESSAGES = {
   OTP_VERIFIED: 'OTP verified successfully',
   LOGIN_SUCCESS: 'Login successful',
   LOGOUT_SUCCESS: 'Logout successful',
+  PASSWORD_RESET_EMAIL_SENT: 'Password reset link has been sent to your email',
+  PASSWORD_RESET_SUCCESS: 'Password has been reset successfully',
+  PROFILE_UPDATED: 'Profile updated successfully',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -89,6 +92,7 @@ export const ERROR_MESSAGES = {
   OTP_INVALID_OR_EXPIRED: 'OTP is invalid or has expired',
   TOKEN_REVOKED: 'Token has been revoked',
   TOKEN_EXPIRED: 'Token has expired',
+  INVALID_RESET_TOKEN: 'Invalid or expired password reset token',
   UNAUTHORIZED: 'Unauthorized access',
   FORBIDDEN: 'You do not have permission to perform this action',
   BAD_REQUEST: 'Invalid request data',

@@ -8,5 +8,10 @@ export const USE_CASE_TOKENS = {
   ResendOtpUseCase: Symbol.for('ResendOtpUseCase'),
   LoginUserUseCase: Symbol.for('LoginUserUseCase'),
   RefreshTokenUseCase: Symbol.for('RefreshTokenUseCase'),
+  LogoutUserUseCase: Symbol.for('LogoutUserUseCase'),
+  ForgotPasswordUseCase: Symbol.for('ForgotPasswordUseCase'),
+  ResetPasswordUseCase: Symbol.for('ResetPasswordUseCase'),
+  GetUserProfileUseCase: Symbol.for('GetUserProfileUseCase'),
+  UpdateUserProfileUseCase: Symbol.for('UpdateUserProfileUseCase'),
 } as const;
 

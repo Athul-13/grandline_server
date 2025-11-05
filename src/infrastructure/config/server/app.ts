@@ -4,7 +4,8 @@ import { CONFIG_TOKENS } from '../../di/tokens';
 import { MiddlewareConfigurator } from './middleware.configurator';
 import { DatabaseConnector } from './database.connector';
 import { ConnectionStatus } from './database.connector';
-import { createAuthRoutesWithDI } from '../../../presentation/routes/auth/auth.routes';
+import { createAuthRoutesWithDI } from '../../../presentation/routes/auth/auth_routes';
+import { createUserRoutesWithDI } from '../../../presentation/routes/user/user_routes';
 
 /**
  * Express application wrapper class
@@ -65,6 +66,9 @@ export class App {
   public registerRoutes(): void {
     const authRoutes = createAuthRoutesWithDI();
     this.app.use(`/api/v1/auth`, authRoutes);
+
+    const userRoutes = createUserRoutesWithDI();
+    this.app.use(`/api/v1/user`, userRoutes);
   }
 
   /**

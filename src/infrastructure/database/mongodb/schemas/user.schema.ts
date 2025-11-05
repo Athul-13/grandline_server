@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { UserRole, UserStatus } from '../../../shared/constants';
+import { UserRole, UserStatus } from '../../../../shared/constants';
 
 /**
  * MongoDB schema for User collection

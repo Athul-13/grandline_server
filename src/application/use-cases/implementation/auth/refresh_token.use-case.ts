@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { IRefreshTokenUseCase } from '../../interface/auth/refresh-token.use-case.interface';
+import { IRefreshTokenUseCase } from '../../interface/auth/refresh_token_use_case.interface';
 import { RefreshTokenRequest, RefreshTokenResponse } from '../../../dtos/user.dto';
 import { IJWTService } from '../../../../domain/services/jwt_service.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';

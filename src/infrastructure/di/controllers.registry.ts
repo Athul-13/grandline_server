@@ -3,6 +3,7 @@ import { CONTROLLER_TOKENS } from './tokens';
 import { AuthController } from '../../presentation/controllers/auth/auth.controller';
 import { OtpController } from '../../presentation/controllers/auth/otp.controller';
 import { TokenController } from '../../presentation/controllers/auth/token.controller';
+import { UserController } from '../../presentation/controllers/user/user.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -12,5 +13,6 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.AuthController, AuthController);
   container.register(CONTROLLER_TOKENS.OtpController, OtpController);
   container.register(CONTROLLER_TOKENS.TokenController, TokenController);
+  container.register(CONTROLLER_TOKENS.UserController, UserController);
 }
 

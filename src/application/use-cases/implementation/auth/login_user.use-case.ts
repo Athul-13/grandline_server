@@ -11,9 +11,10 @@ import { generateOTP } from '../../../../shared/utils/otp.util';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
 import { logger } from '../../../../shared/logger';
+import { ILoginUserUseCase } from '../../interface/auth/login_user_use_case.interface';
 
 @injectable()
-export class LoginUserUseCase {
+export class LoginUserUseCase implements ILoginUserUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,

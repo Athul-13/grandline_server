@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { VerifyOtpUseCase } from '../../../application/use-cases/implementation/auth/verify-otp.use-case';
-import { ResendOtpUseCase } from '../../../application/use-cases/implementation/auth/resend-otp.use-case';
+import { IVerifyOtpUseCase } from '../../../application/use-cases/interface/auth/verify_otp_use_case.interface';
+import { IResendOtpUseCase } from '../../../application/use-cases/interface/auth/resend_otp_use_case.interface';
 import { VerifyOtpRequest, ResendOtpRequest } from '../../../application/dtos/user.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -15,9 +15,9 @@ import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/re
 export class OtpController {
   constructor(
     @inject(USE_CASE_TOKENS.VerifyOtpUseCase)
-    private readonly verifyOtpUseCase: VerifyOtpUseCase,
+    private readonly verifyOtpUseCase: IVerifyOtpUseCase,
     @inject(USE_CASE_TOKENS.ResendOtpUseCase)
-    private readonly resendOtpUseCase: ResendOtpUseCase
+    private readonly resendOtpUseCase: IResendOtpUseCase
   ) {}
 
   /**

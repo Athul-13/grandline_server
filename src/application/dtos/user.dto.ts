@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, Matches, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength, ValidateIf } from 'class-validator';
 import { UserRole } from '../../shared/constants';
 
 /**
@@ -61,10 +61,62 @@ export class VerifyOtpRequest {
 /**
  * Request DTO for OTP resend
  * Validates input data before processing
- */ 
+ */
 export class ResendOtpRequest {
   @IsEmail()
   email!: string;
+}
+
+/**
+ * Request DTO for forgot password
+ * Validates input data before processing
+ */
+export class ForgotPasswordRequest {
+  @IsEmail()
+  email!: string;
+}
+
+/**
+ * Request DTO for reset password
+ * Validates input data before processing
+ */
+export class ResetPasswordRequest {
+  @IsString()
+  @IsNotEmpty()
+  token!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: 'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+  })
+  newPassword!: string;
+}
+
+/**
+ * Request DTO for updating user profile
+ * All fields are optional - only provided fields will be updated
+ */
+export class UpdateUserProfileRequest {
+  @IsOptional()
+  @ValidateIf((o) => o.fullName !== undefined)
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(3)
+  fullName?: string;
+
+  @IsOptional()
+  @ValidateIf((o) => o.phoneNumber !== undefined)
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^\d{10}$/, {
+    message: 'Phone number must be exactly 10 digits',
+  })
+  phoneNumber?: string;
+
+  @IsOptional()
+  @IsString()
+  profilePicture?: string;
 }
 
 
@@ -126,4 +178,71 @@ export interface LoginUserResponse {
   };
   accessToken: string; // access token
   refreshToken?: string; // refresh token
+}
+
+/**
+ * Request DTO for user logout
+ * Contains the refresh token extracted from HTTP-only cookie
+ */
+export interface LogoutUserRequest {
+  refreshToken?: string; // Optional - may not exist if already logged out
+}
+
+/**
+ * Response DTO for user logout
+ * Contains the logout confirmation message
+ */
+export interface LogoutUserResponse {
+  message: string;
+}
+
+/**
+ * Response DTO for forgot password
+ * Contains the result of the forgot password process
+ */
+export interface ForgotPasswordResponse {
+  message: string;
+  email: string;
+}
+
+/**
+ * Response DTO for reset password
+ * Contains the result of the reset password process
+ */
+export interface ResetPasswordResponse {
+  message: string;
+}
+
+/**
+ * Response DTO for getting user profile
+ * Contains user profile information
+ */
+export interface GetUserProfileResponse {
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    profilePicture: string;
+    role: UserRole;
+    createdAt: Date;
+    updatedAt: Date;
+  };
+}
+
+/**
+ * Response DTO for updating user profile
+ * Contains the result of the profile update process
+ */
+export interface UpdateUserProfileResponse {
+  message: string;
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+    profilePicture: string;
+    role: UserRole;
+    updatedAt: Date;
+  };
 }

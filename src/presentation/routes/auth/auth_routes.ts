@@ -3,7 +3,8 @@ import { AuthController } from '../../controllers/auth/auth.controller';
 import { OtpController } from '../../controllers/auth/otp.controller';
 import { TokenController } from '../../controllers/auth/token.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { RegisterUserRequest, LoginUserRequest, VerifyOtpRequest, ResendOtpRequest } from '../../../application/dtos/user.dto';
+import { authenticate } from '../../middleware/auth.middleware';
+import { RegisterUserRequest, LoginUserRequest, VerifyOtpRequest, ResendOtpRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../../../application/dtos/user.dto';
 
 /**
  * Route configuration interface
@@ -70,6 +71,37 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/token/refresh',
     (req, res) => tokenController.refreshToken(req, res)
+  );
+
+  /**
+   * User Logout
+   * POST /api/v1/auth/logout
+   * Requires authentication
+   */
+  router.post(
+    '/logout',
+    authenticate,
+    (req, res) => authController.logoutUser(req, res)
+  );
+
+  /**
+   * Forgot Password
+   * POST /api/v1/auth/forgot-password
+   */
+  router.post(
+    '/forgot-password',
+    validationMiddleware(ForgotPasswordRequest),
+    (req, res) => authController.forgotPassword(req, res)
+  );
+
+  /**
+   * Reset Password
+   * POST /api/v1/auth/reset-password
+   */
+  router.post(
+    '/reset-password',
+    validationMiddleware(ResetPasswordRequest),
+    (req, res) => authController.resetPassword(req, res)
   );
 
   return router;

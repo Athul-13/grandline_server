@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { injectable } from 'tsyringe';
-import { APP_CONFIG, DATABASE_CONFIG } from '../../shared/config';
+import { APP_CONFIG, DATABASE_CONFIG } from '../../../shared/config';
 
 /**
  * MongoDB connection class

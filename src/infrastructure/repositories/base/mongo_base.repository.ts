@@ -1,20 +1,17 @@
-import { Model, FilterQuery, UpdateQuery, AnyKeys } from 'mongoose';
+import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
 
 export abstract class MongoBaseRepository<TModel, TEntity> {
   protected constructor(
-    protected readonly model: Model<TModel>,
+    protected readonly model: IDatabaseModel<TModel>,
     private readonly idField: string = 'userId',
   ) {}
 
   protected abstract toEntity(doc: TModel): TEntity;
-  protected abstract toPersistence(entity: TEntity): AnyKeys<TModel>;
+  protected abstract toPersistence(entity: TEntity): Partial<TModel>;
 
   async findById(id: string): Promise<TEntity | null> {
-    const filter = { [this.idField]: id } as FilterQuery<TModel>;
-    const doc = await this.model
-      .findOne(filter)
-      .lean<TModel>()
-      .exec();
+    const filter = { [this.idField]: id };
+    const doc = await this.model.findOne(filter);
     return doc ? this.toEntity(doc) : null;
   }
 
@@ -24,17 +21,12 @@ export abstract class MongoBaseRepository<TModel, TEntity> {
   }
 
   async updateById(id: string, update: Partial<TEntity>): Promise<void> {
-    const filter = { [this.idField]: id } as FilterQuery<TModel>;
-    await this.model
-      .updateOne(
-        filter,
-        { $set: update as unknown as UpdateQuery<TModel> }
-      )
-      .exec();
+    const filter = { [this.idField]: id };
+    await this.model.updateOne(filter, { $set: update });
   }
 
   async deleteById(id: string): Promise<void> {
-    const filter = { [this.idField]: id } as FilterQuery<TModel>;
-    await this.model.deleteOne(filter).exec();
+    const filter = { [this.idField]: id };
+    await this.model.deleteOne(filter);
   }
 }

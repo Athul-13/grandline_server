@@ -16,6 +16,7 @@ export const APP_CONFIG = {
 export const JWT_CONFIG = {
   ACCESS_TOKEN_EXPIRY: process.env.ACCESS_TOKEN_EXPIRY || '30m', // 30 minutes
   REFRESH_TOKEN_EXPIRY: process.env.REFRESH_TOKEN_EXPIRY || '7d', // 7 days
+  RESET_PASSWORD_TOKEN_EXPIRY: process.env.RESET_PASSWORD_TOKEN_EXPIRY || '5m', // 5 minutes
 } as const;
 
 /**
@@ -70,4 +71,12 @@ export const EMAIL_CONFIG = {
   SECURE: false, // true for 465, false for 587 (STARTTLS)
   USER: process.env.EMAIL_USER || '',
   PASS: process.env.EMAIL_PASS || '',
+} as const;
+
+/**
+ * Frontend configuration constants
+ * Manages frontend URLs for email links and redirects
+ */
+export const FRONTEND_CONFIG = {
+  URL: process.env.CORS_ORIGIN || 'http://localhost:5173',
 } as const;

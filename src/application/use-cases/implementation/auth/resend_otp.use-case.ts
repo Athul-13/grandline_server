@@ -8,9 +8,10 @@ import { ERROR_MESSAGES, OTP_CONFIG } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
+import { IResendOtpUseCase } from '../../interface/auth/resend_otp_use_case.interface';
 
 @injectable()
-export class ResendOtpUseCase {
+export class ResendOtpUseCase implements IResendOtpUseCase {
   constructor(
     @inject(SERVICE_TOKENS.IOTPService)
     private readonly otpService: IOTPService,

@@ -1,6 +1,7 @@
 import { EmailType } from '../../types/email.types';
-import { OTPEmailData } from '../../types/email.types';
+import { OTPEmailData, PasswordResetEmailData } from '../../types/email.types';
 import { renderOTPHTML, renderOTPText } from './otp.template';
+import { renderPasswordResetHTML, renderPasswordResetText } from './password_reset.template';
 
 /**
  * Template renderer type
@@ -19,6 +20,10 @@ const TEMPLATE_REGISTRY: Record<EmailType, TemplateRenderer> = {
   [EmailType.OTP]: {
     html: (data: unknown) => renderOTPHTML(data as OTPEmailData),
     text: (data: unknown) => renderOTPText(data as OTPEmailData),
+  },
+  [EmailType.PASSWORD_RESET]: {
+    html: (data: unknown) => renderPasswordResetHTML(data as PasswordResetEmailData),
+    text: (data: unknown) => renderPasswordResetText(data as PasswordResetEmailData),
   },
 };
 

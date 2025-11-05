@@ -4,7 +4,6 @@ import { REDIS_CONFIG } from "../../../shared/config";
 /**
  * Redis configuration factory
  * Creates Redis instances with proper configuration
- * Used by RedisConnection class for connection management
  */
 export const createRedisConfig = () => {
   return {

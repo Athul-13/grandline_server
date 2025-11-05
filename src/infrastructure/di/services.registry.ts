@@ -3,7 +3,7 @@ import { SERVICE_TOKENS } from './tokens';
 import { IOTPService } from '../../domain/services/otp_service.interface';
 import { OTPServiceImpl } from '../service/otp.service';
 import { ITokenBlacklistService } from '../../domain/services/token_blacklist_service.interface';
-import { TokenBlacklistServiceImpl } from '../service/token-blacklist.service';
+import { TokenBlacklistServiceImpl } from '../service/token_blacklist.service';
 import { IJWTService } from '../../domain/services/jwt_service.interface';
 import { JWTServiceImpl } from '../service/jwt.service';
 import { IEmailService } from '../../domain/services/email_service.interface';

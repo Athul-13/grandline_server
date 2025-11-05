@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import { injectable } from 'tsyringe';
-import { createRedisInstance } from '../config/redis/redis';
+import { createRedisInstance } from '../../config/redis/redis';
 import { IRedisConnection } from '../../domain/services/redis_connection.interface';
 
 /**

@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { RefreshTokenUseCase } from '../../../application/use-cases/implementation/auth/refresh-token.use-case';
+import { IRefreshTokenUseCase } from '../../../application/use-cases/interface/auth/refresh_token_use_case.interface';
 import { RefreshTokenRequest } from '../../../application/dtos/user.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
@@ -15,7 +15,7 @@ import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/re
 export class TokenController {
   constructor(
     @inject(USE_CASE_TOKENS.RefreshTokenUseCase)
-    private readonly refreshTokenUseCase: RefreshTokenUseCase
+    private readonly refreshTokenUseCase: IRefreshTokenUseCase
   ) {}
 
   /**

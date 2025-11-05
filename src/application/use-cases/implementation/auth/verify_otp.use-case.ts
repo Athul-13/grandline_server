@@ -6,9 +6,10 @@ import { UserMapper } from '../../../mapper/user.mapper';
 import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
+import { IVerifyOtpUseCase } from '../../interface/auth/verify_otp_use_case.interface';
 
 @injectable()
-export class VerifyOtpUseCase {
+export class VerifyOtpUseCase implements IVerifyOtpUseCase {
   constructor(
     @inject(SERVICE_TOKENS.IOTPService)
     private readonly otpService: IOTPService,

@@ -1,5 +1,5 @@
 import { User } from '../../domain/entities/user.entity';
-import { IUserModel } from '../database/mongoModels/user.model';
+import { IUserModel } from '../database/mongodb/models/user.model';
 import { UserRole, UserStatus } from '../../shared/constants';
 
 /**

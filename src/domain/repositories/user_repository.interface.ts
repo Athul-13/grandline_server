@@ -14,4 +14,8 @@ export interface IUserRepository extends IBaseRepository<User> {
     createUser(user: User, passwordHash: string): Promise<void>;
 
     getPasswordHash(userId: string): Promise<string>;
+
+    updatePassword(userId: string, passwordHash: string): Promise<void>;
+
+    updateUserProfile(userId: string, updates: { fullName?: string; phoneNumber?: string; profilePicture?: string }): Promise<User>;
 }
