@@ -3,9 +3,10 @@ import { inject, injectable } from 'tsyringe';
 import { IRefreshTokenUseCase } from '../../../application/use-cases/interface/auth/refresh_token_use_case.interface';
 import { RefreshTokenRequest } from '../../../application/dtos/user.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
-import { HTTP_STATUS } from '../../../shared/constants';
+import { HTTP_STATUS, COOKIE_NAMES } from '../../../shared/constants';
 import { setAccessTokenCookie } from '../../../shared/utils/cookie.util';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
+import { logger } from '../../../shared/logger';
 
 /**
  * Token controller
@@ -23,7 +24,19 @@ export class TokenController {
    */
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
-      const request: RefreshTokenRequest = req.body;
+      // Read refresh token from HTTP-only cookie (not from request body)
+      const refreshToken = req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+      
+      if (!refreshToken) {
+        logger.warn('Refresh token not found in cookies');
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: 'Refresh token not found',
+        });
+        return;
+      }
+
+      const request: RefreshTokenRequest = { refreshToken };
       const response = await this.refreshTokenUseCase.execute(request);
 
       // Set new access token in HTTP-only cookie
@@ -33,6 +46,7 @@ export class TokenController {
         message: 'Access token refreshed successfully',
       });
     } catch (error) {
+      logger.error(`Error refreshing access token: ${error instanceof Error ? error.message : String(error)}`);
       sendErrorResponse(res, error);
     }
   }

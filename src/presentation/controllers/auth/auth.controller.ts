@@ -10,6 +10,7 @@ import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES, COOKIE_NAMES } from '../../../shared/constants';
 import { setAccessTokenCookie, setRefreshTokenCookie, clearAllAuthCookies } from '../../../shared/utils/cookie.util';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
+import { logger } from '../../../shared/logger';
 
 /**
  * Authentication controller
