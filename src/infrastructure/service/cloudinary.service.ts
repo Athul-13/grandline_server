@@ -27,29 +27,18 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
   generateSignedUploadParams(options: SignedUploadOptions): SignedUploadParams {
     const timestamp = Math.round(new Date().getTime() / 1000);
 
-    // Build parameters to sign
-    const params: Record<string, string | number | string[]> = {
+    // Build minimal parameters to sign (only timestamp and folder)
+    // Validation (size, format) happens on server after upload
+    const params: Record<string, string | number> = {
       timestamp,
       folder: options.folder,
-      allowed_formats: options.allowedFormats,
-      max_file_size: options.maxFileSize,
     };
 
-    // Add transformations if provided
-    if (options.transformations && options.transformations.length > 0) {
-      params.transformation = JSON.stringify(options.transformations);
-    }
-
     // Generate signature following Cloudinary's algorithm
+    // Simple signature: only timestamp and folder
     const signatureString = Object.keys(params)
       .sort()
-      .map((key) => {
-        const value = params[key];
-        if (Array.isArray(value)) {
-          return `${key}=${value.join(',')}`;
-        }
-        return `${key}=${value}`;
-      })
+      .map((key) => `${key}=${params[key]}`)
       .join('&') + CLOUDINARY_CONFIG.API_SECRET;
 
     const signature = crypto
@@ -62,9 +51,6 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
       signature,
       api_key: CLOUDINARY_CONFIG.API_KEY,
       folder: options.folder,
-      allowed_formats: options.allowedFormats,
-      max_file_size: options.maxFileSize,
-      transformation: options.transformations,
     };
   }
 
@@ -92,18 +78,51 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
   }
 
   async verifyFileExists(url: string): Promise<boolean> {
-    try {
-      const publicId = this.extractPublicIdFromUrl(url);
-      if (!publicId) {
-        return false;
-      }
+    const publicId = this.extractPublicIdFromUrl(url);
+    if (!publicId) {
+      return false;
+    }
 
+    try {
       const result = await cloudinary.api.resource(publicId);
       return !!result;
     } catch (error) {
       // File doesn't exist or API error
-      logger.warn(`File verification failed: ${error instanceof Error ? error.message : String(error)}`);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (typeof error === 'object' && error !== null && 'message' in error)
+          ? String(error.message)
+          : JSON.stringify(error);
+      
+      logger.warn(`File verification failed. Public ID: ${publicId}, Error: ${errorMessage}`);
       return false;
+    }
+  }
+
+  async getFileInfo(url: string): Promise<import('../../domain/services/cloudinary_service.interface').CloudinaryFileInfo | null> {
+    const publicId = this.extractPublicIdFromUrl(url);
+    if (!publicId) {
+      return null;
+    }
+
+    try {
+      const result = await cloudinary.api.resource(publicId);
+      
+      return {
+        format: result.format,
+        bytes: result.bytes,
+        width: result.width,
+        height: result.height,
+      };
+    } catch (error) {
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : (typeof error === 'object' && error !== null && 'message' in error)
+          ? String(error.message)
+          : JSON.stringify(error);
+      
+      logger.warn(`Failed to get file info. Public ID: ${publicId}, Error: ${errorMessage}`);
+      return null;
     }
   }
 
@@ -139,7 +158,15 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
       const publicId = publicIdWithExtension.split('.')[0];
       
       // If there's a folder, include it
-      const folderParts = afterResourceType.slice(0, -1).filter(part => part && !part.includes('upload'));
+      // Filter out 'upload' and version numbers (v followed by digits)
+      const folderParts = afterResourceType.slice(0, -1).filter(part => {
+        if (!part) return false;
+        // Exclude 'upload' type
+        if (part.includes('upload')) return false;
+        // Exclude version numbers (v followed by digits)
+        if (/^v\d+$/.test(part)) return false;
+        return true;
+      });
       
       if (folderParts.length > 0) {
         return `${folderParts.join('/')}/${publicId}`;

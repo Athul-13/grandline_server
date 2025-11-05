@@ -263,16 +263,6 @@ export interface SignedUploadUrlResponse {
     signature: string;
     api_key: string;
     folder: string;
-    allowed_formats: string[];
-    max_file_size: number;
-    transformation?: Array<{
-      width?: number;
-      height?: number;
-      crop?: string;
-      gravity?: string;
-      quality?: string;
-      format?: string;
-    }>;
   };
   expiresIn: number; // Expiration time in seconds
 }

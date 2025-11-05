@@ -10,21 +10,11 @@ import { logger } from '../../../../shared/logger';
 
 /**
  * Default upload configuration for profile pictures
- * Can be extended for other upload types (vehicles, etc.)
+ * Simplified: only folder needed for signed upload
+ * Validation (size, format) happens on server after upload
  */
 const PROFILE_PICTURE_CONFIG = {
   folder: 'profile-pictures',
-  maxFileSize: 5242880, // 5MB
-  allowedFormats: ['jpg', 'png', 'webp'] as string[],
-  transformations: [
-    {
-      width: 500,
-      height: 500,
-      crop: 'fill',
-      gravity: 'face',
-      quality: 'auto',
-    },
-  ] as Array<{ width: number; height: number; crop: string; gravity: string; quality: string }>,
 };
 
 /**
@@ -48,14 +38,10 @@ export class GenerateUploadUrlUseCase implements IGenerateUploadUrlUseCase {
       throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
-    // Generate signed upload parameters with profile picture defaults
-    // Future: Can create separate use cases for different upload types (vehicles, etc.)
+    // Generate signed upload parameters 
     const signedParams = this.cloudinaryService.generateSignedUploadParams({
       userId,
       folder: PROFILE_PICTURE_CONFIG.folder,
-      maxFileSize: PROFILE_PICTURE_CONFIG.maxFileSize,
-      allowedFormats: PROFILE_PICTURE_CONFIG.allowedFormats,
-      transformations: PROFILE_PICTURE_CONFIG.transformations,
     });
 
     logger.info(`Generated signed upload URL for user: ${userId}`);
@@ -67,9 +53,6 @@ export class GenerateUploadUrlUseCase implements IGenerateUploadUrlUseCase {
         signature: signedParams.signature,
         api_key: signedParams.api_key,
         folder: signedParams.folder,
-        allowed_formats: signedParams.allowed_formats,
-        max_file_size: signedParams.max_file_size,
-        transformation: signedParams.transformation,
       },
       expiresIn: CLOUDINARY_CONFIG.SIGNED_URL_EXPIRY,
     };

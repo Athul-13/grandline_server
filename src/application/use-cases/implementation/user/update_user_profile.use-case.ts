@@ -53,6 +53,27 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
         throw new Error('Profile picture file not found in Cloudinary');
       }
 
+      // Validate file size and format (server-side validation)
+      const fileInfo = await this.cloudinaryService.getFileInfo(request.profilePicture);
+      if (!fileInfo) {
+        logger.warn(`Failed to get file info for user: ${userId}`);
+        throw new Error('Failed to validate profile picture file');
+      }
+
+      // Validate file size (max 5MB)
+      const MAX_FILE_SIZE = 5242880; // 5MB
+      if (fileInfo.bytes > MAX_FILE_SIZE) {
+        logger.warn(`Profile picture file too large for user: ${userId}, size: ${fileInfo.bytes} bytes`);
+        throw new Error('Profile picture file is too large. Maximum size is 5MB');
+      }
+
+      // Validate file format
+      const ALLOWED_FORMATS = ['jpg', 'jpeg', 'png', 'webp'];
+      if (!ALLOWED_FORMATS.includes(fileInfo.format.toLowerCase())) {
+        logger.warn(`Invalid file format for user: ${userId}, format: ${fileInfo.format}`);
+        throw new Error('Invalid file format. Allowed formats: JPG, PNG, WEBP');
+      }
+
       // Delete old profile picture if it exists
       if (existingUser.profilePicture && existingUser.profilePicture !== request.profilePicture) {
         try {
@@ -73,16 +94,57 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
       throw new Error(ERROR_MESSAGES.BAD_REQUEST);
     }
 
-    // Update user profile
-    const updatedUser = await this.userRepository.updateUserProfile(userId, updates);
+    // Track new profile picture URL for cleanup if database save fails
+    const newProfilePictureUrl = updates.profilePicture;
 
-    const updatedFields = Object.keys(updates);
-    logger.info(`User profile updated successfully: ${updatedUser.email}, fields updated: ${updatedFields.join(', ')}`);
+    try {
+      // Update user profile
+      const updatedUser = await this.userRepository.updateUserProfile(userId, updates);
 
-    const response = UserMapper.toUpdateUserProfileResponse(updatedUser);
-    response.message = SUCCESS_MESSAGES.PROFILE_UPDATED;
-    
-    return response;
+      const updatedFields = Object.keys(updates);
+      logger.info(`User profile updated successfully: ${updatedUser.email}, fields updated: ${updatedFields.join(', ')}`);
+
+      const response = UserMapper.toUpdateUserProfileResponse(updatedUser);
+      response.message = SUCCESS_MESSAGES.PROFILE_UPDATED;
+      
+      return response;
+    } catch (error) {
+      // If database save failed and we have a new profile picture, cleanup Cloudinary file
+      if (newProfilePictureUrl) {
+        await this.cleanupCloudinaryFile(newProfilePictureUrl, userId, error);
+      }
+      
+      // Re-throw the original error
+      throw error;
+    }
+  }
+
+  /**
+   * Cleans up Cloudinary file if database save fails
+   * Prevents orphaned files in Cloudinary storage
+   * Logs cleanup attempts and failures without throwing errors
+   */
+  private async cleanupCloudinaryFile(
+    fileUrl: string,
+    userId: string,
+    originalError: unknown
+  ): Promise<void> {
+    try {
+      logger.warn(
+        `Database save failed for user ${userId}. Attempting to cleanup Cloudinary file: ${fileUrl}. Original error: ${originalError instanceof Error ? originalError.message : String(originalError)}`
+      );
+
+      await this.cloudinaryService.deleteFile(fileUrl);
+      
+      logger.info(`Successfully cleaned up Cloudinary file after database save failure for user: ${userId}`);
+    } catch (cleanupError) {
+      // Log cleanup failure but don't throw - original error is more important
+      logger.error(
+        `Failed to cleanup Cloudinary file after database save failure for user ${userId}. File URL: ${fileUrl}. Cleanup error: ${cleanupError instanceof Error ? cleanupError.message : String(cleanupError)}. Orphaned file may remain in Cloudinary.`
+      );
+      
+      // Don't throw - we want to return the original database error, not cleanup error
+    }
   }
 
   /**
