@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IGetUserProfileUseCase } from '../../../application/use-cases/interface/user/get_user_profile_use_case.interface';
 import { IUpdateUserProfileUseCase } from '../../../application/use-cases/interface/user/update_user_profile_use_case.interface';
+import { IGenerateUploadUrlUseCase } from '../../../application/use-cases/interface/user/generate_upload_url_use_case.interface';
 import { UpdateUserProfileRequest } from '../../../application/dtos/user.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -19,7 +20,9 @@ export class UserController {
     @inject(USE_CASE_TOKENS.GetUserProfileUseCase)
     private readonly getUserProfileUseCase: IGetUserProfileUseCase,
     @inject(USE_CASE_TOKENS.UpdateUserProfileUseCase)
-    private readonly updateUserProfileUseCase: IUpdateUserProfileUseCase
+    private readonly updateUserProfileUseCase: IUpdateUserProfileUseCase,
+    @inject(USE_CASE_TOKENS.GenerateUploadUrlUseCase)
+    private readonly generateUploadUrlUseCase: IGenerateUploadUrlUseCase
   ) {}
 
   /**
@@ -63,6 +66,28 @@ export class UserController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.PROFILE_UPDATED);
     } catch (error) {
       logger.error(`Error updating user profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles generating signed upload URL for profile picture
+   */
+  async generateUploadUrl(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Upload URL generation attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      logger.info(`Upload URL generation request for user: ${req.user.userId}`);
+      const response = await this.generateUploadUrlUseCase.execute(req.user.userId);
+
+      logger.info(`Upload URL generated successfully for user: ${req.user.userId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error generating upload URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

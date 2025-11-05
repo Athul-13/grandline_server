@@ -13,5 +13,6 @@ export const USE_CASE_TOKENS = {
   ResetPasswordUseCase: Symbol.for('ResetPasswordUseCase'),
   GetUserProfileUseCase: Symbol.for('GetUserProfileUseCase'),
   UpdateUserProfileUseCase: Symbol.for('UpdateUserProfileUseCase'),
+  GenerateUploadUrlUseCase: Symbol.for('GenerateUploadUrlUseCase'),
 } as const;
 

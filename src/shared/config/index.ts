@@ -80,3 +80,15 @@ export const EMAIL_CONFIG = {
 export const FRONTEND_CONFIG = {
   URL: process.env.CORS_ORIGIN || 'http://localhost:5173',
 } as const;
+
+/**
+ * Cloudinary configuration constants
+ * Manages Cloudinary cloud storage settings for file uploads
+ */
+export const CLOUDINARY_CONFIG = {
+  CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
+  API_KEY: process.env.CLOUDINARY_API_KEY || '',
+  API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
+  UPLOAD_URL: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME || ''}/image/upload`,
+  SIGNED_URL_EXPIRY: 300, // 5 minutes - fixed for security
+} as const;

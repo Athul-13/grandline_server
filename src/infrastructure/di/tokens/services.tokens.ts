@@ -7,4 +7,5 @@ export const SERVICE_TOKENS = {
   IJWTService: Symbol.for('IJWTService'),
   ITokenBlacklistService: Symbol.for('ITokenBlacklistService'),
   IEmailService: Symbol.for('IEmailService'),
+  ICloudinaryService: Symbol.for('ICloudinaryService'),
 } as const;

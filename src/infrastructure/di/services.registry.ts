@@ -8,6 +8,8 @@ import { IJWTService } from '../../domain/services/jwt_service.interface';
 import { JWTServiceImpl } from '../service/jwt.service';
 import { IEmailService } from '../../domain/services/email_service.interface';
 import { EmailServiceImpl } from '../service/email.service';
+import { ICloudinaryService } from '../../domain/services/cloudinary_service.interface';
+import { CloudinaryServiceImpl } from '../service/cloudinary.service';
 
 /**
  * Registers all service dependencies in the DI container
@@ -32,5 +34,10 @@ export function registerServices(): void {
   container.register<IEmailService>(
     SERVICE_TOKENS.IEmailService,
     { useClass: EmailServiceImpl }
+  );
+
+  container.register<ICloudinaryService>(
+    SERVICE_TOKENS.ICloudinaryService,
+    { useClass: CloudinaryServiceImpl }
   );
 }

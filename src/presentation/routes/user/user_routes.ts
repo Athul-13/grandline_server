@@ -42,6 +42,17 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
     (req, res) => userController.updateUserProfile(req, res)
   );
 
+  /**
+   * Generate Signed Upload URL for Profile Picture
+   * GET /api/v1/user/profile/upload-url
+   * Requires authentication
+   */
+  router.get(
+    '/profile/upload-url',
+    authenticate,
+    (req, res) => userController.generateUploadUrl(req, res)
+  );
+
   return router;
 }
 

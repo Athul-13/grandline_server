@@ -115,7 +115,12 @@ export class UpdateUserProfileRequest {
   phoneNumber?: string;
 
   @IsOptional()
+  @ValidateIf((o) => o.profilePicture !== undefined)
   @IsString()
+  @IsNotEmpty()
+  @Matches(/^https?:\/\/res\.cloudinary\.com\/[^/]+\/[^/]+\/[^/]+\/.+/, {
+    message: 'Profile picture must be a valid Cloudinary URL',
+  })
   profilePicture?: string;
 }
 
@@ -245,4 +250,29 @@ export interface UpdateUserProfileResponse {
     role: UserRole;
     updatedAt: Date;
   };
+}
+
+/**
+ * Response DTO for generating signed upload URL
+ * Contains Cloudinary upload URL and signed parameters
+ */
+export interface SignedUploadUrlResponse {
+  uploadUrl: string;
+  params: {
+    timestamp: number;
+    signature: string;
+    api_key: string;
+    folder: string;
+    allowed_formats: string[];
+    max_file_size: number;
+    transformation?: Array<{
+      width?: number;
+      height?: number;
+      crop?: string;
+      gravity?: string;
+      quality?: string;
+      format?: string;
+    }>;
+  };
+  expiresIn: number; // Expiration time in seconds
 }

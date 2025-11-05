@@ -10,6 +10,7 @@ import { ForgotPasswordUseCase } from '../../application/use-cases/implementatio
 import { ResetPasswordUseCase } from '../../application/use-cases/implementation/auth/reset_password.use-case';
 import { GetUserProfileUseCase } from '../../application/use-cases/implementation/user/get_user_profile.use-case';
 import { UpdateUserProfileUseCase } from '../../application/use-cases/implementation/user/update_user_profile.use-case';
+import { GenerateUploadUrlUseCase } from '../../application/use-cases/implementation/user/generate_upload_url.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -26,5 +27,6 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.ResetPasswordUseCase, ResetPasswordUseCase);
   container.register(USE_CASE_TOKENS.GetUserProfileUseCase, GetUserProfileUseCase);
   container.register(USE_CASE_TOKENS.UpdateUserProfileUseCase, UpdateUserProfileUseCase);
+  container.register(USE_CASE_TOKENS.GenerateUploadUrlUseCase, GenerateUploadUrlUseCase);
 }
 
