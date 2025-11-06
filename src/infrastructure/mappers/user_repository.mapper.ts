@@ -15,12 +15,13 @@ export class UserRepositoryMapper {
       doc.email,
       doc.role as UserRole,
       doc.status as UserStatus,
-      doc.phoneNumber,
-      doc.password || '', // Password might be null if not selected, default to empty string
       doc.profilePicture || '',
       doc.isVerified,
       doc.createdAt,
-      doc.updatedAt
+      doc.updatedAt,
+      doc.phoneNumber,
+      doc.password,
+      doc.googleId
     );
   }
 

@@ -29,13 +29,21 @@ export const UserSchema: Schema = new Schema(
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       minlength: 8,
       select: false, // Don't return password by default
     },
     phoneNumber: {
       type: String,
-      required: true,
+      required: false,
+      trim: true,
+    },
+    googleId: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true,
+      index: true,
       trim: true,
     },
     role: {
@@ -68,4 +76,5 @@ export const UserSchema: Schema = new Schema(
 
 UserSchema.index({ email: 1 }); 
 UserSchema.index({ userId: 1 });
+UserSchema.index({ googleId: 1 });
 UserSchema.index({ createdAt: -1 }); 

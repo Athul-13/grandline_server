@@ -81,7 +81,11 @@ export const SUCCESS_MESSAGES = {
   LOGOUT_SUCCESS: 'Logout successful',
   PASSWORD_RESET_EMAIL_SENT: 'Password reset link has been sent to your email',
   PASSWORD_RESET_SUCCESS: 'Password has been reset successfully',
+  PASSWORD_CHANGED_SUCCESS: 'Password changed successfully',
   PROFILE_UPDATED: 'Profile updated successfully',
+  GOOGLE_AUTH_SUCCESS: 'Google authentication successful',
+  PASSWORD_SETUP_SUCCESS: 'Password has been set successfully',
+  GOOGLE_ACCOUNT_LINKED: 'Google account linked successfully',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -97,6 +101,11 @@ export const ERROR_MESSAGES = {
   FORBIDDEN: 'You do not have permission to perform this action',
   BAD_REQUEST: 'Invalid request data',
   SERVER_ERROR: 'Something went wrong. Please try again later',
+  ACCOUNT_ALREADY_EXISTS: 'Account already exists',
+  ACCOUNT_EXISTS_WITH_EMAIL: 'Account already exists with this email. Please use another email',
+  GOOGLE_ACCOUNT_ALREADY_LINKED: 'Google account already linked',
+  GOOGLE_EMAIL_MISMATCH: 'Email mismatch. Google account email must match your account email',
+  INVALID_GOOGLE_TOKEN: 'Invalid Google token',
 } as const;
 
 /**

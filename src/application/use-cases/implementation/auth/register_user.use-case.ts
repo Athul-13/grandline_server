@@ -40,12 +40,13 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
       request.email,
       UserRole.USER,
       UserStatus.ACTIVE,
-      request.phoneNumber,
-      passwordHash,
       '',
       false,
       new Date(),
-      new Date()
+      new Date(),
+      request.phoneNumber,
+      passwordHash,
+      undefined
     );
 
     await this.userRepository.createUser(user, passwordHash);

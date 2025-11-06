@@ -4,7 +4,7 @@ import { OtpController } from '../../controllers/auth/otp.controller';
 import { TokenController } from '../../controllers/auth/token.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
-import { RegisterUserRequest, LoginUserRequest, VerifyOtpRequest, ResendOtpRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../../../application/dtos/user.dto';
+import { RegisterUserRequest, LoginUserRequest, VerifyOtpRequest, ResendOtpRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleAuthRequest, SetupPasswordRequest, LinkGoogleRequest } from '../../../application/dtos/user.dto';
 
 /**
  * Route configuration interface
@@ -102,6 +102,40 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
     '/reset-password',
     validationMiddleware(ResetPasswordRequest),
     (req, res) => authController.resetPassword(req, res)
+  );
+
+  /**
+   * Google Authentication (Sign-in/Login)
+   * POST /api/v1/auth/google
+   */
+  router.post(
+    '/google',
+    validationMiddleware(GoogleAuthRequest),
+    (req, res) => authController.googleAuth(req, res)
+  );
+
+  /**
+   * Setup Password (for Google-authenticated users)
+   * POST /api/v1/auth/setup-password
+   * Requires authentication
+   */
+  router.post(
+    '/setup-password',
+    authenticate,
+    validationMiddleware(SetupPasswordRequest),
+    (req, res) => authController.setupPassword(req, res)
+  );
+
+  /**
+   * Link Google Account (for credential-authenticated users)
+   * POST /api/v1/auth/link-google
+   * Requires authentication
+   */
+  router.post(
+    '/link-google',
+    authenticate,
+    validationMiddleware(LinkGoogleRequest),
+    (req, res) => authController.linkGoogleAccount(req, res)
   );
 
   return router;

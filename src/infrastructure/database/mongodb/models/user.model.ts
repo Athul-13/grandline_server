@@ -12,8 +12,9 @@ export interface IUserModel extends Document {
   userId: string;
   fullName: string;
   email: string;
-  password: string;
-  phoneNumber: string;
+  password?: string;
+  phoneNumber?: string;
+  googleId?: string;
   role: UserRole;
   status: UserStatus;
   profilePicture: string;

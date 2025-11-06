@@ -8,4 +8,5 @@ export const SERVICE_TOKENS = {
   ITokenBlacklistService: Symbol.for('ITokenBlacklistService'),
   IEmailService: Symbol.for('IEmailService'),
   ICloudinaryService: Symbol.for('ICloudinaryService'),
+  IGoogleAuthService: Symbol.for('IGoogleAuthService'),
 } as const;

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../../controllers/user/user.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
-import { UpdateUserProfileRequest } from '../../../application/dtos/user.dto';
+import { UpdateUserProfileRequest, ChangePasswordRequest } from '../../../application/dtos/user.dto';
 
 /**
  * Route configuration interface
@@ -51,6 +51,18 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
     '/profile/upload-url',
     authenticate,
     (req, res) => userController.generateUploadUrl(req, res)
+  );
+
+  /**
+   * Change Password
+   * POST /api/v1/user/change-password
+   * Requires authentication
+   */
+  router.post(
+    '/change-password',
+    authenticate,
+    validationMiddleware(ChangePasswordRequest),
+    (req, res) => userController.changePassword(req, res)
   );
 
   return router;

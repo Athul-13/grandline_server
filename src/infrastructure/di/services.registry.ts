@@ -10,6 +10,8 @@ import { IEmailService } from '../../domain/services/email_service.interface';
 import { EmailServiceImpl } from '../service/email.service';
 import { ICloudinaryService } from '../../domain/services/cloudinary_service.interface';
 import { CloudinaryServiceImpl } from '../service/cloudinary.service';
+import { IGoogleAuthService } from '../../domain/services/google_auth_service.interface';
+import { GoogleAuthServiceImpl } from '../service/google_auth.service';
 
 /**
  * Registers all service dependencies in the DI container
@@ -39,5 +41,10 @@ export function registerServices(): void {
   container.register<ICloudinaryService>(
     SERVICE_TOKENS.ICloudinaryService,
     { useClass: CloudinaryServiceImpl }
+  );
+
+  container.register<IGoogleAuthService>(
+    SERVICE_TOKENS.IGoogleAuthService,
+    { useClass: GoogleAuthServiceImpl }
   );
 }

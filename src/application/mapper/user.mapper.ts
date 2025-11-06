@@ -72,6 +72,8 @@ export class UserMapper {
                 role: user.role,
                 createdAt: user.createdAt,
                 updatedAt: user.updatedAt,
+                hasPassword: user.hasPassword(),
+                hasGoogleAuth: user.hasGoogleAuth(),
             },
         };
     }

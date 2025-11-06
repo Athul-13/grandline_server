@@ -11,12 +11,13 @@ export class User {
         public readonly email: string,
         public readonly role: UserRole,
         public readonly status: UserStatus,
-        public readonly phoneNumber: string,
-        private readonly password: string,
         public readonly profilePicture: string,
         public readonly isVerified: boolean,
         public readonly createdAt: Date,
         public readonly updatedAt: Date,
+        public readonly phoneNumber?: string,
+        private readonly password?: string,
+        public readonly googleId?: string,
     ) {}
 
     /**
@@ -31,5 +32,19 @@ export class User {
      */
     isAdmin(): boolean {
         return this.role === UserRole.ADMIN;
+    }
+
+    /**
+     * Checks if the user has a password set
+     */
+    hasPassword(): boolean {
+        return !!this.password;
+    }
+
+    /**
+     * Checks if the user has Google authentication linked
+     */
+    hasGoogleAuth(): boolean {
+        return !!this.googleId;
     }
 }

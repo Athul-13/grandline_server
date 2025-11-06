@@ -11,6 +11,10 @@ import { ResetPasswordUseCase } from '../../application/use-cases/implementation
 import { GetUserProfileUseCase } from '../../application/use-cases/implementation/user/get_user_profile.use-case';
 import { UpdateUserProfileUseCase } from '../../application/use-cases/implementation/user/update_user_profile.use-case';
 import { GenerateUploadUrlUseCase } from '../../application/use-cases/implementation/user/generate_upload_url.use-case';
+import { GoogleAuthUseCase } from '../../application/use-cases/implementation/auth/google_auth.use-case';
+import { SetupPasswordUseCase } from '../../application/use-cases/implementation/auth/setup_password.use-case';
+import { LinkGoogleAccountUseCase } from '../../application/use-cases/implementation/auth/link_google_account.use-case';
+import { ChangePasswordUseCase } from '../../application/use-cases/implementation/user/change_password.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -28,5 +32,9 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetUserProfileUseCase, GetUserProfileUseCase);
   container.register(USE_CASE_TOKENS.UpdateUserProfileUseCase, UpdateUserProfileUseCase);
   container.register(USE_CASE_TOKENS.GenerateUploadUrlUseCase, GenerateUploadUrlUseCase);
+  container.register(USE_CASE_TOKENS.GoogleAuthUseCase, GoogleAuthUseCase);
+  container.register(USE_CASE_TOKENS.SetupPasswordUseCase, SetupPasswordUseCase);
+  container.register(USE_CASE_TOKENS.LinkGoogleAccountUseCase, LinkGoogleAccountUseCase);
+  container.register(USE_CASE_TOKENS.ChangePasswordUseCase, ChangePasswordUseCase);
 }
 

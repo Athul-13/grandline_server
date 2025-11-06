@@ -9,13 +9,17 @@ import { IBaseRepository } from "./base_repository.interface";
 export interface IUserRepository extends IBaseRepository<User> {
     findByEmail(email: string): Promise<User | null>;
 
+    findByGoogleId(googleId: string): Promise<User | null>;
+
     updateVerificationStatus(userId: string, isVerified: boolean): Promise<User>;
 
-    createUser(user: User, passwordHash: string): Promise<void>;
+    createUser(user: User, passwordHash?: string): Promise<void>;
 
     getPasswordHash(userId: string): Promise<string>;
 
     updatePassword(userId: string, passwordHash: string): Promise<void>;
+
+    linkGoogleAccount(userId: string, googleId: string): Promise<User>;
 
     updateUserProfile(userId: string, updates: { fullName?: string; phoneNumber?: string; profilePicture?: string }): Promise<User>;
 }

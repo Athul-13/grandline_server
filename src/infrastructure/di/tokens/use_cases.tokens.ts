@@ -14,5 +14,9 @@ export const USE_CASE_TOKENS = {
   GetUserProfileUseCase: Symbol.for('GetUserProfileUseCase'),
   UpdateUserProfileUseCase: Symbol.for('UpdateUserProfileUseCase'),
   GenerateUploadUrlUseCase: Symbol.for('GenerateUploadUrlUseCase'),
+  GoogleAuthUseCase: Symbol.for('GoogleAuthUseCase'),
+  SetupPasswordUseCase: Symbol.for('SetupPasswordUseCase'),
+  LinkGoogleAccountUseCase: Symbol.for('LinkGoogleAccountUseCase'),
+  ChangePasswordUseCase: Symbol.for('ChangePasswordUseCase'),
 } as const;
 

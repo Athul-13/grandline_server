@@ -5,9 +5,13 @@ import { IRegisterUserUseCase } from '../../../application/use-cases/interface/a
 import { ILogoutUserUseCase } from '../../../application/use-cases/interface/auth/logout_user_use_case.interface';
 import { IForgotPasswordUseCase } from '../../../application/use-cases/interface/auth/forgot_password_use_case.interface';
 import { IResetPasswordUseCase } from '../../../application/use-cases/interface/auth/reset_password_use_case.interface';
-import { RegisterUserRequest, LoginUserRequest, LogoutUserRequest, ForgotPasswordRequest, ResetPasswordRequest } from '../../../application/dtos/user.dto';
+import { IGoogleAuthUseCase } from '../../../application/use-cases/interface/auth/google_auth_use_case.interface';
+import { ISetupPasswordUseCase } from '../../../application/use-cases/interface/auth/setup_password_use_case.interface';
+import { ILinkGoogleAccountUseCase } from '../../../application/use-cases/interface/auth/link_google_account_use_case.interface';
+import { RegisterUserRequest, LoginUserRequest, LogoutUserRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleAuthRequest, SetupPasswordRequest, LinkGoogleRequest } from '../../../application/dtos/user.dto';
+import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
-import { HTTP_STATUS, SUCCESS_MESSAGES, COOKIE_NAMES } from '../../../shared/constants';
+import { HTTP_STATUS, SUCCESS_MESSAGES, COOKIE_NAMES, ERROR_MESSAGES } from '../../../shared/constants';
 import { setAccessTokenCookie, setRefreshTokenCookie, clearAllAuthCookies } from '../../../shared/utils/cookie.util';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
@@ -28,7 +32,13 @@ export class AuthController {
     @inject(USE_CASE_TOKENS.ForgotPasswordUseCase)
     private readonly forgotPasswordUseCase: IForgotPasswordUseCase,
     @inject(USE_CASE_TOKENS.ResetPasswordUseCase)
-    private readonly resetPasswordUseCase: IResetPasswordUseCase
+    private readonly resetPasswordUseCase: IResetPasswordUseCase,
+    @inject(USE_CASE_TOKENS.GoogleAuthUseCase)
+    private readonly googleAuthUseCase: IGoogleAuthUseCase,
+    @inject(USE_CASE_TOKENS.SetupPasswordUseCase)
+    private readonly setupPasswordUseCase: ISetupPasswordUseCase,
+    @inject(USE_CASE_TOKENS.LinkGoogleAccountUseCase)
+    private readonly linkGoogleAccountUseCase: ILinkGoogleAccountUseCase
   ) {}
 
   /**
@@ -106,6 +116,62 @@ export class AuthController {
       const response = await this.resetPasswordUseCase.execute(request);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS);
+    } catch (error) {
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles Google authentication (sign-in/login)
+   */
+  async googleAuth(req: Request, res: Response): Promise<void> {
+    try {
+      const request: GoogleAuthRequest = req.body;
+      const response = await this.googleAuthUseCase.execute(request);
+
+      // Set HTTP-only cookies for tokens
+      setAccessTokenCookie(res, response.accessToken);
+      if (response.refreshToken) {
+        setRefreshTokenCookie(res, response.refreshToken);
+      }
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, { user: response.user }, SUCCESS_MESSAGES.GOOGLE_AUTH_SUCCESS);
+    } catch (error) {
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles password setup for Google-authenticated users
+   */
+  async setupPassword(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
+      }
+
+      const request: SetupPasswordRequest = req.body;
+      const response = await this.setupPasswordUseCase.execute(req.user.userId, request);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.PASSWORD_SETUP_SUCCESS);
+    } catch (error) {
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles linking Google account to existing credential account
+   */
+  async linkGoogleAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
+      }
+
+      const request: LinkGoogleRequest = req.body;
+      const response = await this.linkGoogleAccountUseCase.execute(req.user.userId, request);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.GOOGLE_ACCOUNT_LINKED);
     } catch (error) {
       sendErrorResponse(res, error);
     }

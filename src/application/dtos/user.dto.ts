@@ -227,11 +227,13 @@ export interface GetUserProfileResponse {
     userId: string;
     fullName: string;
     email: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     profilePicture: string;
     role: UserRole;
     createdAt: Date;
     updatedAt: Date;
+    hasPassword: boolean;
+    hasGoogleAuth: boolean;
   };
 }
 
@@ -245,7 +247,7 @@ export interface UpdateUserProfileResponse {
     userId: string;
     fullName: string;
     email: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     profilePicture: string;
     role: UserRole;
     updatedAt: Date;
@@ -265,4 +267,94 @@ export interface SignedUploadUrlResponse {
     folder: string;
   };
   expiresIn: number; // Expiration time in seconds
+}
+
+/**
+ * Request DTO for Google authentication
+ * Validates Google ID token from client
+ */
+export class GoogleAuthRequest {
+  @IsString()
+  @IsNotEmpty()
+  idToken!: string;
+}
+
+/**
+ * Response DTO for Google authentication
+ * Contains the result of Google authentication (same as login response)
+ */
+export interface GoogleAuthResponse {
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    role: UserRole;
+    createdAt: Date;
+  };
+  accessToken: string;
+  refreshToken?: string;
+}
+
+/**
+ * Request DTO for setting up password
+ * Validates password for Google-authenticated users
+ */
+export class SetupPasswordRequest {
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: 'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+  })
+  password!: string;
+}
+
+/**
+ * Response DTO for setting up password
+ * Contains the result of password setup
+ */
+export interface SetupPasswordResponse {
+  message: string;
+}
+
+/**
+ * Request DTO for linking Google account
+ * Validates Google ID token for linking
+ */
+export class LinkGoogleRequest {
+  @IsString()
+  @IsNotEmpty()
+  idToken!: string;
+}
+
+/**
+ * Response DTO for linking Google account
+ * Contains the result of Google account linking
+ */
+export interface LinkGoogleResponse {
+  message: string;
+}
+
+/**
+ * Request DTO for changing password
+ * Validates current and new password
+ */
+export class ChangePasswordRequest {
+  @IsString()
+  @IsNotEmpty()
+  currentPassword!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: 'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+  })
+  newPassword!: string;
+}
+
+/**
+ * Response DTO for changing password
+ * Contains the result of password change
+ */
+export interface ChangePasswordResponse {
+  message: string;
 }

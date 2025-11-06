@@ -35,6 +35,7 @@ export class UserRepositoryImpl
       fullName: entity.fullName,
       email: entity.email,
       phoneNumber: entity.phoneNumber,
+      googleId: entity.googleId,
       role: entity.role,
       status: entity.status,
       profilePicture: entity.profilePicture,
@@ -42,13 +43,14 @@ export class UserRepositoryImpl
     };
   }
 
-  async createUser(user: User, passwordHash: string): Promise<void> {
+  async createUser(user: User, passwordHash?: string): Promise<void> {
     await this.userModel.create({
       userId: user.userId,
       fullName: user.fullName,
       email: user.email,
       password: passwordHash,
       phoneNumber: user.phoneNumber,
+      googleId: user.googleId,
       role: user.role,
       status: user.status,
       profilePicture: user.profilePicture,
@@ -61,8 +63,14 @@ export class UserRepositoryImpl
     return doc ? this.toEntity(doc) : null;
   }
 
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    const doc = await this.userModel.findOne({ googleId });
+    return doc ? this.toEntity(doc) : null;
+  }
+
   async findById(userId: string): Promise<User | null> {
-    return await super.findById(userId);
+    const doc = await this.userModel.findOne({ userId }, { select: '+password' });
+    return doc ? this.toEntity(doc) : null;
   }
 
   async updateVerificationStatus(userId: string, isVerified: boolean): Promise<User> {
@@ -98,6 +106,24 @@ export class UserRepositoryImpl
     if (result.matchedCount === 0) {
       throw new Error(`User with id ${userId} not found`);
     }
+  }
+
+  async linkGoogleAccount(userId: string, googleId: string): Promise<User> {
+    const result = await this.userModel.updateOne(
+      { userId },
+      { $set: { googleId } }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+
+    const updatedDoc = await this.userModel.findOne({ userId });
+    if (!updatedDoc) {
+      throw new Error(`User with id ${userId} not found after update`);
+    }
+
+    return this.toEntity(updatedDoc);
   }
 
   async updateUserProfile(userId: string, updates: { fullName?: string; phoneNumber?: string; profilePicture?: string }): Promise<User> {
