@@ -22,7 +22,7 @@ export class VehicleRepositoryImpl
   constructor() {
     // Create model instance using factory
     const model = createVehicleModel();
-    super(model, 'vehicleId'); // Pass idField name
+    super(model, 'vehicleId');
     this.vehicleModel = model;
   }
 
@@ -62,6 +62,11 @@ export class VehicleRepositoryImpl
 
   async findByStatus(status: VehicleStatus): Promise<Vehicle[]> {
     const docs = await this.vehicleModel.find({ status });
+    return VehicleRepositoryMapper.toEntities(docs);
+  }
+
+  async findAll(): Promise<Vehicle[]> {
+    const docs = await this.vehicleModel.find({});
     return VehicleRepositoryMapper.toEntities(docs);
   }
 }

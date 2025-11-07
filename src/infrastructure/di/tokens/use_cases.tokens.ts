@@ -18,5 +18,17 @@ export const USE_CASE_TOKENS = {
   SetupPasswordUseCase: Symbol.for('SetupPasswordUseCase'),
   LinkGoogleAccountUseCase: Symbol.for('LinkGoogleAccountUseCase'),
   ChangePasswordUseCase: Symbol.for('ChangePasswordUseCase'),
+  CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
+  GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),
+  GetAllVehicleTypesUseCase: Symbol.for('GetAllVehicleTypesUseCase'),
+  UpdateVehicleTypeUseCase: Symbol.for('UpdateVehicleTypeUseCase'),
+  DeleteVehicleTypeUseCase: Symbol.for('DeleteVehicleTypeUseCase'),
+  CreateVehicleUseCase: Symbol.for('CreateVehicleUseCase'),
+  GetVehicleUseCase: Symbol.for('GetVehicleUseCase'),
+  GetAllVehiclesUseCase: Symbol.for('GetAllVehiclesUseCase'),
+  GetVehiclesByTypeUseCase: Symbol.for('GetVehiclesByTypeUseCase'),
+  UpdateVehicleUseCase: Symbol.for('UpdateVehicleUseCase'),
+  UpdateVehicleStatusUseCase: Symbol.for('UpdateVehicleStatusUseCase'),
+  DeleteVehicleUseCase: Symbol.for('DeleteVehicleUseCase'),
 } as const;
 

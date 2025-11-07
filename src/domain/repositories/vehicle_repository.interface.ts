@@ -26,4 +26,9 @@ export interface IVehicleRepository extends IBaseRepository<Vehicle> {
    * Finds vehicles by status
    */
   findByStatus(status: VehicleStatus): Promise<Vehicle[]>;
+
+  /**
+   * Finds all vehicles
+   */
+  findAll(): Promise<Vehicle[]>;
 }

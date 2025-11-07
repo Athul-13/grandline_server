@@ -9,6 +9,9 @@ export class RegisterUserRequest {
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
+  @Matches(/.*\S.*/, {
+    message: 'Full name must contain at least one non-whitespace character',
+  })
   fullName!: string;
 
   @IsEmail()
@@ -103,6 +106,9 @@ export class UpdateUserProfileRequest {
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
+  @Matches(/.*\S.*/, {
+    message: 'Full name must contain at least one non-whitespace character',
+  })
   fullName?: string;
 
   @IsOptional()

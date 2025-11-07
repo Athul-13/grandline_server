@@ -6,6 +6,8 @@ import { DatabaseConnector } from './database.connector';
 import { ConnectionStatus } from './database.connector';
 import { createAuthRoutesWithDI } from '../../../presentation/routes/auth/auth_routes';
 import { createUserRoutesWithDI } from '../../../presentation/routes/user/user_routes';
+import { createVehicleTypeRoutesWithDI } from '../../../presentation/routes/vehicle_type/vehicle_type_routes';
+import { createVehicleRoutesWithDI } from '../../../presentation/routes/vehicle/vehicle_routes';
 
 /**
  * Express application wrapper class
@@ -69,6 +71,12 @@ export class App {
 
     const userRoutes = createUserRoutesWithDI();
     this.app.use(`/api/v1/user`, userRoutes);
+
+    const vehicleTypeRoutes = createVehicleTypeRoutesWithDI();
+    this.app.use(`/api/v1/vehicle-types`, vehicleTypeRoutes);
+
+    const vehicleRoutes = createVehicleRoutesWithDI();
+    this.app.use(`/api/v1/vehicles`, vehicleRoutes);
   }
 
   /**
