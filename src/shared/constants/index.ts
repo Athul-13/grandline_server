@@ -29,6 +29,17 @@ export enum DriverStatus {
 }
 
 /**
+ * Vehicle status enumeration
+ * Tracks the current state of vehicles in the system
+ */
+export enum VehicleStatus {
+  AVAILABLE = 'available',      // Ready for rental
+  IN_SERVICE = 'in_service',    // Currently on a trip/rented
+  MAINTENANCE = 'maintenance',  // Under repair/maintenance
+  RETIRED = 'retired',          // No longer in service
+}
+
+/**
  * OTP configuration constants
  * Manages one-time password generation and expiry
  */
