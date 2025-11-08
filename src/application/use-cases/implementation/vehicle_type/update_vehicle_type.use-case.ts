@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IUpdateVehicleTypeUseCase } from '../../interface/vehicle_type/update_vehicle_type_use_case.interface';
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
+import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { UpdateVehicleTypeRequest, VehicleTypeResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
@@ -17,6 +18,8 @@ export class UpdateVehicleTypeUseCase implements IUpdateVehicleTypeUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IVehicleTypeRepository)
     private readonly vehicleTypeRepository: IVehicleTypeRepository,
+    @inject(REPOSITORY_TOKENS.IVehicleRepository)
+    private readonly vehicleRepository: IVehicleRepository,
   ) {}
 
   async execute(vehicleTypeId: string, request: UpdateVehicleTypeRequest): Promise<VehicleTypeResponse> {
@@ -57,7 +60,11 @@ export class UpdateVehicleTypeUseCase implements IUpdateVehicleTypeUseCase {
 
     logger.info(`Vehicle type updated: ${updatedVehicleType.name} (${vehicleTypeId})`);
 
-    return VehicleMapper.toVehicleTypeResponse(updatedVehicleType);
+    // Get vehicles count for this type
+    const vehicles = await this.vehicleRepository.findByVehicleTypeId(vehicleTypeId);
+    const vehicleCount = vehicles.length;
+
+    return VehicleMapper.toVehicleTypeResponse(updatedVehicleType, vehicleCount);
   }
 }
 

@@ -1,6 +1,6 @@
-import { VehicleTypeResponse } from '../../../dtos/vehicle.dto';
+import { GetAllVehicleTypesResponse } from '../../../dtos/vehicle.dto';
 
 export interface IGetAllVehicleTypesUseCase {
-  execute(): Promise<VehicleTypeResponse[]>;
+  execute(page?: number, limit?: number): Promise<GetAllVehicleTypesResponse>;
 }
 

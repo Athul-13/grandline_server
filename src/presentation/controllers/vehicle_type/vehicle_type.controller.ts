@@ -66,13 +66,17 @@ export class VehicleTypeController {
   }
 
   /**
-   * Handles getting all vehicle types
+   * Handles getting all vehicle types with pagination
    */
   async getAllVehicleTypes(req: Request, res: Response): Promise<void> {
     try {
-      logger.info('Fetch all vehicle types request');
+      // Extract pagination parameters from query string
+      const page = req.query.page ? parseInt(req.query.page as string, 10) : undefined;
+      const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
+
+      logger.info(`Fetch all vehicle types request - page: ${page || 'default'}, limit: ${limit || 'default'}`);
       
-      const response = await this.getAllVehicleTypesUseCase.execute();
+      const response = await this.getAllVehicleTypesUseCase.execute(page, limit);
       
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {

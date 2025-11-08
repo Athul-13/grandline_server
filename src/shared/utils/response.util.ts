@@ -28,6 +28,7 @@ const ERROR_TO_STATUS_MAP: Record<string, number> = {
 /**
  * Sends a success response with optional message
  * Uses generics to accept any object type without type casting
+ * Handles arrays by wrapping them in a 'data' property
  */
 export function sendSuccessResponse<T extends object>(
   res: Response,
@@ -37,8 +38,15 @@ export function sendSuccessResponse<T extends object>(
 ): void {
   const response: Record<string, unknown> = {
     success: true,
-    ...(data as Record<string, unknown>),
   };
+
+  // Check if data is an array
+  if (Array.isArray(data)) {
+    response.data = data;
+  } else {
+    // Spread object properties
+    Object.assign(response, data as Record<string, unknown>);
+  }
 
   if (message) {
     response.message = message;

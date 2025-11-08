@@ -179,8 +179,29 @@ export interface VehicleTypeResponse {
   vehicleTypeId: string;
   name: string;
   description: string;
+  vehicleCount: number;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/**
+ * Pagination metadata
+ * Contains pagination information for paginated responses
+ */
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+/**
+ * Response DTO for getting all vehicle types with pagination
+ * Contains paginated vehicle types and pagination metadata
+ */
+export interface GetAllVehicleTypesResponse {
+  data: VehicleTypeResponse[];
+  pagination: PaginationMeta;
 }
 
 /**

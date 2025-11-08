@@ -17,11 +17,12 @@ import { SUCCESS_MESSAGES } from '../../shared/constants';
  * Mapper class for converting Vehicle and VehicleType entities to response DTOs
  */
 export class VehicleMapper {
-  static toVehicleTypeResponse(vehicleType: VehicleType): VehicleTypeResponse {
+  static toVehicleTypeResponse(vehicleType: VehicleType, vehicleCount: number): VehicleTypeResponse {
     return {
       vehicleTypeId: vehicleType.vehicleTypeId,
       name: vehicleType.name,
       description: vehicleType.description,
+      vehicleCount: vehicleCount,
       createdAt: vehicleType.createdAt,
       updatedAt: vehicleType.updatedAt,
     };
@@ -30,7 +31,7 @@ export class VehicleMapper {
   static toCreateVehicleTypeResponse(vehicleType: VehicleType): CreateVehicleTypeResponse {
     return {
       message: SUCCESS_MESSAGES.VEHICLE_TYPE_CREATED,
-      vehicleType: this.toVehicleTypeResponse(vehicleType),
+      vehicleType: this.toVehicleTypeResponse(vehicleType, 0),
     };
   }
 
