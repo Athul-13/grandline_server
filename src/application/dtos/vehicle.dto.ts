@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsNumber, IsEnum, Min, Max, MinLength, MaxLength, ValidateIf, Matches } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsNumber, IsEnum, IsArray, IsUrl, Min, Max, MinLength, MaxLength, ValidateIf, Matches, ArrayMinSize } from 'class-validator';
 import { VehicleStatus } from '../../shared/constants';
 
 /**
@@ -16,7 +16,11 @@ export class CreateVehicleTypeRequest {
   name!: string;
 
   @IsOptional()
+  @ValidateIf((o) => o.description !== undefined)
   @IsString()
+  @Matches(/.*\S.*/, {
+    message: 'Description must contain at least one non-whitespace character if provided',
+  })
   description?: string;
 }
 
@@ -37,7 +41,11 @@ export class UpdateVehicleTypeRequest {
   name?: string;
 
   @IsOptional()
+  @ValidateIf((o) => o.description !== undefined)
   @IsString()
+  @Matches(/.*\S.*/, {
+    message: 'Description must contain at least one non-whitespace character if provided',
+  })
   description?: string;
 }
 
@@ -89,6 +97,12 @@ export class CreateVehicleRequest {
   @IsNumber()
   @Min(0)
   fuelConsumption!: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Image URLs array must contain at least one URL if provided' })
+  @IsUrl({}, { each: true, message: 'Each image URL must be a valid URL' })
+  imageUrls?: string[];
 
   @IsOptional()
   @IsEnum(VehicleStatus)
@@ -159,6 +173,13 @@ export class UpdateVehicleRequest {
   @IsNumber()
   @Min(0)
   fuelConsumption?: number;
+
+  @IsOptional()
+  @ValidateIf((o) => o.imageUrls !== undefined)
+  @IsArray()
+  @ArrayMinSize(1, { message: 'Image URLs array must contain at least one URL if provided' })
+  @IsUrl({}, { each: true, message: 'Each image URL must be a valid URL' })
+  imageUrls?: string[];
 }
 
 /**
@@ -227,6 +248,7 @@ export interface VehicleResponse {
   vehicleModel: string;
   year: number;
   fuelConsumption: number;
+  imageUrls?: string[];
   status: VehicleStatus;
   createdAt: Date;
   updatedAt: Date;
@@ -289,4 +311,86 @@ export interface UpdateVehicleStatusResponse {
  */
 export interface DeleteVehicleResponse {
   message: string;
+}
+
+/**
+ * Filter type enumeration
+ * Defines the types of filters supported by the client
+ */
+export type FilterType = 'checkbox' | 'range' | 'number' | 'select';
+
+/**
+ * Base interface for all filter options
+ * Contains common properties shared by all filter types
+ */
+interface BaseFilterOption {
+  key: string;
+  label: string;
+  type: FilterType;
+}
+
+/**
+ * Checkbox filter option
+ * Used for filters with multiple selectable options (e.g., status, vehicle type)
+ */
+export interface CheckboxFilterOption extends BaseFilterOption {
+  type: 'checkbox';
+  options: string[] | Array<{ value: string; label: string }>;
+}
+
+/**
+ * Range filter option
+ * Used for numeric ranges with min/max values (e.g., year)
+ */
+export interface RangeFilterOption extends BaseFilterOption {
+  type: 'range';
+  min: number;
+  max: number;
+  step: number;
+  placeholder: {
+    min: string;
+    max: string;
+  };
+}
+
+/**
+ * Number filter option
+ * Used for single numeric value filters (e.g., capacity)
+ */
+export interface NumberFilterOption extends BaseFilterOption {
+  type: 'number';
+  min: number;
+  max: number;
+  operator: 'min' | 'max' | 'exact';
+  step: number;
+  placeholder: string;
+}
+
+/**
+ * Select filter option
+ * Used for single-select dropdown filters
+ */
+export interface SelectFilterOption extends BaseFilterOption {
+  type: 'select';
+  options: Array<{ value: string; label: string }>;
+  placeholder?: string;
+}
+
+/**
+ * Union type for all filter options
+ * Allows type-safe handling of different filter types
+ */
+export type FilterOption =
+  | CheckboxFilterOption
+  | RangeFilterOption
+  | NumberFilterOption
+  | SelectFilterOption;
+
+/**
+ * Response DTO for getting vehicle filter options
+ * Contains all available filter options for vehicle filtering
+ */
+export interface GetVehicleFilterOptionsResponse {
+  success: true;
+  filters: FilterOption[];
 }

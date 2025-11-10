@@ -7,6 +7,7 @@ import { IGetVehiclesByTypeUseCase } from '../../../application/use-cases/interf
 import { IUpdateVehicleUseCase } from '../../../application/use-cases/interface/vehicle/update_vehicle_use_case.interface';
 import { IUpdateVehicleStatusUseCase } from '../../../application/use-cases/interface/vehicle/update_vehicle_status_use_case.interface';
 import { IDeleteVehicleUseCase } from '../../../application/use-cases/interface/vehicle/delete_vehicle_use_case.interface';
+import { IGetVehicleFilterOptionsUseCase } from '../../../application/use-cases/interface/vehicle/get_vehicle_filter_options_use_case.interface';
 import { CreateVehicleRequest, UpdateVehicleRequest, UpdateVehicleStatusRequest } from '../../../application/dtos/vehicle.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
@@ -34,6 +35,8 @@ export class VehicleController {
     private readonly updateVehicleStatusUseCase: IUpdateVehicleStatusUseCase,
     @inject(USE_CASE_TOKENS.DeleteVehicleUseCase)
     private readonly deleteVehicleUseCase: IDeleteVehicleUseCase,
+    @inject(USE_CASE_TOKENS.GetVehicleFilterOptionsUseCase)
+    private readonly getVehicleFilterOptionsUseCase: IGetVehicleFilterOptionsUseCase,
   ) {}
 
   /**
@@ -156,6 +159,22 @@ export class VehicleController {
       sendSuccessResponse(res, HTTP_STATUS.OK, { message: 'Vehicle deleted successfully' });
     } catch (error) {
       logger.error(`Error deleting vehicle: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting vehicle filter options
+   */
+  async getFilterOptions(req: Request, res: Response): Promise<void> {
+    try {
+      logger.info('Fetch vehicle filter options request');
+      
+      const response = await this.getVehicleFilterOptionsUseCase.execute();
+      
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error fetching filter options: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

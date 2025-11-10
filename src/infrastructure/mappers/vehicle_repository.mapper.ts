@@ -21,7 +21,8 @@ export class VehicleRepositoryMapper {
       doc.fuelConsumption,
       doc.status as VehicleStatus,
       doc.createdAt,
-      doc.updatedAt
+      doc.updatedAt,
+      doc.imageUrls && doc.imageUrls.length > 0 ? doc.imageUrls : undefined
     );
   }
 

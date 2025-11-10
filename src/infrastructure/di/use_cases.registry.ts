@@ -27,6 +27,7 @@ import { GetVehiclesByTypeUseCase } from '../../application/use-cases/implementa
 import { UpdateVehicleUseCase } from '../../application/use-cases/implementation/vehicle/update_vehicle.use-case';
 import { UpdateVehicleStatusUseCase } from '../../application/use-cases/implementation/vehicle/update_vehicle_status.use-case';
 import { DeleteVehicleUseCase } from '../../application/use-cases/implementation/vehicle/delete_vehicle.use-case';
+import { GetVehicleFilterOptionsUseCase } from '../../application/use-cases/implementation/vehicle/get_vehicle_filter_options.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -60,5 +61,6 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.UpdateVehicleUseCase, UpdateVehicleUseCase);
   container.register(USE_CASE_TOKENS.UpdateVehicleStatusUseCase, UpdateVehicleStatusUseCase);
   container.register(USE_CASE_TOKENS.DeleteVehicleUseCase, DeleteVehicleUseCase);
+  container.register(USE_CASE_TOKENS.GetVehicleFilterOptionsUseCase, GetVehicleFilterOptionsUseCase);
 }
 

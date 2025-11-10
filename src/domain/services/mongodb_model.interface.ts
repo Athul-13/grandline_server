@@ -28,5 +28,10 @@ export interface IDatabaseModel<T> {
    * Deletes a single document
    */
   deleteOne(filter: Record<string, unknown>): Promise<void>;
+
+  /**
+   * Executes an aggregation pipeline
+   */
+  aggregate(pipeline: unknown[]): Promise<unknown[]>;
 }
 

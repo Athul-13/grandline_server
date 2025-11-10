@@ -40,6 +40,17 @@ export enum VehicleStatus {
 }
 
 /**
+ * Vehicle status labels mapping
+ * Maps status enum values to user-friendly display labels
+ */
+export const VEHICLE_STATUS_LABELS: Record<VehicleStatus, string> = {
+  [VehicleStatus.AVAILABLE]: 'Available',
+  [VehicleStatus.IN_SERVICE]: 'In Service',
+  [VehicleStatus.MAINTENANCE]: 'Maintenance',
+  [VehicleStatus.RETIRED]: 'Retired',
+};
+
+/**
  * OTP configuration constants
  * Manages one-time password generation and expiry
  */

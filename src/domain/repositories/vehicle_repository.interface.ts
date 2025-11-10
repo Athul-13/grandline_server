@@ -31,4 +31,16 @@ export interface IVehicleRepository extends IBaseRepository<Vehicle> {
    * Finds all vehicles
    */
   findAll(): Promise<Vehicle[]>;
+
+  /**
+   * Gets the minimum and maximum year from all vehicles
+   * Returns default values if no vehicles exist
+   */
+  getMinMaxYear(): Promise<{ min: number; max: number }>;
+
+  /**
+   * Gets the minimum and maximum capacity from all vehicles
+   * Returns default values if no vehicles exist
+   */
+  getMinMaxCapacity(): Promise<{ min: number; max: number }>;
 }

@@ -56,6 +56,11 @@ export const VehicleSchema: Schema = new Schema(
       required: true,
       min: 0,
     },
+    imageUrls: {
+      type: [String],
+      required: false,
+      default: [],
+    },
     status: {
       type: String,
       enum: Object.values(VehicleStatus),

@@ -1,4 +1,4 @@
-import { Model, FilterQuery } from 'mongoose';
+import { Model, FilterQuery, PipelineStage } from 'mongoose';
 import { IDatabaseModel } from '../../../domain/services/mongodb_model.interface';
 
 /**
@@ -11,16 +11,16 @@ export class MongoDBModelImpl<T> implements IDatabaseModel<T> {
     let query = this.model.findOne(filter as FilterQuery<T>);
     
     if (options?.select) {
-      query = query.select(options.select);
+      query = query.select(options.select) as typeof query;
     }
     
     const doc = await query.lean<T>().exec();
-    return doc || null;
+    return (doc as T | null) || null;
   }
 
   async find(filter: Record<string, unknown>): Promise<T[]> {
     const docs = await this.model.find(filter as FilterQuery<T>).lean<T>().exec();
-    return docs;
+    return docs as T[];
   }
 
   async create(data: Partial<T>): Promise<T> {
@@ -35,6 +35,10 @@ export class MongoDBModelImpl<T> implements IDatabaseModel<T> {
 
   async deleteOne(filter: Record<string, unknown>): Promise<void> {
     await this.model.deleteOne(filter as FilterQuery<T>).exec();
+  }
+
+  async aggregate(pipeline: unknown[]): Promise<unknown[]> {
+    return await this.model.aggregate(pipeline as PipelineStage[]).exec();
   }
 }
 

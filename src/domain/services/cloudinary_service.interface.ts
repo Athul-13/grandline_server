@@ -15,6 +15,12 @@ export interface ICloudinaryService {
   deleteFile(publicIdOrUrl: string): Promise<void>;
 
   /**
+   * Deletes multiple files from Cloudinary
+   * Handles array of URLs and continues even if some deletions fail
+   */
+  deleteFiles(urls: string[]): Promise<void>;
+
+  /**
    * Verifies if a file exists in Cloudinary
    */
   verifyFileExists(url: string): Promise<boolean>;

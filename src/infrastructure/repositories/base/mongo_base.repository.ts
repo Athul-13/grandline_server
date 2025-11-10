@@ -22,7 +22,11 @@ export abstract class MongoBaseRepository<TModel, TEntity> {
 
   async updateById(id: string, update: Partial<TEntity>): Promise<void> {
     const filter = { [this.idField]: id };
-    await this.model.updateOne(filter, { $set: update });
+    // Filter out undefined values - MongoDB $set doesn't handle undefined correctly
+    const cleanUpdate = Object.fromEntries(
+      Object.entries(update).filter(([_, value]) => value !== undefined)
+    ) as Partial<TEntity>;
+    await this.model.updateOne(filter, { $set: cleanUpdate });
   }
 
   async deleteById(id: string): Promise<void> {

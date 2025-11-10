@@ -2,8 +2,9 @@ import { injectable, inject } from 'tsyringe';
 import { ICreateVehicleUseCase } from '../../interface/vehicle/create_vehicle_use_case.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
+import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { CreateVehicleRequest, CreateVehicleResponse } from '../../../dtos/vehicle.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
@@ -22,6 +23,8 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
     private readonly vehicleRepository: IVehicleRepository,
     @inject(REPOSITORY_TOKENS.IVehicleTypeRepository)
     private readonly vehicleTypeRepository: IVehicleTypeRepository,
+    @inject(SERVICE_TOKENS.ICloudinaryService)
+    private readonly cloudinaryService: ICloudinaryService,
   ) {}
 
   async execute(request: CreateVehicleRequest): Promise<CreateVehicleResponse> {
@@ -44,29 +47,47 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
     // Generate vehicle ID
     const vehicleId = randomUUID();
     const now = new Date();
+    const imageUrls = request.imageUrls && request.imageUrls.length > 0 ? request.imageUrls : undefined;
 
-    // Create vehicle entity
-    const vehicle = new Vehicle(
-      vehicleId,
-      request.vehicleTypeId,
-      request.capacity,
-      request.baseFare,
-      request.maintenance,
-      request.plateNumber.trim().toUpperCase(),
-      request.vehicleModel.trim(),
-      request.year,
-      request.fuelConsumption,
-      request.status || VehicleStatus.AVAILABLE,
-      now,
-      now
-    );
+    try {
+      // Create vehicle entity
+      const vehicle = new Vehicle(
+        vehicleId,
+        request.vehicleTypeId,
+        request.capacity,
+        request.baseFare,
+        request.maintenance,
+        request.plateNumber.trim().toUpperCase(),
+        request.vehicleModel.trim(),
+        request.year,
+        request.fuelConsumption,
+        request.status || VehicleStatus.AVAILABLE,
+        now,
+        now,
+        imageUrls
+      );
 
-    // Save to repository
-    await this.vehicleRepository.create(vehicle);
+      // Save to repository
+      await this.vehicleRepository.create(vehicle);
 
-    logger.info(`Vehicle created: ${vehicle.plateNumber} (${vehicleId})`);
+      logger.info(`Vehicle created: ${vehicle.plateNumber} (${vehicleId})`);
 
-    return VehicleMapper.toCreateVehicleResponse(vehicle);
+      return VehicleMapper.toCreateVehicleResponse(vehicle);
+    } catch (error) {
+      // If creation fails and images were provided, rollback: delete uploaded images
+      if (imageUrls && imageUrls.length > 0) {
+        try {
+          await this.cloudinaryService.deleteFiles(imageUrls);
+          logger.info(`Rollback: Deleted ${imageUrls.length} uploaded images due to vehicle creation failure`);
+        } catch (rollbackError) {
+          // Log rollback error but don't mask the original error
+          logger.error(`Failed to rollback images during vehicle creation failure: ${rollbackError instanceof Error ? rollbackError.message : String(rollbackError)}`);
+        }
+      }
+      
+      // Re-throw the original error
+      throw error;
+    }
   }
 }
 

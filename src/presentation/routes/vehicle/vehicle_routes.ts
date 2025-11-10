@@ -48,6 +48,16 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
   );
 
   /**
+   * Get Vehicle Filter Options
+   * GET /api/v1/vehicles/filter-options
+   * NOTE: This route must be defined BEFORE /:id to avoid route conflicts
+   */
+  router.get(
+    '/filter-options',
+    (req, res) => vehicleController.getFilterOptions(req, res)
+  );
+
+  /**
    * Get Vehicle by ID
    * GET /api/v1/vehicles/:id
    */

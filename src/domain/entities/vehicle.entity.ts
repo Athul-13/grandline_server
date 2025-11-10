@@ -17,7 +17,8 @@ export class Vehicle {
         public readonly fuelConsumption: number,
         public readonly status: VehicleStatus,
         public readonly createdAt: Date,
-        public readonly updatedAt: Date
+        public readonly updatedAt: Date,
+        public readonly imageUrls?: string[]
     ) {}
 
   /**

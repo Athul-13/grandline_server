@@ -46,6 +46,7 @@ export class VehicleMapper {
       vehicleModel: vehicle.vehicleModel,
       year: vehicle.year,
       fuelConsumption: vehicle.fuelConsumption,
+      imageUrls: vehicle.imageUrls,
       status: vehicle.status,
       createdAt: vehicle.createdAt,
       updatedAt: vehicle.updatedAt,
