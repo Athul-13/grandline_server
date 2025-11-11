@@ -44,7 +44,7 @@ export interface IRouteCalculationService {
    */
   calculateRoutes(
     outbound: QuoteItinerary[],
-    return?: QuoteItinerary[]
+    returnTrip?: QuoteItinerary[]
   ): Promise<{
     outbound: IRouteCalculationResult;
     return?: IRouteCalculationResult;

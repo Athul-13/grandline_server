@@ -49,6 +49,8 @@ export interface IPricingCalculationService {
 
   /**
    * Calculates fuel and maintenance costs
+   * Note: This is kept for backward compatibility but returns 0.
+   * Fuel cost is already included in distanceFare calculation.
    */
   calculateFuelMaintenance(
     totalDistance: number,

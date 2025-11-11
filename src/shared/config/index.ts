@@ -92,3 +92,12 @@ export const CLOUDINARY_CONFIG = {
   UPLOAD_URL: `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME || ''}/image/upload`,
   SIGNED_URL_EXPIRY: 300, // 5 minutes - fixed for security
 } as const;
+
+/**
+ * Mapbox configuration constants
+ * Manages Mapbox API settings for route calculation
+ */
+export const MAPBOX_CONFIG = {
+  ACCESS_TOKEN: process.env.MAPBOX_ACCESS_TOKEN || '',
+  API_BASE_URL: 'https://api.mapbox.com/directions/v5',
+} as const;
