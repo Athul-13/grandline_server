@@ -30,6 +30,11 @@ export interface IDatabaseModel<T> {
   deleteOne(filter: Record<string, unknown>): Promise<void>;
 
   /**
+   * Deletes multiple documents
+   */
+  deleteMany(filter: Record<string, unknown>): Promise<void>;
+
+  /**
    * Executes an aggregation pipeline
    */
   aggregate(pipeline: unknown[]): Promise<unknown[]>;

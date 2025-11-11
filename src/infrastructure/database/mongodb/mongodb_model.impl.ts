@@ -37,6 +37,10 @@ export class MongoDBModelImpl<T> implements IDatabaseModel<T> {
     await this.model.deleteOne(filter as FilterQuery<T>).exec();
   }
 
+  async deleteMany(filter: Record<string, unknown>): Promise<void> {
+    await this.model.deleteMany(filter as FilterQuery<T>).exec();
+  }
+
   async aggregate(pipeline: unknown[]): Promise<unknown[]> {
     return await this.model.aggregate(pipeline as PipelineStage[]).exec();
   }
