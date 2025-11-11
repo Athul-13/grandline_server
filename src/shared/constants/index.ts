@@ -40,6 +40,38 @@ export enum VehicleStatus {
 }
 
 /**
+ * Quote status enumeration
+ * Tracks the current state of quotes in the system
+ */
+export enum QuoteStatus {
+  DRAFT = 'draft',              // Quote is being built (incomplete)
+  SUBMITTED = 'submitted',      // Quote is complete and submitted (awaiting admin review/payment)
+  NEGOTIATING = 'negotiating',  // Quote is under negotiation
+  ACCEPTED = 'accepted',        // Quote has been accepted
+  REJECTED = 'rejected',        // Quote has been rejected
+  PAID = 'paid',                // Quote has been paid (becomes reservation)
+}
+
+/**
+ * Trip type enumeration
+ * Defines the type of trip for a quote
+ */
+export enum TripType {
+  ONE_WAY = 'one_way',          // Single direction trip
+  TWO_WAY = 'two_way',          // Return trip (round trip)
+}
+
+/**
+ * Stop type enumeration
+ * Defines the type of stop in an itinerary
+ */
+export enum StopType {
+  PICKUP = 'pickup',            // Pickup location
+  STOP = 'stop',                // Intermediate stop
+  DROPOFF = 'dropoff',          // Dropoff location
+}
+
+/**
  * Vehicle status labels mapping
  * Maps status enum values to user-friendly display labels
  */
@@ -118,6 +150,12 @@ export const SUCCESS_MESSAGES = {
   AMENITY_CREATED: 'Amenity created successfully',
   AMENITY_UPDATED: 'Amenity updated successfully',
   AMENITY_DELETED: 'Amenity deleted successfully',
+  QUOTE_DRAFT_CREATED: 'Quote draft created successfully',
+  QUOTE_DRAFT_UPDATED: 'Quote draft updated successfully',
+  QUOTE_SUBMITTED: 'Quote submitted successfully',
+  QUOTE_DELETED: 'Quote deleted successfully',
+  ROUTES_CALCULATED: 'Routes calculated successfully',
+  EVENT_TYPE_CREATED: 'Event type created successfully',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -149,6 +187,19 @@ export const ERROR_MESSAGES = {
   AMENITY_ALREADY_EXISTS: 'Amenity with this name already exists',
   AMENITY_IN_USE: 'Cannot delete amenity. Vehicles are using this amenity',
   INVALID_AMENITY: 'Invalid amenity',
+  QUOTE_NOT_FOUND: 'Quote not found',
+  QUOTE_ALREADY_SUBMITTED: 'Quote has already been submitted',
+  QUOTE_CANNOT_BE_DELETED: 'Cannot delete quote. Quote has been submitted',
+  INVALID_QUOTE_STATUS: 'Invalid quote status',
+  INVALID_TRIP_TYPE: 'Invalid trip type',
+  INVALID_STOP_TYPE: 'Invalid stop type',
+  ITINERARY_REQUIRED: 'Itinerary is required',
+  PASSENGERS_REQUIRED: 'At least one passenger is required',
+  VEHICLES_REQUIRED: 'At least one vehicle must be selected',
+  EVENT_TYPE_NOT_FOUND: 'Event type not found',
+  EVENT_TYPE_ALREADY_EXISTS: 'Event type with this name already exists',
+  ROUTE_CALCULATION_FAILED: 'Failed to calculate route',
+  PRICING_CONFIG_NOT_FOUND: 'Pricing configuration not found',
 } as const;
 
 /**
@@ -160,4 +211,7 @@ export const ERROR_CODES = {
   AUTH_TOKEN_EXPIRED: 'AUTH_TOKEN_EXPIRED',
   USER_DUPLICATE_EMAIL: 'USER_DUPLICATE_EMAIL',
   USER_NOT_FOUND: 'USER_NOT_FOUND',
+  QUOTE_NOT_FOUND: 'QUOTE_NOT_FOUND',
+  QUOTE_INVALID_STATUS: 'QUOTE_INVALID_STATUS',
+  ROUTE_CALCULATION_ERROR: 'ROUTE_CALCULATION_ERROR',
 } as const;
