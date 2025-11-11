@@ -77,6 +77,25 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
     }
   }
 
+  async deleteFiles(urls: string[]): Promise<void> {
+    if (!urls || urls.length === 0) {
+      return;
+    }
+
+    // Delete all files in parallel, continue even if some fail
+    const deletePromises = urls.map(async (url) => {
+      try {
+        await this.deleteFile(url);
+      } catch (error) {
+        // Log error but don't throw - continue with other deletions
+        logger.warn(`Failed to delete image from Cloudinary: ${url}, Error: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    });
+
+    await Promise.allSettled(deletePromises);
+    logger.info(`Bulk delete completed for ${urls.length} images`);
+  }
+
   async verifyFileExists(url: string): Promise<boolean> {
     const publicId = this.extractPublicIdFromUrl(url);
     if (!publicId) {

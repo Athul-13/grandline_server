@@ -7,5 +7,8 @@ export const CONTROLLER_TOKENS = {
   OtpController: Symbol.for('OtpController'),
   TokenController: Symbol.for('TokenController'),
   UserController: Symbol.for('UserController'),
+  VehicleTypeController: Symbol.for('VehicleTypeController'),
+  VehicleController: Symbol.for('VehicleController'),
+  AmenityController: Symbol.for('AmenityController'),
 } as const;
 

@@ -43,17 +43,8 @@ export const validationMiddleware = <T extends object>(dtoClass: ClassConstructo
     next: NextFunction
   ): Promise<void> => {
     try {
-      // Merge body, params, query for validation
-      const data: Record<string, unknown> = {};
-      if (req.body && Object.keys(req.body).length > 0) {
-        Object.assign(data, req.body);
-      }
-      if (req.params && Object.keys(req.params).length > 0) {
-        Object.assign(data, req.params);
-      }
-      if (req.query && Object.keys(req.query).length > 0) {
-        Object.assign(data, req.query);
-      }
+      // Only validate request body
+      const data = req.body || {};
 
       // Transform plain object to DTO class instance
       const dtoObj = plainToInstance(dtoClass, data);

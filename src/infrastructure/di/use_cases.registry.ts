@@ -15,6 +15,27 @@ import { GoogleAuthUseCase } from '../../application/use-cases/implementation/au
 import { SetupPasswordUseCase } from '../../application/use-cases/implementation/auth/setup_password.use-case';
 import { LinkGoogleAccountUseCase } from '../../application/use-cases/implementation/auth/link_google_account.use-case';
 import { ChangePasswordUseCase } from '../../application/use-cases/implementation/user/change_password.use-case';
+import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
+import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
+import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
+import { UpdateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/update_vehicle_type.use-case';
+import { DeleteVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/delete_vehicle_type.use-case';
+import { CreateVehicleUseCase } from '../../application/use-cases/implementation/vehicle/create_vehicle.use-case';
+import { GetVehicleUseCase } from '../../application/use-cases/implementation/vehicle/get_vehicle.use-case';
+import { GetAllVehiclesUseCase } from '../../application/use-cases/implementation/vehicle/get_all_vehicles.use-case';
+import { GetVehiclesByTypeUseCase } from '../../application/use-cases/implementation/vehicle/get_vehicles_by_type.use-case';
+import { UpdateVehicleUseCase } from '../../application/use-cases/implementation/vehicle/update_vehicle.use-case';
+import { UpdateVehicleStatusUseCase } from '../../application/use-cases/implementation/vehicle/update_vehicle_status.use-case';
+import { DeleteVehicleUseCase } from '../../application/use-cases/implementation/vehicle/delete_vehicle.use-case';
+import { GetVehicleFilterOptionsUseCase } from '../../application/use-cases/implementation/vehicle/get_vehicle_filter_options.use-case';
+import { GenerateVehicleImageUploadUrlUseCase } from '../../application/use-cases/implementation/vehicle/generate_vehicle_image_upload_url.use-case';
+import { DeleteVehicleImagesUseCase } from '../../application/use-cases/implementation/vehicle/delete_vehicle_images.use-case';
+import { CreateAmenityUseCase } from '../../application/use-cases/implementation/amenity/create_amenity.use-case';
+import { GetAmenityUseCase } from '../../application/use-cases/implementation/amenity/get_amenity.use-case';
+import { GetAllAmenitiesUseCase } from '../../application/use-cases/implementation/amenity/get_all_amenities.use-case';
+import { GetPaidAmenitiesUseCase } from '../../application/use-cases/implementation/amenity/get_paid_amenities.use-case';
+import { UpdateAmenityUseCase } from '../../application/use-cases/implementation/amenity/update_amenity.use-case';
+import { DeleteAmenityUseCase } from '../../application/use-cases/implementation/amenity/delete_amenity.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -36,5 +57,26 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.SetupPasswordUseCase, SetupPasswordUseCase);
   container.register(USE_CASE_TOKENS.LinkGoogleAccountUseCase, LinkGoogleAccountUseCase);
   container.register(USE_CASE_TOKENS.ChangePasswordUseCase, ChangePasswordUseCase);
+  container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
+  container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);
+  container.register(USE_CASE_TOKENS.GetAllVehicleTypesUseCase, GetAllVehicleTypesUseCase);
+  container.register(USE_CASE_TOKENS.UpdateVehicleTypeUseCase, UpdateVehicleTypeUseCase);
+  container.register(USE_CASE_TOKENS.DeleteVehicleTypeUseCase, DeleteVehicleTypeUseCase);
+  container.register(USE_CASE_TOKENS.CreateVehicleUseCase, CreateVehicleUseCase);
+  container.register(USE_CASE_TOKENS.GetVehicleUseCase, GetVehicleUseCase);
+  container.register(USE_CASE_TOKENS.GetAllVehiclesUseCase, GetAllVehiclesUseCase);
+  container.register(USE_CASE_TOKENS.GetVehiclesByTypeUseCase, GetVehiclesByTypeUseCase);
+  container.register(USE_CASE_TOKENS.UpdateVehicleUseCase, UpdateVehicleUseCase);
+  container.register(USE_CASE_TOKENS.UpdateVehicleStatusUseCase, UpdateVehicleStatusUseCase);
+  container.register(USE_CASE_TOKENS.DeleteVehicleUseCase, DeleteVehicleUseCase);
+  container.register(USE_CASE_TOKENS.GetVehicleFilterOptionsUseCase, GetVehicleFilterOptionsUseCase);
+  container.register(USE_CASE_TOKENS.GenerateVehicleImageUploadUrlUseCase, GenerateVehicleImageUploadUrlUseCase);
+  container.register(USE_CASE_TOKENS.DeleteVehicleImagesUseCase, DeleteVehicleImagesUseCase);
+  container.register(USE_CASE_TOKENS.CreateAmenityUseCase, CreateAmenityUseCase);
+  container.register(USE_CASE_TOKENS.GetAmenityUseCase, GetAmenityUseCase);
+  container.register(USE_CASE_TOKENS.GetAllAmenitiesUseCase, GetAllAmenitiesUseCase);
+  container.register(USE_CASE_TOKENS.GetPaidAmenitiesUseCase, GetPaidAmenitiesUseCase);
+  container.register(USE_CASE_TOKENS.UpdateAmenityUseCase, UpdateAmenityUseCase);
+  container.register(USE_CASE_TOKENS.DeleteAmenityUseCase, DeleteAmenityUseCase);
 }
 

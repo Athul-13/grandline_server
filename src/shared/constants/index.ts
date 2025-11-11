@@ -29,6 +29,28 @@ export enum DriverStatus {
 }
 
 /**
+ * Vehicle status enumeration
+ * Tracks the current state of vehicles in the system
+ */
+export enum VehicleStatus {
+  AVAILABLE = 'available',      // Ready for rental
+  IN_SERVICE = 'in_service',    // Currently on a trip/rented
+  MAINTENANCE = 'maintenance',  // Under repair/maintenance
+  RETIRED = 'retired',          // No longer in service
+}
+
+/**
+ * Vehicle status labels mapping
+ * Maps status enum values to user-friendly display labels
+ */
+export const VEHICLE_STATUS_LABELS: Record<VehicleStatus, string> = {
+  [VehicleStatus.AVAILABLE]: 'Available',
+  [VehicleStatus.IN_SERVICE]: 'In Service',
+  [VehicleStatus.MAINTENANCE]: 'Maintenance',
+  [VehicleStatus.RETIRED]: 'Retired',
+};
+
+/**
  * OTP configuration constants
  * Manages one-time password generation and expiry
  */
@@ -86,6 +108,16 @@ export const SUCCESS_MESSAGES = {
   GOOGLE_AUTH_SUCCESS: 'Google authentication successful',
   PASSWORD_SETUP_SUCCESS: 'Password has been set successfully',
   GOOGLE_ACCOUNT_LINKED: 'Google account linked successfully',
+  VEHICLE_TYPE_CREATED: 'Vehicle type created successfully',
+  VEHICLE_TYPE_UPDATED: 'Vehicle type updated successfully',
+  VEHICLE_TYPE_DELETED: 'Vehicle type deleted successfully',
+  VEHICLE_CREATED: 'Vehicle created successfully',
+  VEHICLE_UPDATED: 'Vehicle updated successfully',
+  VEHICLE_STATUS_UPDATED: 'Vehicle status updated successfully',
+  VEHICLE_DELETED: 'Vehicle deleted successfully',
+  AMENITY_CREATED: 'Amenity created successfully',
+  AMENITY_UPDATED: 'Amenity updated successfully',
+  AMENITY_DELETED: 'Amenity deleted successfully',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -106,6 +138,17 @@ export const ERROR_MESSAGES = {
   GOOGLE_ACCOUNT_ALREADY_LINKED: 'Google account already linked',
   GOOGLE_EMAIL_MISMATCH: 'Email mismatch. Google account email must match your account email',
   INVALID_GOOGLE_TOKEN: 'Invalid Google token',
+  VEHICLE_TYPE_NOT_FOUND: 'Vehicle type not found',
+  VEHICLE_TYPE_ALREADY_EXISTS: 'Vehicle type with this name already exists',
+  VEHICLE_TYPE_IN_USE: 'Cannot delete vehicle type. Vehicles are using this type',
+  VEHICLE_NOT_FOUND: 'Vehicle not found',
+  VEHICLE_PLATE_NUMBER_EXISTS: 'Vehicle with this plate number already exists',
+  VEHICLE_IN_USE: 'Cannot delete vehicle. Vehicle is currently in use',
+  INVALID_VEHICLE_TYPE: 'Invalid vehicle type',
+  AMENITY_NOT_FOUND: 'Amenity not found',
+  AMENITY_ALREADY_EXISTS: 'Amenity with this name already exists',
+  AMENITY_IN_USE: 'Cannot delete amenity. Vehicles are using this amenity',
+  INVALID_AMENITY: 'Invalid amenity',
 } as const;
 
 /**

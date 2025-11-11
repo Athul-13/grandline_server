@@ -5,4 +5,7 @@
 export const REPOSITORY_TOKENS = {
   IUserRepository: Symbol.for('IUserRepository'),
   IDriverRepository: Symbol.for('IDriverRepository'),
+  IVehicleTypeRepository: Symbol.for('IVehicleTypeRepository'),
+  IVehicleRepository: Symbol.for('IVehicleRepository'),
+  IAmenityRepository: Symbol.for('IAmenityRepository'),
 } as const;
