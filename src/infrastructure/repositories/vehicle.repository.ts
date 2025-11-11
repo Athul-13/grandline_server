@@ -184,8 +184,40 @@ export class VehicleRepositoryImpl
       query.year = yearQuery;
     }
 
-    // Execute query
-    const docs = await this.vehicleModel.find(query);
+    // Build search query for plateNumber and vehicleModel (case-insensitive partial match)
+    const searchConditions: Record<string, unknown>[] = [];
+    if (filter.search && filter.search.trim().length > 0) {
+      const searchTerm = filter.search.trim();
+      searchConditions.push(
+        { plateNumber: { $regex: searchTerm, $options: 'i' } },
+        { vehicleModel: { $regex: searchTerm, $options: 'i' } }
+      );
+    }
+
+    // Combine all conditions using $and if search is present
+    const finalQuery: Record<string, unknown>[] = [];
+    
+    // Add existing filters if query object has any properties
+    if (Object.keys(query).length > 0) {
+      finalQuery.push(query);
+    }
+
+    // Add search conditions if present
+    if (searchConditions.length > 0) {
+      finalQuery.push({ $or: searchConditions });
+    }
+
+    // Execute query - use $and if multiple conditions, otherwise use single query object
+    let mongoQuery: Record<string, unknown>;
+    if (finalQuery.length > 1) {
+      mongoQuery = { $and: finalQuery };
+    } else if (finalQuery.length === 1) {
+      mongoQuery = finalQuery[0] as Record<string, unknown>;
+    } else {
+      mongoQuery = {};
+    }
+
+    const docs = await this.vehicleModel.find(mongoQuery);
     return VehicleRepositoryMapper.toEntities(docs);
   }
 }

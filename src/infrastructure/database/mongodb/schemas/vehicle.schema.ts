@@ -85,5 +85,6 @@ export const VehicleSchema: Schema = new Schema(
 VehicleSchema.index({ vehicleId: 1 });
 VehicleSchema.index({ vehicleTypeId: 1 });
 VehicleSchema.index({ plateNumber: 1 });
+VehicleSchema.index({ vehicleModel: 1 });
 VehicleSchema.index({ status: 1 });
 VehicleSchema.index({ createdAt: -1 });
