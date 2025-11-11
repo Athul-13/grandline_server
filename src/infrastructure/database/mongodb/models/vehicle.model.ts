@@ -20,6 +20,7 @@ export interface IVehicleModel extends Document {
   fuelConsumption: number;
   imageUrls?: string[];
   status: VehicleStatus;
+  amenityIds?: string[];
   createdAt: Date;
   updatedAt: Date;
 }

@@ -107,6 +107,12 @@ export class CreateVehicleRequest {
   @IsOptional()
   @IsEnum(VehicleStatus)
   status?: VehicleStatus;
+
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true, message: 'Each amenity ID must be a string' })
+  @Matches(/^\S+$/, { each: true, message: 'Each amenity ID must not contain whitespace' })
+  amenityIds?: string[];
 }
 
 /**
@@ -180,6 +186,18 @@ export class UpdateVehicleRequest {
   @ArrayMinSize(1, { message: 'Image URLs array must contain at least one URL if provided' })
   @IsUrl({}, { each: true, message: 'Each image URL must be a valid URL' })
   imageUrls?: string[];
+
+  @IsOptional()
+  @ValidateIf((o) => o.amenityIds !== undefined)
+  @IsArray()
+  @IsString({ each: true, message: 'Each amenity ID must be a string' })
+  @Matches(/^\S+$/, { each: true, message: 'Each amenity ID must not contain whitespace' })
+  amenityIds?: string[];
+
+  @IsOptional()
+  @ValidateIf((o) => o.status !== undefined)
+  @IsEnum(VehicleStatus, { message: 'Status must be a valid vehicle status' })
+  status?: VehicleStatus;
 }
 
 /**
@@ -240,7 +258,7 @@ export interface CreateVehicleTypeResponse {
  */
 export interface VehicleResponse {
   vehicleId: string;
-  vehicleTypeId: string;
+  vehicleType: VehicleTypeResponse;
   capacity: number;
   baseFare: number;
   maintenance: number;
@@ -250,6 +268,7 @@ export interface VehicleResponse {
   fuelConsumption: number;
   imageUrls?: string[];
   status: VehicleStatus;
+  amenityIds?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -272,11 +291,48 @@ export interface GetVehicleResponse {
 }
 
 /**
- * Response DTO for getting all vehicles
- * Contains list of vehicles
+ * Response DTO for getting all vehicles with pagination
+ * Contains paginated vehicles and pagination metadata
  */
+/**
+ * Filter DTO for vehicle queries
+ * Validates filter parameters from query string
+ */
+export class VehicleFilterDto {
+  @IsOptional()
+  @IsArray()
+  @IsEnum(VehicleStatus, { each: true, message: 'Each status must be a valid vehicle status' })
+  status?: VehicleStatus[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0, { message: 'baseFare_min must be greater than or equal to 0' })
+  baseFare_min?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0, { message: 'baseFare_max must be greater than or equal to 0' })
+  baseFare_max?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1, { message: 'capacity must be greater than or equal to 1' })
+  capacity?: number; // Minimum capacity (vehicles with capacity >= this value)
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1900, { message: 'year_min must be greater than or equal to 1900' })
+  year_min?: number; // Minimum year (vehicles with year >= this value)
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1900, { message: 'year_max must be greater than or equal to 1900' })
+  year_max?: number; // Maximum year (vehicles with year <= this value)
+}
+
 export interface GetAllVehiclesResponse {
-  vehicles: VehicleResponse[];
+  data: VehicleResponse[];
+  pagination: PaginationMeta;
 }
 
 /**
@@ -393,4 +449,30 @@ export type FilterOption =
 export interface GetVehicleFilterOptionsResponse {
   success: true;
   filters: FilterOption[];
+}
+
+/**
+ * Request DTO for deleting vehicle images
+ * Accepts array of image URLs to delete
+ */
+export class DeleteVehicleImagesRequest {
+  @IsArray()
+  @ArrayMinSize(1, { message: 'At least one image URL is required' })
+  @IsUrl({}, { each: true, message: 'Each URL must be a valid URL' })
+  urls!: string[];
+}
+
+/**
+ * Response DTO for generating signed upload URL for vehicle images
+ * Contains Cloudinary upload URL and signed parameters
+ */
+export interface GenerateVehicleImageUploadUrlResponse {
+  uploadUrl: string;
+  params: {
+    timestamp: number;
+    signature: string;
+    api_key: string;
+    folder: string;
+  };
+  expiresIn: number; // Expiration time in seconds
 }

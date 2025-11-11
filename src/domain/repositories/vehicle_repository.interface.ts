@@ -1,6 +1,7 @@
 import { VehicleStatus } from "../../shared/constants";
 import { Vehicle } from "../entities/vehicle.entity";
 import { IBaseRepository } from "./base_repository.interface";
+import { VehicleFilter } from "./vehicle_filter.interface";
 
 /**
  * Repository interface for Vehicle entity operations
@@ -43,4 +44,17 @@ export interface IVehicleRepository extends IBaseRepository<Vehicle> {
    * Returns default values if no vehicles exist
    */
   getMinMaxCapacity(): Promise<{ min: number; max: number }>;
+
+  /**
+   * Finds vehicles that have a specific amenity ID
+   * Used to check if an amenity is in use before deletion
+   */
+  findByAmenityId(amenityId: string): Promise<Vehicle[]>;
+
+  /**
+   * Finds vehicles with filters applied
+   * Efficiently queries database with filter conditions
+   * Returns only vehicles matching all filter criteria
+   */
+  findWithFilters(filter: VehicleFilter): Promise<Vehicle[]>;
 }

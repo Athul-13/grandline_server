@@ -18,7 +18,8 @@ export class Vehicle {
         public readonly status: VehicleStatus,
         public readonly createdAt: Date,
         public readonly updatedAt: Date,
-        public readonly imageUrls?: string[]
+        public readonly imageUrls?: string[],
+        public readonly amenityIds: string[] = []
     ) {}
 
   /**

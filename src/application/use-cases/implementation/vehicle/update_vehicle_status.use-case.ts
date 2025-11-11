@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IUpdateVehicleStatusUseCase } from '../../interface/vehicle/update_vehicle_status_use_case.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
+import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
 import { UpdateVehicleStatusRequest, UpdateVehicleStatusResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
@@ -16,6 +17,8 @@ export class UpdateVehicleStatusUseCase implements IUpdateVehicleStatusUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IVehicleRepository)
     private readonly vehicleRepository: IVehicleRepository,
+    @inject(REPOSITORY_TOKENS.IVehicleTypeRepository)
+    private readonly vehicleTypeRepository: IVehicleTypeRepository,
   ) {}
 
   async execute(vehicleId: string, request: UpdateVehicleStatusRequest): Promise<UpdateVehicleStatusResponse> {
@@ -36,9 +39,16 @@ export class UpdateVehicleStatusUseCase implements IUpdateVehicleStatusUseCase {
       throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
     }
 
+    // Fetch vehicle type
+    const vehicleType = await this.vehicleTypeRepository.findById(updatedVehicle.vehicleTypeId);
+    if (!vehicleType) {
+      logger.error(`Vehicle type not found for vehicle: ${vehicleId}, vehicleTypeId: ${updatedVehicle.vehicleTypeId}`);
+      throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+    }
+
     logger.info(`Vehicle status updated: ${updatedVehicle.plateNumber} to ${request.status} (${vehicleId})`);
 
-    return VehicleMapper.toUpdateVehicleStatusResponse(updatedVehicle);
+    return VehicleMapper.toUpdateVehicleStatusResponse(updatedVehicle, vehicleType);
   }
 }
 

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { VehicleTypeController } from '../../controllers/vehicle_type/vehicle_type.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
+import { authenticate } from '../../middleware/auth.middleware';
+import { authorize } from '../../middleware/authorize.middleware';
 import { CreateVehicleTypeRequest, UpdateVehicleTypeRequest } from '../../../application/dtos/vehicle.dto';
 
 /**
@@ -19,11 +21,13 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
   const { vehicleTypeController } = config;
 
   /**
-   * Create Vehicle Type
+   * Create Vehicle Type (Admin only)
    * POST /api/v1/vehicle-types
    */
   router.post(
     '/',
+    authenticate,
+    authorize(['admin']),
     validationMiddleware(CreateVehicleTypeRequest),
     (req, res) => vehicleTypeController.createVehicleType(req, res)
   );
@@ -47,21 +51,25 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
   );
 
   /**
-   * Update Vehicle Type
+   * Update Vehicle Type (Admin only)
    * PUT /api/v1/vehicle-types/:id
    */
   router.put(
     '/:id',
+    authenticate,
+    authorize(['admin']),
     validationMiddleware(UpdateVehicleTypeRequest),
     (req, res) => vehicleTypeController.updateVehicleType(req, res)
   );
 
   /**
-   * Delete Vehicle Type
+   * Delete Vehicle Type (Admin only)
    * DELETE /api/v1/vehicle-types/:id
    */
   router.delete(
     '/:id',
+    authenticate,
+    authorize(['admin']),
     (req, res) => vehicleTypeController.deleteVehicleType(req, res)
   );
 

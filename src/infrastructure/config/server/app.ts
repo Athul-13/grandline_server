@@ -8,6 +8,7 @@ import { createAuthRoutesWithDI } from '../../../presentation/routes/auth/auth_r
 import { createUserRoutesWithDI } from '../../../presentation/routes/user/user_routes';
 import { createVehicleTypeRoutesWithDI } from '../../../presentation/routes/vehicle_type/vehicle_type_routes';
 import { createVehicleRoutesWithDI } from '../../../presentation/routes/vehicle/vehicle_routes';
+import { createAmenityRoutesWithDI } from '../../../presentation/routes/amenity/amenity_routes';
 
 /**
  * Express application wrapper class
@@ -77,6 +78,9 @@ export class App {
 
     const vehicleRoutes = createVehicleRoutesWithDI();
     this.app.use(`/api/v1/vehicles`, vehicleRoutes);
+
+    const amenityRoutes = createAmenityRoutesWithDI();
+    this.app.use(`/api/v1/amenities`, amenityRoutes);
   }
 
   /**

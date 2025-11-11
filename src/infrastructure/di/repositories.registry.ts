@@ -6,6 +6,8 @@ import { IVehicleTypeRepository } from '../../domain/repositories/vehicle_type_r
 import { VehicleTypeRepositoryImpl } from '../repositories/vehicle_type.repository';
 import { IVehicleRepository } from '../../domain/repositories/vehicle_repository.interface';
 import { VehicleRepositoryImpl } from '../repositories/vehicle.repository';
+import { IAmenityRepository } from '../../domain/repositories/amenity_repository.interface';
+import { AmenityRepositoryImpl } from '../repositories/amenity.repository';
 
 /**
  * Registers all repository dependencies in the DI container
@@ -25,5 +27,10 @@ export function registerRepositories(): void {
   container.register<IVehicleRepository>(
     REPOSITORY_TOKENS.IVehicleRepository,
     { useClass: VehicleRepositoryImpl }
+  );
+
+  container.register<IAmenityRepository>(
+    REPOSITORY_TOKENS.IAmenityRepository,
+    { useClass: AmenityRepositoryImpl }
   );
 }

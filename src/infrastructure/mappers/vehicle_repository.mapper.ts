@@ -22,7 +22,8 @@ export class VehicleRepositoryMapper {
       doc.status as VehicleStatus,
       doc.createdAt,
       doc.updatedAt,
-      doc.imageUrls && doc.imageUrls.length > 0 ? doc.imageUrls : undefined
+      doc.imageUrls && doc.imageUrls.length > 0 ? doc.imageUrls : undefined,
+      doc.amenityIds && doc.amenityIds.length > 0 ? doc.amenityIds : []
     );
   }
 

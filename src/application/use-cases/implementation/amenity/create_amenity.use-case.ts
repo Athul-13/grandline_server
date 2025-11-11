@@ -1,0 +1,56 @@
+import { injectable, inject } from 'tsyringe';
+import { ICreateAmenityUseCase } from '../../interface/amenity/create_amenity_use_case.interface';
+import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
+import { CreateAmenityRequest, CreateAmenityResponse } from '../../../dtos/amenity.dto';
+import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { AmenityMapper } from '../../../mapper/amenity.mapper';
+import { Amenity } from '../../../../domain/entities/amenity.entity';
+import { logger } from '../../../../shared/logger';
+import { randomUUID } from 'crypto';
+
+/**
+ * Use case for creating amenity
+ * Creates a new amenity in the system
+ */
+@injectable()
+export class CreateAmenityUseCase implements ICreateAmenityUseCase {
+  constructor(
+    @inject(REPOSITORY_TOKENS.IAmenityRepository)
+    private readonly amenityRepository: IAmenityRepository,
+  ) {}
+
+  async execute(request: CreateAmenityRequest): Promise<CreateAmenityResponse> {
+    // Check if amenity with same name already exists
+    const existingAmenity = await this.amenityRepository.findByName(request.name.trim());
+    
+    if (existingAmenity) {
+      logger.warn(`Attempt to create duplicate amenity: ${request.name}`);
+      throw new Error(ERROR_MESSAGES.AMENITY_ALREADY_EXISTS);
+    }
+
+    // Generate amenity ID
+    const amenityId = randomUUID();
+    const now = new Date();
+
+    // Normalize price: if undefined, set to null; if provided, use the value
+    const price = request.price !== undefined ? request.price : null;
+
+    // Create amenity entity
+    const amenity = new Amenity(
+      amenityId,
+      request.name.trim(),
+      price,
+      now,
+      now,
+    );
+
+    // Save to repository
+    await this.amenityRepository.create(amenity);
+
+    logger.info(`Amenity created: ${amenity.name} (${amenityId})`);
+
+    return AmenityMapper.toCreateAmenityResponse(amenity);
+  }
+}
+

@@ -35,7 +35,7 @@ export class GetVehiclesByTypeUseCase implements IGetVehiclesByTypeUseCase {
     
     logger.info(`Fetched ${vehicles.length} vehicles for type: ${vehicleType.name}`);
 
-    return VehicleMapper.toGetVehiclesByTypeResponse(vehicles);
+    return VehicleMapper.toGetVehiclesByTypeResponse(vehicles, vehicleType);
   }
 }
 

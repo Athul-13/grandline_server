@@ -2,6 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { ICreateVehicleUseCase } from '../../interface/vehicle/create_vehicle_use_case.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
+import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { CreateVehicleRequest, CreateVehicleResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
@@ -23,6 +24,8 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
     private readonly vehicleRepository: IVehicleRepository,
     @inject(REPOSITORY_TOKENS.IVehicleTypeRepository)
     private readonly vehicleTypeRepository: IVehicleTypeRepository,
+    @inject(REPOSITORY_TOKENS.IAmenityRepository)
+    private readonly amenityRepository: IAmenityRepository,
     @inject(SERVICE_TOKENS.ICloudinaryService)
     private readonly cloudinaryService: ICloudinaryService,
   ) {}
@@ -42,6 +45,16 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
     if (existingVehicle) {
       logger.warn(`Attempt to create vehicle with duplicate plate number: ${request.plateNumber}`);
       throw new Error(ERROR_MESSAGES.VEHICLE_PLATE_NUMBER_EXISTS);
+    }
+
+    // Validate amenities if provided
+    const amenityIds = request.amenityIds && request.amenityIds.length > 0 ? request.amenityIds : [];
+    if (amenityIds.length > 0) {
+      const amenities = await this.amenityRepository.findByIds(amenityIds);
+      if (amenities.length !== amenityIds.length) {
+        logger.warn(`Attempt to create vehicle with invalid amenity IDs`);
+        throw new Error(ERROR_MESSAGES.INVALID_AMENITY);
+      }
     }
 
     // Generate vehicle ID
@@ -64,7 +77,8 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
         request.status || VehicleStatus.AVAILABLE,
         now,
         now,
-        imageUrls
+        imageUrls,
+        amenityIds
       );
 
       // Save to repository
@@ -72,7 +86,7 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
 
       logger.info(`Vehicle created: ${vehicle.plateNumber} (${vehicleId})`);
 
-      return VehicleMapper.toCreateVehicleResponse(vehicle);
+      return VehicleMapper.toCreateVehicleResponse(vehicle, vehicleType);
     } catch (error) {
       // If creation fails and images were provided, rollback: delete uploaded images
       if (imageUrls && imageUrls.length > 0) {

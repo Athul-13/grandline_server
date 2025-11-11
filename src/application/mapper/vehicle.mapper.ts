@@ -35,10 +35,10 @@ export class VehicleMapper {
     };
   }
 
-  static toVehicleResponse(vehicle: Vehicle): VehicleResponse {
+  static toVehicleResponse(vehicle: Vehicle, vehicleType: VehicleType): VehicleResponse {
     return {
       vehicleId: vehicle.vehicleId,
-      vehicleTypeId: vehicle.vehicleTypeId,
+      vehicleType: this.toVehicleTypeResponse(vehicleType, 0), // vehicleCount not needed for vehicle response
       capacity: vehicle.capacity,
       baseFare: vehicle.baseFare,
       maintenance: vehicle.maintenance,
@@ -48,47 +48,42 @@ export class VehicleMapper {
       fuelConsumption: vehicle.fuelConsumption,
       imageUrls: vehicle.imageUrls,
       status: vehicle.status,
+      amenityIds: vehicle.amenityIds && vehicle.amenityIds.length > 0 ? vehicle.amenityIds : undefined,
       createdAt: vehicle.createdAt,
       updatedAt: vehicle.updatedAt,
     };
   }
 
-  static toCreateVehicleResponse(vehicle: Vehicle): CreateVehicleResponse {
+  static toCreateVehicleResponse(vehicle: Vehicle, vehicleType: VehicleType): CreateVehicleResponse {
     return {
       message: SUCCESS_MESSAGES.VEHICLE_CREATED,
-      vehicle: this.toVehicleResponse(vehicle),
+      vehicle: this.toVehicleResponse(vehicle, vehicleType),
     };
   }
 
-  static toGetVehicleResponse(vehicle: Vehicle): GetVehicleResponse {
+  static toGetVehicleResponse(vehicle: Vehicle, vehicleType: VehicleType): GetVehicleResponse {
     return {
-      vehicle: this.toVehicleResponse(vehicle),
+      vehicle: this.toVehicleResponse(vehicle, vehicleType),
     };
   }
 
-  static toGetAllVehiclesResponse(vehicles: Vehicle[]): GetAllVehiclesResponse {
+  static toGetVehiclesByTypeResponse(vehicles: Vehicle[], vehicleType: VehicleType): GetVehiclesByTypeResponse {
     return {
-      vehicles: vehicles.map(vehicle => this.toVehicleResponse(vehicle)),
+      vehicles: vehicles.map(vehicle => this.toVehicleResponse(vehicle, vehicleType)),
     };
   }
 
-  static toGetVehiclesByTypeResponse(vehicles: Vehicle[]): GetVehiclesByTypeResponse {
-    return {
-      vehicles: vehicles.map(vehicle => this.toVehicleResponse(vehicle)),
-    };
-  }
-
-  static toUpdateVehicleResponse(vehicle: Vehicle): UpdateVehicleResponse {
+  static toUpdateVehicleResponse(vehicle: Vehicle, vehicleType: VehicleType): UpdateVehicleResponse {
     return {
       message: SUCCESS_MESSAGES.VEHICLE_UPDATED,
-      vehicle: this.toVehicleResponse(vehicle),
+      vehicle: this.toVehicleResponse(vehicle, vehicleType),
     };
   }
 
-  static toUpdateVehicleStatusResponse(vehicle: Vehicle): UpdateVehicleStatusResponse {
+  static toUpdateVehicleStatusResponse(vehicle: Vehicle, vehicleType: VehicleType): UpdateVehicleStatusResponse {
     return {
       message: SUCCESS_MESSAGES.VEHICLE_STATUS_UPDATED,
-      vehicle: this.toVehicleResponse(vehicle),
+      vehicle: this.toVehicleResponse(vehicle, vehicleType),
     };
   }
 }

@@ -1,5 +1,6 @@
 import { injectable } from 'tsyringe';
 import { IVehicleRepository } from '../../domain/repositories/vehicle_repository.interface';
+import { VehicleFilter } from '../../domain/repositories/vehicle_filter.interface';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { IVehicleModel, createVehicleModel } from '../database/mongodb/models/vehicle.model';
 import { VehicleRepositoryMapper } from '../mappers/vehicle_repository.mapper';
@@ -43,6 +44,7 @@ export class VehicleRepositoryImpl
       fuelConsumption: entity.fuelConsumption,
       imageUrls: entity.imageUrls,
       status: entity.status,
+      amenityIds: entity.amenityIds && entity.amenityIds.length > 0 ? entity.amenityIds : [],
     };
   }
 
@@ -133,5 +135,57 @@ export class VehicleRepositoryImpl
       min: firstResult.minCapacity,
       max: firstResult.maxCapacity,
     };
+  }
+
+  async findByAmenityId(amenityId: string): Promise<Vehicle[]> {
+    const docs = await this.vehicleModel.find({ amenityIds: amenityId });
+    return VehicleRepositoryMapper.toEntities(docs);
+  }
+
+  async findWithFilters(filter: VehicleFilter): Promise<Vehicle[]> {
+    // Build MongoDB query object
+    const query: Record<string, unknown> = {};
+
+    // Filter by status(es) - use $in for multiple values
+    if (filter.status && filter.status.length > 0) {
+      if (filter.status.length === 1) {
+        query.status = filter.status[0];
+      } else {
+        query.status = { $in: filter.status };
+      }
+    }
+
+    // Filter by base fare range
+    if (filter.baseFareMin !== undefined || filter.baseFareMax !== undefined) {
+      const baseFareQuery: Record<string, number> = {};
+      if (filter.baseFareMin !== undefined) {
+        baseFareQuery.$gte = filter.baseFareMin;
+      }
+      if (filter.baseFareMax !== undefined) {
+        baseFareQuery.$lte = filter.baseFareMax;
+      }
+      query.baseFare = baseFareQuery;
+    }
+
+    // Filter by minimum capacity (greater than or equal to)
+    if (filter.capacity !== undefined) {
+      query.capacity = { $gte: filter.capacity };
+    }
+
+    // Filter by year range
+    if (filter.yearMin !== undefined || filter.yearMax !== undefined) {
+      const yearQuery: Record<string, number> = {};
+      if (filter.yearMin !== undefined) {
+        yearQuery.$gte = filter.yearMin;
+      }
+      if (filter.yearMax !== undefined) {
+        yearQuery.$lte = filter.yearMax;
+      }
+      query.year = yearQuery;
+    }
+
+    // Execute query
+    const docs = await this.vehicleModel.find(query);
+    return VehicleRepositoryMapper.toEntities(docs);
   }
 }

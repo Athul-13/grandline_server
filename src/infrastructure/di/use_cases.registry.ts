@@ -28,6 +28,14 @@ import { UpdateVehicleUseCase } from '../../application/use-cases/implementation
 import { UpdateVehicleStatusUseCase } from '../../application/use-cases/implementation/vehicle/update_vehicle_status.use-case';
 import { DeleteVehicleUseCase } from '../../application/use-cases/implementation/vehicle/delete_vehicle.use-case';
 import { GetVehicleFilterOptionsUseCase } from '../../application/use-cases/implementation/vehicle/get_vehicle_filter_options.use-case';
+import { GenerateVehicleImageUploadUrlUseCase } from '../../application/use-cases/implementation/vehicle/generate_vehicle_image_upload_url.use-case';
+import { DeleteVehicleImagesUseCase } from '../../application/use-cases/implementation/vehicle/delete_vehicle_images.use-case';
+import { CreateAmenityUseCase } from '../../application/use-cases/implementation/amenity/create_amenity.use-case';
+import { GetAmenityUseCase } from '../../application/use-cases/implementation/amenity/get_amenity.use-case';
+import { GetAllAmenitiesUseCase } from '../../application/use-cases/implementation/amenity/get_all_amenities.use-case';
+import { GetPaidAmenitiesUseCase } from '../../application/use-cases/implementation/amenity/get_paid_amenities.use-case';
+import { UpdateAmenityUseCase } from '../../application/use-cases/implementation/amenity/update_amenity.use-case';
+import { DeleteAmenityUseCase } from '../../application/use-cases/implementation/amenity/delete_amenity.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -62,5 +70,13 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.UpdateVehicleStatusUseCase, UpdateVehicleStatusUseCase);
   container.register(USE_CASE_TOKENS.DeleteVehicleUseCase, DeleteVehicleUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleFilterOptionsUseCase, GetVehicleFilterOptionsUseCase);
+  container.register(USE_CASE_TOKENS.GenerateVehicleImageUploadUrlUseCase, GenerateVehicleImageUploadUrlUseCase);
+  container.register(USE_CASE_TOKENS.DeleteVehicleImagesUseCase, DeleteVehicleImagesUseCase);
+  container.register(USE_CASE_TOKENS.CreateAmenityUseCase, CreateAmenityUseCase);
+  container.register(USE_CASE_TOKENS.GetAmenityUseCase, GetAmenityUseCase);
+  container.register(USE_CASE_TOKENS.GetAllAmenitiesUseCase, GetAllAmenitiesUseCase);
+  container.register(USE_CASE_TOKENS.GetPaidAmenitiesUseCase, GetPaidAmenitiesUseCase);
+  container.register(USE_CASE_TOKENS.UpdateAmenityUseCase, UpdateAmenityUseCase);
+  container.register(USE_CASE_TOKENS.DeleteAmenityUseCase, DeleteAmenityUseCase);
 }
 

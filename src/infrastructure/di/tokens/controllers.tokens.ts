@@ -9,5 +9,6 @@ export const CONTROLLER_TOKENS = {
   UserController: Symbol.for('UserController'),
   VehicleTypeController: Symbol.for('VehicleTypeController'),
   VehicleController: Symbol.for('VehicleController'),
+  AmenityController: Symbol.for('AmenityController'),
 } as const;
 

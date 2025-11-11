@@ -115,6 +115,9 @@ export const SUCCESS_MESSAGES = {
   VEHICLE_UPDATED: 'Vehicle updated successfully',
   VEHICLE_STATUS_UPDATED: 'Vehicle status updated successfully',
   VEHICLE_DELETED: 'Vehicle deleted successfully',
+  AMENITY_CREATED: 'Amenity created successfully',
+  AMENITY_UPDATED: 'Amenity updated successfully',
+  AMENITY_DELETED: 'Amenity deleted successfully',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -142,6 +145,10 @@ export const ERROR_MESSAGES = {
   VEHICLE_PLATE_NUMBER_EXISTS: 'Vehicle with this plate number already exists',
   VEHICLE_IN_USE: 'Cannot delete vehicle. Vehicle is currently in use',
   INVALID_VEHICLE_TYPE: 'Invalid vehicle type',
+  AMENITY_NOT_FOUND: 'Amenity not found',
+  AMENITY_ALREADY_EXISTS: 'Amenity with this name already exists',
+  AMENITY_IN_USE: 'Cannot delete amenity. Vehicles are using this amenity',
+  INVALID_AMENITY: 'Invalid amenity',
 } as const;
 
 /**

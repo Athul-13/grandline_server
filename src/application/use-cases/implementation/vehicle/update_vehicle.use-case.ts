@@ -2,6 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IUpdateVehicleUseCase } from '../../interface/vehicle/update_vehicle_use_case.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
+import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { UpdateVehicleRequest, UpdateVehicleResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
@@ -21,6 +22,8 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
     private readonly vehicleRepository: IVehicleRepository,
     @inject(REPOSITORY_TOKENS.IVehicleTypeRepository)
     private readonly vehicleTypeRepository: IVehicleTypeRepository,
+    @inject(REPOSITORY_TOKENS.IAmenityRepository)
+    private readonly amenityRepository: IAmenityRepository,
     @inject(SERVICE_TOKENS.ICloudinaryService)
     private readonly cloudinaryService: ICloudinaryService,
   ) {}
@@ -67,8 +70,21 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
       ? newImageUrls.filter(url => !oldImageUrls.includes(url))
       : [];
 
+    // Validate amenities if being updated
+    if (request.amenityIds !== undefined) {
+      const amenityIds = request.amenityIds.length > 0 ? request.amenityIds : [];
+      if (amenityIds.length > 0) {
+        const amenities = await this.amenityRepository.findByIds(amenityIds);
+        if (amenities.length !== amenityIds.length) {
+          logger.warn(`Attempt to update vehicle with invalid amenity IDs`);
+          throw new Error(ERROR_MESSAGES.INVALID_AMENITY);
+        }
+      }
+    }
+
     // Prepare update data
-    const updateData: Partial<Vehicle> = {};
+    // Use Record type to allow assignment since Vehicle properties are readonly
+    const updateData: Record<string, unknown> = {};
     if (request.vehicleTypeId !== undefined) updateData.vehicleTypeId = request.vehicleTypeId;
     if (request.capacity !== undefined) updateData.capacity = request.capacity;
     if (request.baseFare !== undefined) updateData.baseFare = request.baseFare;
@@ -82,15 +98,32 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
       // Empty array means user wants to remove all images
       updateData.imageUrls = request.imageUrls;
     }
+    if (request.amenityIds !== undefined) {
+      // If empty array, set to empty array (not undefined) - MongoDB will handle it correctly
+      // Empty array means user wants to remove all amenities
+      updateData.amenityIds = request.amenityIds;
+    }
+    if (request.status !== undefined) {
+      updateData.status = request.status;
+    }
 
     try {
       // Update vehicle
-      await this.vehicleRepository.updateById(vehicleId, updateData);
+      // Cast to Partial<Vehicle> for repository method (readonly properties are handled at entity level)
+      await this.vehicleRepository.updateById(vehicleId, updateData as Partial<Vehicle>);
 
       // Fetch updated vehicle
       const updatedVehicle = await this.vehicleRepository.findById(vehicleId);
       if (!updatedVehicle) {
         throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
+      }
+
+      // Fetch vehicle type (use updated type if changed, otherwise existing)
+      const finalVehicleTypeId = request.vehicleTypeId || existingVehicle.vehicleTypeId;
+      const finalVehicleType = await this.vehicleTypeRepository.findById(finalVehicleTypeId);
+      if (!finalVehicleType) {
+        logger.error(`Vehicle type not found for vehicle: ${vehicleId}, vehicleTypeId: ${finalVehicleTypeId}`);
+        throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
       }
 
       // Delete old images that are no longer in use (after successful update)
@@ -106,7 +139,7 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
 
       logger.info(`Vehicle updated: ${updatedVehicle.plateNumber} (${vehicleId})`);
 
-      return VehicleMapper.toUpdateVehicleResponse(updatedVehicle);
+      return VehicleMapper.toUpdateVehicleResponse(updatedVehicle, finalVehicleType);
     } catch (error) {
       // If update fails, rollback: delete newly uploaded images
       if (newImages.length > 0) {

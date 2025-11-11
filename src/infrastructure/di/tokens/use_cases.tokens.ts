@@ -31,5 +31,13 @@ export const USE_CASE_TOKENS = {
   UpdateVehicleStatusUseCase: Symbol.for('UpdateVehicleStatusUseCase'),
   DeleteVehicleUseCase: Symbol.for('DeleteVehicleUseCase'),
   GetVehicleFilterOptionsUseCase: Symbol.for('GetVehicleFilterOptionsUseCase'),
+  GenerateVehicleImageUploadUrlUseCase: Symbol.for('GenerateVehicleImageUploadUrlUseCase'),
+  DeleteVehicleImagesUseCase: Symbol.for('DeleteVehicleImagesUseCase'),
+  CreateAmenityUseCase: Symbol.for('CreateAmenityUseCase'),
+  GetAmenityUseCase: Symbol.for('GetAmenityUseCase'),
+  GetAllAmenitiesUseCase: Symbol.for('GetAllAmenitiesUseCase'),
+  GetPaidAmenitiesUseCase: Symbol.for('GetPaidAmenitiesUseCase'),
+  UpdateAmenityUseCase: Symbol.for('UpdateAmenityUseCase'),
+  DeleteAmenityUseCase: Symbol.for('DeleteAmenityUseCase'),
 } as const;
 

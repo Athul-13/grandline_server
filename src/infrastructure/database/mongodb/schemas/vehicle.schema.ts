@@ -68,6 +68,12 @@ export const VehicleSchema: Schema = new Schema(
       required: true,
       index: true,
     },
+    amenityIds: {
+      type: [String],
+      required: false,
+      default: [],
+      index: true,
+    },
   },
   {
     timestamps: true,
