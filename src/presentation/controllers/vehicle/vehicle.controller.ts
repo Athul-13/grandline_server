@@ -127,11 +127,19 @@ export class VehicleController {
         filter.yearMax = parseInt(req.query.year_max as string, 10);
       }
 
+      // Handle search parameter
+      if (req.query.search) {
+        const searchTerm = (req.query.search as string).trim();
+        if (searchTerm.length > 0) {
+          filter.search = searchTerm;
+        }
+      }
+
       // Only include filter if it has at least one property
       const hasFilters = Object.keys(filter).length > 0;
       const appliedFilter = hasFilters ? filter : undefined;
 
-      logger.info(`Fetch all vehicles request - page: ${page || 'default'}, limit: ${limit || 'default'}, sortBy: ${sortBy || 'default'}, sortOrder: ${sortOrder || 'default'}, filters: ${appliedFilter ? JSON.stringify(appliedFilter) : 'none'}`);
+      logger.info(`Fetch all vehicles request - page: ${page || 'default'}, limit: ${limit || 'default'}, sortBy: ${sortBy || 'default'}, sortOrder: ${sortOrder || 'default'}, search: ${filter.search || 'none'}, filters: ${appliedFilter ? JSON.stringify(appliedFilter) : 'none'}`);
       
       const response = await this.getAllVehiclesUseCase.execute(page, limit, sortBy, sortOrder, appliedFilter);
       

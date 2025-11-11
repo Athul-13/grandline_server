@@ -39,5 +39,11 @@ export interface VehicleFilter {
    * Filters vehicles with year <= this value
    */
   yearMax?: number;
+
+  /**
+   * Search term for filtering vehicles
+   * Performs case-insensitive partial match on plateNumber and vehicleModel fields
+   */
+  search?: string;
 }
 
