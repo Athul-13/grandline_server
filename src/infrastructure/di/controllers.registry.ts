@@ -7,6 +7,8 @@ import { UserController } from '../../presentation/controllers/user/user.control
 import { VehicleTypeController } from '../../presentation/controllers/vehicle_type/vehicle_type.controller';
 import { VehicleController } from '../../presentation/controllers/vehicle/vehicle.controller';
 import { AmenityController } from '../../presentation/controllers/amenity/amenity.controller';
+import { QuoteController } from '../../presentation/controllers/quote/quote.controller';
+import { EventTypeController } from '../../presentation/controllers/event_type/event_type.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -20,5 +22,7 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.VehicleTypeController, VehicleTypeController);
   container.register(CONTROLLER_TOKENS.VehicleController, VehicleController);
   container.register(CONTROLLER_TOKENS.AmenityController, AmenityController);
+  container.register(CONTROLLER_TOKENS.QuoteController, QuoteController);
+  container.register(CONTROLLER_TOKENS.EventTypeController, EventTypeController);
 }
 

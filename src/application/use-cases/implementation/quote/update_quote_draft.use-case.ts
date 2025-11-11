@@ -6,6 +6,7 @@ import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { QuoteMapper } from '../../../mapper/quote.mapper';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
+import { Quote } from '../../../../domain/entities/quote.entity';
 
 /**
  * Use case for updating a quote draft

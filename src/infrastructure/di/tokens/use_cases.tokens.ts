@@ -39,5 +39,13 @@ export const USE_CASE_TOKENS = {
   GetPaidAmenitiesUseCase: Symbol.for('GetPaidAmenitiesUseCase'),
   UpdateAmenityUseCase: Symbol.for('UpdateAmenityUseCase'),
   DeleteAmenityUseCase: Symbol.for('DeleteAmenityUseCase'),
+  CreateQuoteDraftUseCase: Symbol.for('CreateQuoteDraftUseCase'),
+  UpdateQuoteDraftUseCase: Symbol.for('UpdateQuoteDraftUseCase'),
+  GetQuoteUseCase: Symbol.for('GetQuoteUseCase'),
+  GetQuotesListUseCase: Symbol.for('GetQuotesListUseCase'),
+  DeleteQuoteUseCase: Symbol.for('DeleteQuoteUseCase'),
+  CalculateRoutesUseCase: Symbol.for('CalculateRoutesUseCase'),
+  GetEventTypesUseCase: Symbol.for('GetEventTypesUseCase'),
+  CreateCustomEventTypeUseCase: Symbol.for('CreateCustomEventTypeUseCase'),
 } as const;
 

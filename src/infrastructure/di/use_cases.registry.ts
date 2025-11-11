@@ -36,6 +36,14 @@ import { GetAllAmenitiesUseCase } from '../../application/use-cases/implementati
 import { GetPaidAmenitiesUseCase } from '../../application/use-cases/implementation/amenity/get_paid_amenities.use-case';
 import { UpdateAmenityUseCase } from '../../application/use-cases/implementation/amenity/update_amenity.use-case';
 import { DeleteAmenityUseCase } from '../../application/use-cases/implementation/amenity/delete_amenity.use-case';
+import { CreateQuoteDraftUseCase } from '../../application/use-cases/implementation/quote/create_quote_draft.use-case';
+import { UpdateQuoteDraftUseCase } from '../../application/use-cases/implementation/quote/update_quote_draft.use-case';
+import { GetQuoteUseCase } from '../../application/use-cases/implementation/quote/get_quote.use-case';
+import { GetQuotesListUseCase } from '../../application/use-cases/implementation/quote/get_quotes_list.use-case';
+import { DeleteQuoteUseCase } from '../../application/use-cases/implementation/quote/delete_quote.use-case';
+import { CalculateRoutesUseCase } from '../../application/use-cases/implementation/quote/calculate_routes.use-case';
+import { GetEventTypesUseCase } from '../../application/use-cases/implementation/event_type/get_event_types.use-case';
+import { CreateCustomEventTypeUseCase } from '../../application/use-cases/implementation/event_type/create_custom_event_type.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -78,5 +86,13 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetPaidAmenitiesUseCase, GetPaidAmenitiesUseCase);
   container.register(USE_CASE_TOKENS.UpdateAmenityUseCase, UpdateAmenityUseCase);
   container.register(USE_CASE_TOKENS.DeleteAmenityUseCase, DeleteAmenityUseCase);
+  container.register(USE_CASE_TOKENS.CreateQuoteDraftUseCase, CreateQuoteDraftUseCase);
+  container.register(USE_CASE_TOKENS.UpdateQuoteDraftUseCase, UpdateQuoteDraftUseCase);
+  container.register(USE_CASE_TOKENS.GetQuoteUseCase, GetQuoteUseCase);
+  container.register(USE_CASE_TOKENS.GetQuotesListUseCase, GetQuotesListUseCase);
+  container.register(USE_CASE_TOKENS.DeleteQuoteUseCase, DeleteQuoteUseCase);
+  container.register(USE_CASE_TOKENS.CalculateRoutesUseCase, CalculateRoutesUseCase);
+  container.register(USE_CASE_TOKENS.GetEventTypesUseCase, GetEventTypesUseCase);
+  container.register(USE_CASE_TOKENS.CreateCustomEventTypeUseCase, CreateCustomEventTypeUseCase);
 }
 
