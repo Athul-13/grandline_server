@@ -58,6 +58,8 @@ export class EmailServiceImpl implements IEmailService {
         return 'Verify Your Email - GRANDLINE';
       case EmailType.PASSWORD_RESET:
         return 'Reset Your Password - GRANDLINE';
+      case EmailType.QUOTE:
+        return 'Quote Confirmation - GRANDLINE';
       default:
         return 'GRANDLINE';
     }

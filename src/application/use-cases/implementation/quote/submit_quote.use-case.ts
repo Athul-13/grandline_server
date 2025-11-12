@@ -2,12 +2,15 @@ import { inject, injectable } from 'tsyringe';
 import { ISubmitQuoteUseCase } from '../../interface/quote/submit_quote_use_case.interface';
 import { SubmitQuoteResponse } from '../../../dtos/quote.dto';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
+import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ICalculateQuotePricingUseCase } from '../../interface/quote/calculate_quote_pricing_use_case.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
+import { IEmailService } from '../../../../domain/services/email_service.interface';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES, TripType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { Quote } from '../../../../domain/entities/quote.entity';
+import { EmailType, QuoteEmailData } from '../../../../shared/types/email.types';
 
 /**
  * Use case for submitting a quote
@@ -18,8 +21,12 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IQuoteRepository)
     private readonly quoteRepository: IQuoteRepository,
+    @inject(REPOSITORY_TOKENS.IUserRepository)
+    private readonly userRepository: IUserRepository,
     @inject(USE_CASE_TOKENS.CalculateQuotePricingUseCase)
-    private readonly calculateQuotePricingUseCase: ICalculateQuotePricingUseCase
+    private readonly calculateQuotePricingUseCase: ICalculateQuotePricingUseCase,
+    @inject(SERVICE_TOKENS.IEmailService)
+    private readonly emailService: IEmailService
   ) {}
 
   async execute(quoteId: string, userId: string): Promise<SubmitQuoteResponse> {
@@ -55,7 +62,7 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
       const pricing = await this.calculateQuotePricingUseCase.execute(quoteId, userId);
 
       // Update quote with pricing and change status to submitted
-      const updatedQuote = await this.quoteRepository.updateById(quoteId, {
+      await this.quoteRepository.updateById(quoteId, {
         status: QuoteStatus.SUBMITTED,
         pricing: {
           fuelPriceAtTime: pricing.fuelPriceAtTime,
@@ -74,7 +81,39 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
         },
       } as Partial<Quote>);
 
+      // Fetch updated quote
+      const updatedQuote = await this.quoteRepository.findById(quoteId);
+      if (!updatedQuote) {
+        throw new AppError(ERROR_MESSAGES.QUOTE_NOT_FOUND, ERROR_CODES.QUOTE_NOT_FOUND, 404);
+      }
+
       logger.info(`Quote submitted successfully: ${quoteId}`);
+
+      // Send confirmation email (don't fail if email fails)
+      try {
+        const user = await this.userRepository.findById(userId);
+        if (user && user.email) {
+          const emailData: QuoteEmailData = {
+            email: user.email,
+            fullName: user.fullName,
+            quoteId: updatedQuote.quoteId,
+            tripName: updatedQuote.tripName,
+            tripType: updatedQuote.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way',
+            totalPrice: pricing.total,
+            quoteDate: updatedQuote.updatedAt,
+            // TODO: Add frontend URL to view quote link
+            // viewQuoteLink: `${process.env.FRONTEND_URL}/quotes/${updatedQuote.quoteId}`,
+          };
+
+          await this.emailService.sendEmail(EmailType.QUOTE, emailData);
+          logger.info(`Quote confirmation email sent to ${user.email} for quote: ${quoteId}`);
+        }
+      } catch (emailError) {
+        // Log email error but don't fail the quote submission
+        logger.error(
+          `Failed to send quote confirmation email for quote ${quoteId}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
+        );
+      }
 
       return {
         quoteId: updatedQuote.quoteId,
