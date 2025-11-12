@@ -4,9 +4,10 @@ import { IUserRepository } from '../../../../domain/repositories/user_repository
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { SignedUploadUrlResponse } from '../../../dtos/user.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { CLOUDINARY_CONFIG } from '../../../../shared/config';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Default upload configuration for profile pictures
@@ -31,11 +32,16 @@ export class GenerateUploadUrlUseCase implements IGenerateUploadUrlUseCase {
   ) {}
 
   async execute(userId: string): Promise<SignedUploadUrlResponse> {
+    // Input validation
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_USER_ID, 400);
+    }
+
     // Check if user exists
     const user = await this.userRepository.findById(userId);
     if (!user) {
       logger.warn(`Upload URL generation attempt for non-existent user: ${userId}`);
-      throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, ERROR_CODES.USER_NOT_FOUND, 404);
     }
 
     // Generate signed upload parameters 

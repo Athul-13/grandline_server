@@ -4,7 +4,7 @@ import { CreateCustomEventTypeRequest, EventTypeResponse } from '../../../dtos/e
 import { IEventTypeRepository } from '../../../../domain/repositories/event_type_repository.interface';
 import { EventType } from '../../../../domain/entities/event_type.entity';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,6 +22,19 @@ export class CreateCustomEventTypeUseCase implements ICreateCustomEventTypeUseCa
 
   async execute(request: CreateCustomEventTypeRequest, userId: string): Promise<EventTypeResponse> {
     try {
+      // Input validation
+      if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_USER_ID, 400);
+      }
+
+      if (!request) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+      }
+
+      if (!request.name || typeof request.name !== 'string' || request.name.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+      }
+
       logger.info(`Creating custom event type: ${request.name} by user: ${userId}`);
 
       // Check if event type with same name already exists

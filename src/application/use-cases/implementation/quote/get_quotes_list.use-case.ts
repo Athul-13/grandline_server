@@ -4,7 +4,8 @@ import { IQuoteRepository } from '../../../../domain/repositories/quote_reposito
 import { QuoteListResponse } from '../../../dtos/quote.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { QuoteMapper } from '../../../mapper/quote.mapper';
-import { QuoteStatus } from '../../../../shared/constants';
+import { QuoteStatus, ERROR_MESSAGES } from '../../../../shared/constants';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for getting quotes list
@@ -23,6 +24,11 @@ export class GetQuotesListUseCase implements IGetQuotesListUseCase {
     limit: number = 20,
     status?: QuoteStatus[]
   ): Promise<QuoteListResponse> {
+    // Input validation
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_USER_ID', 400);
+    }
+
     // Normalize pagination parameters
     const normalizedPage = Math.max(1, Math.floor(page) || 1);
     const normalizedLimit = Math.max(1, Math.min(100, Math.floor(limit) || 20));

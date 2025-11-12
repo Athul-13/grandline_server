@@ -31,6 +31,15 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
 
   async execute(quoteId: string, userId: string): Promise<SubmitQuoteResponse> {
     try {
+      // Input validation
+      if (!quoteId || typeof quoteId !== 'string' || quoteId.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_QUOTE_ID', 400);
+      }
+
+      if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_USER_ID', 400);
+      }
+
       logger.info(`Submitting quote: ${quoteId} by user: ${userId}`);
 
       // Get quote and verify ownership

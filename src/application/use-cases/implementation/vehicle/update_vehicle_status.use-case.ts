@@ -4,9 +4,10 @@ import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repo
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
 import { UpdateVehicleStatusRequest, UpdateVehicleStatusResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for updating vehicle status
@@ -22,12 +23,21 @@ export class UpdateVehicleStatusUseCase implements IUpdateVehicleStatusUseCase {
   ) {}
 
   async execute(vehicleId: string, request: UpdateVehicleStatusRequest): Promise<UpdateVehicleStatusResponse> {
+    // Input validation
+    if (!vehicleId || typeof vehicleId !== 'string' || vehicleId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_VEHICLE_ID, 400);
+    }
+
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
     // Find existing vehicle
     const existingVehicle = await this.vehicleRepository.findById(vehicleId);
     
     if (!existingVehicle) {
       logger.warn(`Vehicle status update attempt for non-existent ID: ${vehicleId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_NOT_FOUND, ERROR_CODES.VEHICLE_NOT_FOUND, 404);
     }
 
     // Update status
@@ -36,14 +46,14 @@ export class UpdateVehicleStatusUseCase implements IUpdateVehicleStatusUseCase {
     // Fetch updated vehicle
     const updatedVehicle = await this.vehicleRepository.findById(vehicleId);
     if (!updatedVehicle) {
-      throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_NOT_FOUND, ERROR_CODES.VEHICLE_NOT_FOUND, 404);
     }
 
     // Fetch vehicle type
     const vehicleType = await this.vehicleTypeRepository.findById(updatedVehicle.vehicleTypeId);
     if (!vehicleType) {
       logger.error(`Vehicle type not found for vehicle: ${vehicleId}, vehicleTypeId: ${updatedVehicle.vehicleTypeId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
     }
 
     logger.info(`Vehicle status updated: ${updatedVehicle.plateNumber} to ${request.status} (${vehicleId})`);

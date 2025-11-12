@@ -9,9 +9,15 @@ import {
   CalculateRoutesRequest,
   GetRecommendationsRequest,
 } from '../../../application/dtos/quote.dto';
+import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
-const router = Router();
-const quoteController = container.resolve(QuoteController);
+/**
+ * Creates and configures quote routes
+ * Factory pattern allows dependency injection and easy testing
+ */
+export function createQuoteRoutesWithDI(): Router {
+  const router = Router();
+  const quoteController = container.resolve<QuoteController>(CONTROLLER_TOKENS.QuoteController);
 
 /**
  * @route   POST /api/v1/quotes
@@ -104,5 +110,6 @@ router.post(
   quoteController.submitQuote.bind(quoteController)
 );
 
-export default router;
+  return router;
+}
 

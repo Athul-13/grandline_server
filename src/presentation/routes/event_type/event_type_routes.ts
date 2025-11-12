@@ -4,9 +4,15 @@ import { EventTypeController } from '../../controllers/event_type/event_type.con
 import { authenticate } from '../../middleware/auth.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { CreateCustomEventTypeRequest } from '../../../application/dtos/event_type.dto';
+import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
-const router = Router();
-const eventTypeController = container.resolve(EventTypeController);
+/**
+ * Creates and configures event type routes
+ * Factory pattern allows dependency injection and easy testing
+ */
+export function createEventTypeRoutesWithDI(): Router {
+  const router = Router();
+  const eventTypeController = container.resolve<EventTypeController>(CONTROLLER_TOKENS.EventTypeController);
 
 /**
  * @route   GET /api/v1/event-types
@@ -27,5 +33,6 @@ router.post(
   eventTypeController.createCustomEventType.bind(eventTypeController)
 );
 
-export default router;
+  return router;
+}
 

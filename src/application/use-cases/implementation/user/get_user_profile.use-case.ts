@@ -3,9 +3,10 @@ import { IGetUserProfileUseCase } from '../../interface/user/get_user_profile_us
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { GetUserProfileResponse } from '../../../dtos/user.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for getting user profile
@@ -19,11 +20,16 @@ export class GetUserProfileUseCase implements IGetUserProfileUseCase {
   ) {}
 
   async execute(userId: string): Promise<GetUserProfileResponse> {
+    // Input validation
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_USER_ID, 400);
+    }
+
     const user = await this.userRepository.findById(userId);
     
     if (!user) {
       logger.warn(`Profile fetch attempt for non-existent user: ${userId}`);
-      throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, ERROR_CODES.USER_NOT_FOUND, 404);
     }
 
     logger.info(`User profile fetched: ${user.email}`);

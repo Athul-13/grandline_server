@@ -2,10 +2,11 @@ import { injectable, inject } from 'tsyringe';
 import { IChangePasswordUseCase } from '../../interface/user/change_password_use_case.interface';
 import { ChangePasswordRequest, ChangePasswordResponse } from '../../../dtos/user.dto';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
 import { hashPassword, comparePassword } from '../../../../shared/utils/password.util';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 @injectable()
 export class ChangePasswordUseCase implements IChangePasswordUseCase {
@@ -15,14 +16,31 @@ export class ChangePasswordUseCase implements IChangePasswordUseCase {
   ) {}
 
   async execute(userId: string, request: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+    // Input validation
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_USER_ID, 400);
+    }
+
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
+    if (!request.currentPassword || typeof request.currentPassword !== 'string' || request.currentPassword.length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_PASSWORD, 400);
+    }
+
+    if (!request.newPassword || typeof request.newPassword !== 'string' || request.newPassword.length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_PASSWORD, 400);
+    }
+
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, ERROR_CODES.USER_NOT_FOUND, 404);
     }
 
     // Check if user has a password set
     if (!user.hasPassword()) {
-      throw new Error(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AppError(ERROR_MESSAGES.INVALID_CREDENTIALS, ERROR_CODES.INVALID_PASSWORD, 400);
     }
 
     // Get current password hash
@@ -32,7 +50,7 @@ export class ChangePasswordUseCase implements IChangePasswordUseCase {
     const isValidPassword = await comparePassword(request.currentPassword, currentPasswordHash);
     if (!isValidPassword) {
       logger.warn(`Invalid current password attempt for user: ${user.email}`);
-      throw new Error(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AppError(ERROR_MESSAGES.INVALID_CREDENTIALS, ERROR_CODES.INVALID_PASSWORD, 401);
     }
 
     // Hash the new password

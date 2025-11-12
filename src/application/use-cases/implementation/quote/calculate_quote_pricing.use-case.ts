@@ -8,6 +8,7 @@ import { IAmenityRepository } from '../../../../domain/repositories/amenity_repo
 import { IPricingConfigRepository } from '../../../../domain/repositories/pricing_config_repository.interface';
 import { IPricingCalculationService } from '../../../../domain/services/pricing_calculation_service.interface';
 import { Amenity } from '../../../../domain/entities/amenity.entity';
+import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
@@ -36,6 +37,15 @@ export class CalculateQuotePricingUseCase implements ICalculateQuotePricingUseCa
 
   async execute(quoteId: string, userId: string): Promise<PricingBreakdownResponse> {
     try {
+      // Input validation
+      if (!quoteId || typeof quoteId !== 'string' || quoteId.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_QUOTE_ID', 400);
+      }
+
+      if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_USER_ID', 400);
+      }
+
       logger.info(`Calculating pricing for quote: ${quoteId} by user: ${userId}`);
 
       // Get quote and verify ownership
@@ -74,17 +84,18 @@ export class CalculateQuotePricingUseCase implements ICalculateQuotePricingUseCa
         vehicleIds.map((id) => this.vehicleRepository.findById(id))
       );
 
-      const vehiclesWithQuantity = vehicles
-        .map((vehicle, index) => {
-          if (!vehicle) {
-            throw new AppError(`Vehicle not found: ${vehicleIds[index]}`, 'VEHICLE_NOT_FOUND', 404);
-          }
-          return {
-            vehicle,
-            quantity: quote.selectedVehicles![index].quantity,
-          };
-        })
-        .filter((v): v is { vehicle: NonNullable<typeof vehicles[0]>; quantity: number } => v.vehicle !== null);
+      // Type-safe vehicle mapping
+      const vehiclesWithQuantity: Array<{ vehicle: Vehicle; quantity: number }> = [];
+      for (let i = 0; i < vehicles.length; i++) {
+        const vehicle = vehicles[i];
+        if (!vehicle) {
+          throw new AppError(`Vehicle not found: ${vehicleIds[i]}`, 'VEHICLE_NOT_FOUND', 404);
+        }
+        vehiclesWithQuantity.push({
+          vehicle,
+          quantity: quote.selectedVehicles![i].quantity,
+        });
+      }
 
       // Get amenities
       let selectedAmenities: Amenity[] = [];
@@ -113,6 +124,7 @@ export class CalculateQuotePricingUseCase implements ICalculateQuotePricingUseCa
         },
         pricingConfig,
         tripType: quote.tripType,
+        routeData: quote.routeData, // Pass route data for accurate distance/duration calculation
       });
 
       // Map to response DTO

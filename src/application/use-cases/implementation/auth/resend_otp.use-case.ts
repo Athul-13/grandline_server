@@ -4,11 +4,12 @@ import { IUserRepository } from '../../../../domain/repositories/user_repository
 import { ResendOtpRequest, ResendOtpResponse } from '../../../dtos/user.dto';
 import { generateOTP } from '../../../../shared/utils/otp.util';
 import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES, OTP_CONFIG } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, OTP_CONFIG } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
 import { IResendOtpUseCase } from '../../interface/auth/resend_otp_use_case.interface';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 @injectable()
 export class ResendOtpUseCase implements IResendOtpUseCase {
@@ -22,9 +23,18 @@ export class ResendOtpUseCase implements IResendOtpUseCase {
   ) {}
 
   async execute(request: ResendOtpRequest): Promise<ResendOtpResponse> {
+    // Input validation
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
+    if (!request.email || typeof request.email !== 'string' || request.email.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_EMAIL, 400);
+    }
+
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
-      throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, ERROR_CODES.USER_NOT_FOUND, 404);
     }
     if (user.isVerified) {
       return UserMapper.toVerifyOtpResponse(user);

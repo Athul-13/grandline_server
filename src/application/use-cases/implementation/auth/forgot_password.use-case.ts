@@ -4,13 +4,14 @@ import { IUserRepository } from '../../../../domain/repositories/user_repository
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { ForgotPasswordRequest, ForgotPasswordResponse } from '../../../dtos/user.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { EmailType, PasswordResetEmailData } from '../../../../shared/types/email.types';
 import { APP_CONFIG, JWT_CONFIG, FRONTEND_CONFIG } from '../../../../shared/config';
 import jwt, { Secret } from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for handling forgot password requests
@@ -26,6 +27,15 @@ export class ForgotPasswordUseCase implements IForgotPasswordUseCase {
   ) {}
 
   async execute(request: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
+    // Input validation
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
+    if (!request.email || typeof request.email !== 'string' || request.email.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_EMAIL, 400);
+    }
+
     const user = await this.userRepository.findByEmail(request.email);
     
     // Always return success to prevent email enumeration attacks

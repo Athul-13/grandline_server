@@ -31,12 +31,25 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
   ) {}
 
   async execute(request: CreateVehicleRequest): Promise<CreateVehicleResponse> {
+    // Input validation
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
+    if (!request.vehicleTypeId || typeof request.vehicleTypeId !== 'string' || request.vehicleTypeId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_VEHICLE_TYPE_ID, 400);
+    }
+
+    if (!request.plateNumber || typeof request.plateNumber !== 'string' || request.plateNumber.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
     // Validate vehicle type exists
     const vehicleType = await this.vehicleTypeRepository.findById(request.vehicleTypeId);
     
     if (!vehicleType) {
       logger.warn(`Attempt to create vehicle with invalid vehicle type: ${request.vehicleTypeId}`);
-      throw new Error(ERROR_MESSAGES.INVALID_VEHICLE_TYPE);
+      throw new AppError(ERROR_MESSAGES.INVALID_VEHICLE_TYPE, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
     }
 
     // Check if plate number already exists
@@ -44,7 +57,7 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
     
     if (existingVehicle) {
       logger.warn(`Attempt to create vehicle with duplicate plate number: ${request.plateNumber}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_PLATE_NUMBER_EXISTS);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_PLATE_NUMBER_EXISTS, ERROR_CODES.INVALID_REQUEST, 409);
     }
 
     // Validate amenities if provided
@@ -53,7 +66,7 @@ export class CreateVehicleUseCase implements ICreateVehicleUseCase {
       const amenities = await this.amenityRepository.findByIds(amenityIds);
       if (amenities.length !== amenityIds.length) {
         logger.warn(`Attempt to create vehicle with invalid amenity IDs`);
-        throw new Error(ERROR_MESSAGES.INVALID_AMENITY);
+        throw new AppError(ERROR_MESSAGES.INVALID_AMENITY, ERROR_CODES.AMENITY_NOT_FOUND, 400);
       }
     }
 

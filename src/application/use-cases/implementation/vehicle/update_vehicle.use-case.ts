@@ -6,10 +6,11 @@ import { IAmenityRepository } from '../../../../domain/repositories/amenity_repo
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { UpdateVehicleRequest, UpdateVehicleResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for updating vehicle
@@ -29,12 +30,21 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
   ) {}
 
   async execute(vehicleId: string, request: UpdateVehicleRequest): Promise<UpdateVehicleResponse> {
+    // Input validation
+    if (!vehicleId || typeof vehicleId !== 'string' || vehicleId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_VEHICLE_ID, 400);
+    }
+
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
     // Find existing vehicle
     const existingVehicle = await this.vehicleRepository.findById(vehicleId);
     
     if (!existingVehicle) {
       logger.warn(`Vehicle update attempt for non-existent ID: ${vehicleId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_NOT_FOUND, ERROR_CODES.VEHICLE_NOT_FOUND, 404);
     }
 
     // Validate vehicle type if being updated
@@ -42,7 +52,7 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
       const vehicleType = await this.vehicleTypeRepository.findById(request.vehicleTypeId);
       if (!vehicleType) {
         logger.warn(`Attempt to update vehicle with invalid vehicle type: ${request.vehicleTypeId}`);
-        throw new Error(ERROR_MESSAGES.INVALID_VEHICLE_TYPE);
+        throw new AppError(ERROR_MESSAGES.INVALID_VEHICLE_TYPE, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
       }
     }
 
@@ -51,7 +61,7 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
       const vehicleWithSamePlate = await this.vehicleRepository.findByPlateNumber(request.plateNumber.trim());
       if (vehicleWithSamePlate) {
         logger.warn(`Attempt to update vehicle with duplicate plate number: ${request.plateNumber}`);
-        throw new Error(ERROR_MESSAGES.VEHICLE_PLATE_NUMBER_EXISTS);
+        throw new AppError(ERROR_MESSAGES.VEHICLE_PLATE_NUMBER_EXISTS, ERROR_CODES.INVALID_REQUEST, 409);
       }
     }
 
@@ -77,7 +87,7 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
         const amenities = await this.amenityRepository.findByIds(amenityIds);
         if (amenities.length !== amenityIds.length) {
           logger.warn(`Attempt to update vehicle with invalid amenity IDs`);
-          throw new Error(ERROR_MESSAGES.INVALID_AMENITY);
+          throw new AppError(ERROR_MESSAGES.INVALID_AMENITY, ERROR_CODES.AMENITY_NOT_FOUND, 400);
         }
       }
     }
@@ -115,7 +125,7 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
       // Fetch updated vehicle
       const updatedVehicle = await this.vehicleRepository.findById(vehicleId);
       if (!updatedVehicle) {
-        throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
+        throw new AppError(ERROR_MESSAGES.VEHICLE_NOT_FOUND, ERROR_CODES.VEHICLE_NOT_FOUND, 404);
       }
 
       // Fetch vehicle type (use updated type if changed, otherwise existing)
@@ -123,7 +133,7 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
       const finalVehicleType = await this.vehicleTypeRepository.findById(finalVehicleTypeId);
       if (!finalVehicleType) {
         logger.error(`Vehicle type not found for vehicle: ${vehicleId}, vehicleTypeId: ${finalVehicleTypeId}`);
-        throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+        throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
       }
 
       // Delete old images that are no longer in use (after successful update)

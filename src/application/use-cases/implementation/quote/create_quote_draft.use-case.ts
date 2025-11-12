@@ -4,8 +4,9 @@ import { IQuoteRepository } from '../../../../domain/repositories/quote_reposito
 import { CreateQuoteDraftRequest, CreateQuoteDraftResponse } from '../../../dtos/quote.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { Quote } from '../../../../domain/entities/quote.entity';
-import { QuoteStatus } from '../../../../shared/constants';
+import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { randomUUID } from 'crypto';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for creating a quote draft
@@ -19,6 +20,15 @@ export class CreateQuoteDraftUseCase implements ICreateQuoteDraftUseCase {
   ) {}
 
   async execute(request: CreateQuoteDraftRequest, userId: string): Promise<CreateQuoteDraftResponse> {
+    // Input validation
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_USER_ID', 400);
+    }
+
+    if (!request || !request.tripType) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_REQUEST', 400);
+    }
+
     const quoteId = randomUUID();
     const now = new Date();
 

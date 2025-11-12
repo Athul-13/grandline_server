@@ -24,6 +24,19 @@ export class CalculateRoutesUseCase implements ICalculateRoutesUseCase {
 
   async execute(quoteId: string, request: CalculateRoutesRequest, userId: string): Promise<RouteCalculationResponse> {
     try {
+      // Input validation
+      if (!quoteId || typeof quoteId !== 'string' || quoteId.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_QUOTE_ID', 400);
+      }
+
+      if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_USER_ID', 400);
+      }
+
+      if (!request || !request.itinerary || !request.itinerary.outbound || request.itinerary.outbound.length === 0) {
+        throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_ITINERARY', 400);
+      }
+
       logger.info(`Calculating routes for quote: ${quoteId} by user: ${userId}`);
 
       // Get quote and verify ownership

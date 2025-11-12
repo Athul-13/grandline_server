@@ -9,8 +9,8 @@ import { createUserRoutesWithDI } from '../../../presentation/routes/user/user_r
 import { createVehicleTypeRoutesWithDI } from '../../../presentation/routes/vehicle_type/vehicle_type_routes';
 import { createVehicleRoutesWithDI } from '../../../presentation/routes/vehicle/vehicle_routes';
 import { createAmenityRoutesWithDI } from '../../../presentation/routes/amenity/amenity_routes';
-import quoteRoutes from '../../../presentation/routes/quote/quote_routes';
-import eventTypeRoutes from '../../../presentation/routes/event_type/event_type_routes';
+import { createQuoteRoutesWithDI } from '../../../presentation/routes/quote/quote_routes';
+import { createEventTypeRoutesWithDI } from '../../../presentation/routes/event_type/event_type_routes';
 
 /**
  * Express application wrapper class
@@ -84,8 +84,10 @@ export class App {
     const amenityRoutes = createAmenityRoutesWithDI();
     this.app.use(`/api/v1/amenities`, amenityRoutes);
 
+    const quoteRoutes = createQuoteRoutesWithDI();
     this.app.use(`/api/v1/quotes`, quoteRoutes);
 
+    const eventTypeRoutes = createEventTypeRoutesWithDI();
     this.app.use(`/api/v1/event-types`, eventTypeRoutes);
   }
 

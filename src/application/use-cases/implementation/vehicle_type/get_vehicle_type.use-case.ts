@@ -4,9 +4,10 @@ import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { VehicleTypeResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for getting vehicle type by ID
@@ -22,11 +23,16 @@ export class GetVehicleTypeUseCase implements IGetVehicleTypeUseCase {
   ) {}
 
   async execute(vehicleTypeId: string): Promise<VehicleTypeResponse> {
+    // Input validation
+    if (!vehicleTypeId || typeof vehicleTypeId !== 'string' || vehicleTypeId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_VEHICLE_TYPE_ID, 400);
+    }
+
     const vehicleType = await this.vehicleTypeRepository.findById(vehicleTypeId);
     
     if (!vehicleType) {
       logger.warn(`Vehicle type fetch attempt for non-existent ID: ${vehicleTypeId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
     }
 
     // Get vehicles count for this type

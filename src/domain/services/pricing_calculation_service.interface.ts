@@ -1,4 +1,4 @@
-import { IPricingBreakdown } from '../entities/quote.entity';
+import { IPricingBreakdown, IRouteData } from '../entities/quote.entity';
 import { QuoteItinerary } from '../entities/quote_itinerary.entity';
 import { PricingConfig } from '../entities/pricing_config.entity';
 import { Vehicle } from '../entities/vehicle.entity';
@@ -16,6 +16,7 @@ export interface IPricingCalculationInput {
   };
   pricingConfig: PricingConfig;
   tripType: 'one_way' | 'two_way';
+  routeData?: IRouteData; // Route data from route calculation
 }
 
 /**

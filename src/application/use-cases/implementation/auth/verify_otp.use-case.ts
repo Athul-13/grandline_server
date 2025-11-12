@@ -4,9 +4,10 @@ import { IUserRepository } from '../../../../domain/repositories/user_repository
 import { VerifyOtpRequest, VerifyOtpResponse } from '../../../dtos/user.dto';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { IVerifyOtpUseCase } from '../../interface/auth/verify_otp_use_case.interface';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 @injectable()
 export class VerifyOtpUseCase implements IVerifyOtpUseCase {
@@ -18,14 +19,27 @@ export class VerifyOtpUseCase implements IVerifyOtpUseCase {
   ) {}
 
   async execute(request: VerifyOtpRequest): Promise<VerifyOtpResponse> {
+    // Input validation
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
+    if (!request.email || typeof request.email !== 'string' || request.email.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_EMAIL, 400);
+    }
+
+    if (!request.otp || typeof request.otp !== 'string' || request.otp.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_OTP, 400);
+    }
+
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
-      throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, ERROR_CODES.USER_NOT_FOUND, 404);
     }
 
     const stored = await this.otpService.getOTP(request.email);
     if (!stored || stored !== request.otp) {
-      throw new Error(ERROR_MESSAGES.OTP_INVALID_OR_EXPIRED);
+      throw new AppError(ERROR_MESSAGES.OTP_INVALID_OR_EXPIRED, ERROR_CODES.AUTH_INVALID_OTP, 400);
     }
 
     const updatedUser = await this.userRepository.updateVerificationStatus(user.userId, true);

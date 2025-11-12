@@ -3,7 +3,7 @@ import {
   IPricingCalculationService,
   IPricingCalculationInput,
 } from '../../domain/services/pricing_calculation_service.interface';
-import { IPricingBreakdown } from '../../domain/entities/quote.entity';
+import { IPricingBreakdown, IRouteData } from '../../domain/entities/quote.entity';
 import { QuoteItinerary } from '../../domain/entities/quote_itinerary.entity';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { Amenity } from '../../domain/entities/amenity.entity';
@@ -17,8 +17,8 @@ import { PricingConfig } from '../../domain/entities/pricing_config.entity';
 export class PricingCalculationServiceImpl implements IPricingCalculationService {
   calculatePricing(input: IPricingCalculationInput): IPricingBreakdown {
     const baseFare = this.calculateBaseFare(input.selectedVehicles);
-    const totalDistance = this.calculateTotalDistance(input.itinerary);
-    const totalDuration = this.calculateTotalDuration(input.itinerary);
+    const totalDistance = this.calculateTotalDistance(input.routeData);
+    const totalDuration = this.calculateTotalDuration(input.routeData);
 
     const distanceFare = this.calculateDistanceFare(
       totalDistance,
@@ -144,22 +144,22 @@ export class PricingCalculationServiceImpl implements IPricingCalculationService
     return (subtotal * taxPercentage) / 100;
   }
 
-  private calculateTotalDistance(itinerary: {
-    outbound: QuoteItinerary[];
-    return?: QuoteItinerary[];
-  }): number {
-    // This should be calculated from route data, but for now return 0
-    // Will be populated from route calculation results
-    return 0;
+  private calculateTotalDistance(routeData?: IRouteData): number {
+    if (!routeData) {
+      return 0;
+    }
+    const outboundDistance = routeData.outbound?.totalDistance ?? 0;
+    const returnDistance = routeData.return?.totalDistance ?? 0;
+    return outboundDistance + returnDistance;
   }
 
-  private calculateTotalDuration(itinerary: {
-    outbound: QuoteItinerary[];
-    return?: QuoteItinerary[];
-  }): number {
-    // This should be calculated from route data, but for now return 0
-    // Will be populated from route calculation results
-    return 0;
+  private calculateTotalDuration(routeData?: IRouteData): number {
+    if (!routeData) {
+      return 0;
+    }
+    const outboundDuration = routeData.outbound?.totalDuration ?? 0;
+    const returnDuration = routeData.return?.totalDuration ?? 0;
+    return outboundDuration + returnDuration;
   }
 }
 
