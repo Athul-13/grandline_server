@@ -7,6 +7,7 @@ import {
   CreateQuoteDraftRequest,
   UpdateQuoteDraftRequest,
   CalculateRoutesRequest,
+  GetRecommendationsRequest,
 } from '../../../application/dtos/quote.dto';
 
 const router = Router();
@@ -67,6 +68,40 @@ router.post(
   authenticate,
   validationMiddleware(CalculateRoutesRequest),
   quoteController.calculateRoutes.bind(quoteController)
+);
+
+/**
+ * @route   POST /api/v1/quotes/recommendations
+ * @desc    Get vehicle recommendations based on passenger count and trip dates
+ * @access  Private
+ */
+router.post(
+  '/recommendations',
+  authenticate,
+  validationMiddleware(GetRecommendationsRequest),
+  quoteController.getVehicleRecommendations.bind(quoteController)
+);
+
+/**
+ * @route   POST /api/v1/quotes/:id/calculate-pricing
+ * @desc    Calculate pricing for a quote
+ * @access  Private
+ */
+router.post(
+  '/:id/calculate-pricing',
+  authenticate,
+  quoteController.calculateQuotePricing.bind(quoteController)
+);
+
+/**
+ * @route   POST /api/v1/quotes/:id/submit
+ * @desc    Submit a quote (change status from draft to submitted)
+ * @access  Private
+ */
+router.post(
+  '/:id/submit',
+  authenticate,
+  quoteController.submitQuote.bind(quoteController)
 );
 
 export default router;

@@ -7,11 +7,19 @@ import { IGetQuoteUseCase } from '../../../application/use-cases/interface/quote
 import { IGetQuotesListUseCase } from '../../../application/use-cases/interface/quote/get_quotes_list_use_case.interface';
 import { IDeleteQuoteUseCase } from '../../../application/use-cases/interface/quote/delete_quote_use_case.interface';
 import { ICalculateRoutesUseCase } from '../../../application/use-cases/interface/quote/calculate_routes_use_case.interface';
+import { IGetVehicleRecommendationsUseCase } from '../../../application/use-cases/interface/quote/get_vehicle_recommendations_use_case.interface';
+import { ICalculateQuotePricingUseCase } from '../../../application/use-cases/interface/quote/calculate_quote_pricing_use_case.interface';
+import { ISubmitQuoteUseCase } from '../../../application/use-cases/interface/quote/submit_quote_use_case.interface';
 import {
   CreateQuoteDraftRequest,
   UpdateQuoteDraftRequest,
   CalculateRoutesRequest,
   RouteCalculationResponse,
+  GetRecommendationsRequest,
+  VehicleRecommendationResponse,
+  PricingBreakdownResponse,
+  SubmitQuoteRequest,
+  SubmitQuoteResponse,
 } from '../../../application/dtos/quote.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS, QuoteStatus } from '../../../shared/constants';
@@ -36,7 +44,13 @@ export class QuoteController {
     @inject(USE_CASE_TOKENS.DeleteQuoteUseCase)
     private readonly deleteQuoteUseCase: IDeleteQuoteUseCase,
     @inject(USE_CASE_TOKENS.CalculateRoutesUseCase)
-    private readonly calculateRoutesUseCase: ICalculateRoutesUseCase
+    private readonly calculateRoutesUseCase: ICalculateRoutesUseCase,
+    @inject(USE_CASE_TOKENS.GetVehicleRecommendationsUseCase)
+    private readonly getVehicleRecommendationsUseCase: IGetVehicleRecommendationsUseCase,
+    @inject(USE_CASE_TOKENS.CalculateQuotePricingUseCase)
+    private readonly calculateQuotePricingUseCase: ICalculateQuotePricingUseCase,
+    @inject(USE_CASE_TOKENS.SubmitQuoteUseCase)
+    private readonly submitQuoteUseCase: ISubmitQuoteUseCase
   ) {}
 
   /**
@@ -192,6 +206,83 @@ export class QuoteController {
     } catch (error) {
       logger.error(
         `Error calculating routes: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting vehicle recommendations
+   */
+  async getVehicleRecommendations(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const request: GetRecommendationsRequest = req.body;
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+
+      logger.info(`Vehicle recommendations request by user: ${userId}`);
+
+      const response = await this.getVehicleRecommendationsUseCase.execute(request);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error getting vehicle recommendations: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles calculating quote pricing
+   */
+  async calculateQuotePricing(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+
+      logger.info(`Pricing calculation request for quote ID: ${id} by user: ${userId}`);
+
+      const response = await this.calculateQuotePricingUseCase.execute(id, userId);
+
+      logger.info(`Pricing calculated successfully for quote: ${id}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error calculating pricing: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles submitting a quote
+   */
+  async submitQuote(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.userId;
+
+      if (!userId) {
+        throw new Error('User not authenticated');
+      }
+
+      logger.info(`Quote submission request for ID: ${id} by user: ${userId}`);
+
+      const response = await this.submitQuoteUseCase.execute(id, userId);
+
+      logger.info(`Quote submitted successfully: ${id}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error submitting quote: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       sendErrorResponse(res, error);
     }

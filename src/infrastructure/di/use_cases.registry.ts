@@ -44,6 +44,9 @@ import { DeleteQuoteUseCase } from '../../application/use-cases/implementation/q
 import { CalculateRoutesUseCase } from '../../application/use-cases/implementation/quote/calculate_routes.use-case';
 import { GetEventTypesUseCase } from '../../application/use-cases/implementation/event_type/get_event_types.use-case';
 import { CreateCustomEventTypeUseCase } from '../../application/use-cases/implementation/event_type/create_custom_event_type.use-case';
+import { GetVehicleRecommendationsUseCase } from '../../application/use-cases/implementation/quote/get_vehicle_recommendations.use-case';
+import { CalculateQuotePricingUseCase } from '../../application/use-cases/implementation/quote/calculate_quote_pricing.use-case';
+import { SubmitQuoteUseCase } from '../../application/use-cases/implementation/quote/submit_quote.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -94,5 +97,8 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.CalculateRoutesUseCase, CalculateRoutesUseCase);
   container.register(USE_CASE_TOKENS.GetEventTypesUseCase, GetEventTypesUseCase);
   container.register(USE_CASE_TOKENS.CreateCustomEventTypeUseCase, CreateCustomEventTypeUseCase);
+  container.register(USE_CASE_TOKENS.GetVehicleRecommendationsUseCase, GetVehicleRecommendationsUseCase);
+  container.register(USE_CASE_TOKENS.CalculateQuotePricingUseCase, CalculateQuotePricingUseCase);
+  container.register(USE_CASE_TOKENS.SubmitQuoteUseCase, SubmitQuoteUseCase);
 }
 
