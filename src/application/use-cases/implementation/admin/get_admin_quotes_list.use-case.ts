@@ -67,10 +67,7 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
       let matchingUserIds: string[] = [];
       if (normalizedSearch) {
         const searchLower = normalizedSearch.toLowerCase();
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
-        const allUsersResult = await this.userRepository.findAll();
-        // Type assertion needed due to TypeScript strict mode inference
-        const allUsers = allUsersResult as User[];
+        const allUsers = await this.userRepository.findAll();
         matchingUserIds = allUsers
           .filter(
             (user) =>
