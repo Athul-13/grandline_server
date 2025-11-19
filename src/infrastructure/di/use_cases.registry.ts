@@ -53,6 +53,7 @@ import { UpdateQuoteStatusUseCase } from '../../application/use-cases/implementa
 import { GetPricingConfigUseCase } from '../../application/use-cases/implementation/admin/get_pricing_config.use-case';
 import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/admin/create_pricing_config.use-case';
 import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/admin/get_pricing_config_history.use-case';
+import { ActivatePricingConfigUseCase } from '../../application/use-cases/implementation/admin/activate_pricing_config.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -112,5 +113,6 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetPricingConfigUseCase, GetPricingConfigUseCase);
   container.register(USE_CASE_TOKENS.CreatePricingConfigUseCase, CreatePricingConfigUseCase);
   container.register(USE_CASE_TOKENS.GetPricingConfigHistoryUseCase, GetPricingConfigHistoryUseCase);
+  container.register(USE_CASE_TOKENS.ActivatePricingConfigUseCase, ActivatePricingConfigUseCase);
 }
 

@@ -13,5 +13,6 @@ export const CONTROLLER_TOKENS = {
   QuoteController: Symbol.for('QuoteController'),
   EventTypeController: Symbol.for('EventTypeController'),
   AdminQuoteController: Symbol.for('AdminQuoteController'),
+  AdminPricingConfigController: Symbol.for('AdminPricingConfigController'),
 } as const;
 

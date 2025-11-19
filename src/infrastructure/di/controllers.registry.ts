@@ -10,6 +10,7 @@ import { AmenityController } from '../../presentation/controllers/amenity/amenit
 import { QuoteController } from '../../presentation/controllers/quote/quote.controller';
 import { EventTypeController } from '../../presentation/controllers/event_type/event_type.controller';
 import { AdminQuoteController } from '../../presentation/controllers/admin/admin_quote.controller';
+import { AdminPricingConfigController } from '../../presentation/controllers/admin/admin_pricing_config.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -26,5 +27,6 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.QuoteController, QuoteController);
   container.register(CONTROLLER_TOKENS.EventTypeController, EventTypeController);
   container.register(CONTROLLER_TOKENS.AdminQuoteController, AdminQuoteController);
+  container.register(CONTROLLER_TOKENS.AdminPricingConfigController, AdminPricingConfigController);
 }
 

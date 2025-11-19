@@ -56,5 +56,6 @@ export const USE_CASE_TOKENS = {
   GetPricingConfigUseCase: Symbol.for('GetPricingConfigUseCase'),
   CreatePricingConfigUseCase: Symbol.for('CreatePricingConfigUseCase'),
   GetPricingConfigHistoryUseCase: Symbol.for('GetPricingConfigHistoryUseCase'),
+  ActivatePricingConfigUseCase: Symbol.for('ActivatePricingConfigUseCase'),
 } as const;
 
