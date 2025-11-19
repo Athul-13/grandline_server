@@ -2,11 +2,10 @@ import { Router } from 'express';
 import { container } from 'tsyringe';
 import { AdminQuoteController } from '../../controllers/admin/admin_quote.controller';
 import { authenticate } from '../../middleware/auth.middleware';
-import { authorize } from '../../middleware/authorize.middleware';
+import { requireAdmin } from '../../middleware/authorize.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { UpdateQuoteStatusRequest } from '../../../application/dtos/quote.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
-import { UserRole } from '../../../shared/constants';
 
 /**
  * Creates and configures admin quote routes
@@ -26,7 +25,7 @@ export function createAdminQuoteRoutesWithDI(): Router {
   router.get(
     '/',
     authenticate,
-    authorize([UserRole.ADMIN]),
+    requireAdmin,
     (req, res) => void adminQuoteController.getQuotesList(req, res)
   );
 
@@ -38,7 +37,7 @@ export function createAdminQuoteRoutesWithDI(): Router {
   router.get(
     '/:id',
     authenticate,
-    authorize([UserRole.ADMIN]),
+    requireAdmin,
     (req, res) => void adminQuoteController.getQuote(req, res)
   );
 
@@ -50,7 +49,7 @@ export function createAdminQuoteRoutesWithDI(): Router {
   router.put(
     '/:id/status',
     authenticate,
-    authorize([UserRole.ADMIN]),
+    requireAdmin,
     validationMiddleware(UpdateQuoteStatusRequest),
     (req, res) => void adminQuoteController.updateQuoteStatus(req, res)
   );

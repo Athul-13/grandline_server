@@ -12,6 +12,7 @@ import { createAmenityRoutesWithDI } from '../../../presentation/routes/amenity/
 import { createQuoteRoutesWithDI } from '../../../presentation/routes/quote/quote_routes';
 import { createEventTypeRoutesWithDI } from '../../../presentation/routes/event_type/event_type_routes';
 import { createAdminQuoteRoutesWithDI } from '../../../presentation/routes/admin/admin_quote_routes';
+import { createAdminPricingConfigRoutesWithDI } from '../../../presentation/routes/admin/admin_pricing_config_routes';
 
 /**
  * Express application wrapper class
@@ -93,6 +94,9 @@ export class App {
 
     const adminQuoteRoutes = createAdminQuoteRoutesWithDI();
     this.app.use(`/api/v1/admin/quotes`, adminQuoteRoutes);
+
+    const adminPricingConfigRoutes = createAdminPricingConfigRoutesWithDI();
+    this.app.use(`/api/v1/admin/pricing-config`, adminPricingConfigRoutes);
   }
 
   /**
