@@ -24,7 +24,7 @@ export class GenerateVehicleImageUploadUrlUseCase implements IGenerateVehicleIma
     private readonly cloudinaryService: ICloudinaryService,
   ) {}
 
-  async execute(): Promise<GenerateVehicleImageUploadUrlResponse> {
+  execute(): Promise<GenerateVehicleImageUploadUrlResponse> {
     // Generate signed upload parameters
     // Using 'vehicle' as a generic identifier since userId is required by interface
     const signedParams = this.cloudinaryService.generateSignedUploadParams({
@@ -34,7 +34,7 @@ export class GenerateVehicleImageUploadUrlUseCase implements IGenerateVehicleIma
 
     logger.info('Generated signed upload URL for vehicle image');
 
-    return {
+    return Promise.resolve({
       uploadUrl: CLOUDINARY_CONFIG.UPLOAD_URL,
       params: {
         timestamp: signedParams.timestamp,
@@ -43,7 +43,7 @@ export class GenerateVehicleImageUploadUrlUseCase implements IGenerateVehicleIma
         folder: signedParams.folder,
       },
       expiresIn: CLOUDINARY_CONFIG.SIGNED_URL_EXPIRY,
-    };
+    });
   }
 }
 

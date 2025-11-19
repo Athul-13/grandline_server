@@ -7,6 +7,8 @@ import { IBaseRepository } from "./base_repository.interface";
  * 
  */
 export interface IUserRepository extends IBaseRepository<User> {
+    findAll(): Promise<User[]>;
+
     findByEmail(email: string): Promise<User | null>;
 
     findByGoogleId(googleId: string): Promise<User | null>;

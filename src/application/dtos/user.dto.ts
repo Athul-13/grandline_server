@@ -102,7 +102,7 @@ export class ResetPasswordRequest {
  */
 export class UpdateUserProfileRequest {
   @IsOptional()
-  @ValidateIf((o) => o.fullName !== undefined)
+  @ValidateIf((o: UpdateUserProfileRequest) => o.fullName !== undefined)
   @IsString()
   @IsNotEmpty()
   @MinLength(3)
@@ -112,7 +112,7 @@ export class UpdateUserProfileRequest {
   fullName?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.phoneNumber !== undefined)
+  @ValidateIf((o: UpdateUserProfileRequest) => o.phoneNumber !== undefined)
   @IsString()
   @IsNotEmpty()
   @Matches(/^\d{10}$/, {
@@ -121,7 +121,7 @@ export class UpdateUserProfileRequest {
   phoneNumber?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.profilePicture !== undefined)
+  @ValidateIf((o: UpdateUserProfileRequest) => o.profilePicture !== undefined)
   @IsString()
   @IsNotEmpty()
   @Matches(/^https?:\/\/res\.cloudinary\.com\/[^/]+\/[^/]+\/[^/]+\/.+/, {

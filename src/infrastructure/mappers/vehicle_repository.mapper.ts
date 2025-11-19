@@ -1,6 +1,5 @@
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { IVehicleModel } from '../database/mongodb/models/vehicle.model';
-import { VehicleStatus } from '../../shared/constants';
 
 /**
  * Repository mapper for Vehicle entity
@@ -19,7 +18,7 @@ export class VehicleRepositoryMapper {
       doc.vehicleModel,
       doc.year,
       doc.fuelConsumption,
-      doc.status as VehicleStatus,
+      doc.status,
       doc.createdAt,
       doc.updatedAt,
       doc.imageUrls && doc.imageUrls.length > 0 ? doc.imageUrls : undefined,

@@ -5,7 +5,7 @@ import { ResetPasswordRequest, ResetPasswordResponse } from '../../../dtos/user.
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
-import { APP_CONFIG, JWT_CONFIG } from '../../../../shared/config';
+import { APP_CONFIG } from '../../../../shared/config';
 import jwt, { Secret } from 'jsonwebtoken';
 import { hashPassword } from '../../../../shared/utils/password.util';
 import { logger } from '../../../../shared/logger';

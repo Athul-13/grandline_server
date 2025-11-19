@@ -27,7 +27,7 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
   router.get(
     '/profile',
     authenticate,
-    (req, res) => userController.getUserProfile(req, res)
+    (req, res) => void userController.getUserProfile(req, res)
   );
 
   /**
@@ -39,7 +39,7 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
     '/profile',
     authenticate,
     validationMiddleware(UpdateUserProfileRequest),
-    (req, res) => userController.updateUserProfile(req, res)
+    (req, res) => void userController.updateUserProfile(req, res)
   );
 
   /**
@@ -50,7 +50,7 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
   router.get(
     '/profile/upload-url',
     authenticate,
-    (req, res) => userController.generateUploadUrl(req, res)
+    (req, res) => void userController.generateUploadUrl(req, res)
   );
 
   /**
@@ -62,7 +62,7 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
     '/change-password',
     authenticate,
     validationMiddleware(ChangePasswordRequest),
-    (req, res) => userController.changePassword(req, res)
+    (req, res) => void userController.changePassword(req, res)
   );
 
   return router;

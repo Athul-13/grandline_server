@@ -6,7 +6,6 @@ import {
   VehicleResponse,
   CreateVehicleResponse,
   GetVehicleResponse,
-  GetAllVehiclesResponse,
   GetVehiclesByTypeResponse,
   UpdateVehicleResponse,
   UpdateVehicleStatusResponse,

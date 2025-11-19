@@ -42,7 +42,7 @@ export class RouteCalculationServiceImpl implements IRouteCalculationService {
     const segments: IRouteSegment[] = [];
     let totalDistance = 0;
     let totalDuration = 0;
-    let combinedGeometry: number[][][] = [];
+    const combinedGeometry: number[][][] = [];
 
     // Calculate route for each segment
     for (let i = 0; i < itinerary.length - 1; i++) {
@@ -82,7 +82,7 @@ export class RouteCalculationServiceImpl implements IRouteCalculationService {
 
       // Parse and combine geometry
       try {
-        const geometry = JSON.parse(routeResult.geometry);
+        const geometry = JSON.parse(routeResult.geometry) as { coordinates?: number[][][] };
         if (geometry.coordinates) {
           combinedGeometry.push(...geometry.coordinates);
         }

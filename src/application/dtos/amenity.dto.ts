@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, IsNumber, Min, MinLength, MaxLength, ValidateIf, Matches, IsArray, ArrayMinSize } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsNumber, Min, MinLength, MaxLength, ValidateIf, Matches } from 'class-validator';
 
 /**
  * Request DTO for creating amenity
@@ -15,7 +15,7 @@ export class CreateAmenityRequest {
   name!: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.price !== undefined && o.price !== null)
+  @ValidateIf((o: CreateAmenityRequest) => o.price !== undefined && o.price !== null)
   @IsNumber()
   @Min(0, { message: 'Price must be greater than or equal to 0' })
   price?: number | null;
@@ -27,7 +27,7 @@ export class CreateAmenityRequest {
  */
 export class UpdateAmenityRequest {
   @IsOptional()
-  @ValidateIf((o) => o.name !== undefined)
+  @ValidateIf((o: UpdateAmenityRequest) => o.name !== undefined)
   @IsString()
   @IsNotEmpty()
   @MinLength(2)
@@ -38,7 +38,7 @@ export class UpdateAmenityRequest {
   name?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.price !== undefined && o.price !== null)
+  @ValidateIf((o: UpdateAmenityRequest) => o.price !== undefined && o.price !== null)
   @IsNumber()
   @Min(0, { message: 'Price must be greater than or equal to 0' })
   price?: number | null;

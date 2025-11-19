@@ -73,6 +73,11 @@ export class UserRepositoryImpl
     return doc ? this.toEntity(doc) : null;
   }
 
+  async findAll(): Promise<User[]> {
+    const docs = await this.userModel.find({});
+    return UserRepositoryMapper.toEntities(docs);
+  }
+
   async updateVerificationStatus(userId: string, isVerified: boolean): Promise<User> {
     await this.userModel.updateOne(
       { userId },

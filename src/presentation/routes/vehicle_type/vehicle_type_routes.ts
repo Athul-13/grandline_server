@@ -29,7 +29,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
     authenticate,
     authorize(['admin']),
     validationMiddleware(CreateVehicleTypeRequest),
-    (req, res) => vehicleTypeController.createVehicleType(req, res)
+    (req, res) => void vehicleTypeController.createVehicleType(req, res)
   );
 
   /**
@@ -38,7 +38,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
    */
   router.get(
     '/',
-    (req, res) => vehicleTypeController.getAllVehicleTypes(req, res)
+    (req, res) => void vehicleTypeController.getAllVehicleTypes(req, res)
   );
 
   /**
@@ -47,7 +47,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
    */
   router.get(
     '/:id',
-    (req, res) => vehicleTypeController.getVehicleType(req, res)
+    (req, res) => void vehicleTypeController.getVehicleType(req, res)
   );
 
   /**
@@ -59,7 +59,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
     authenticate,
     authorize(['admin']),
     validationMiddleware(UpdateVehicleTypeRequest),
-    (req, res) => vehicleTypeController.updateVehicleType(req, res)
+    (req, res) => void vehicleTypeController.updateVehicleType(req, res)
   );
 
   /**
@@ -70,7 +70,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
     '/:id',
     authenticate,
     authorize(['admin']),
-    (req, res) => vehicleTypeController.deleteVehicleType(req, res)
+    (req, res) => void vehicleTypeController.deleteVehicleType(req, res)
   );
 
   return router;

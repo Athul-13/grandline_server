@@ -6,10 +6,11 @@ import { IAmenityRepository } from '../../../../domain/repositories/amenity_repo
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { CreateVehicleRequest, CreateVehicleResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { VehicleStatus } from '../../../../shared/constants';
+import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { randomUUID } from 'crypto';
 

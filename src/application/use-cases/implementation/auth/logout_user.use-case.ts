@@ -25,7 +25,7 @@ export class LogoutUserUseCase implements ILogoutUserUseCase {
       try {
         await this.jwtService.revokeRefreshToken(request.refreshToken);
         logger.info('Refresh token blacklisted during logout');
-      } catch (error) {
+      } catch {
         // If token is invalid/expired, still proceed with logout
         logger.warn('Failed to blacklist refresh token during logout, proceeding anyway');
       }

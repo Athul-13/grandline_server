@@ -10,7 +10,7 @@ import { IPricingCalculationService } from '../../../../domain/services/pricing_
 import { Amenity } from '../../../../domain/entities/amenity.entity';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, TripType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 
@@ -70,7 +70,7 @@ export class CalculateQuotePricingUseCase implements ICalculateQuotePricingUseCa
 
       // Get itinerary
       const outboundItinerary = await this.itineraryRepository.findByQuoteIdAndTripType(quoteId, 'outbound');
-      const returnItinerary = quote.tripType === 'two_way'
+      const returnItinerary = quote.tripType === TripType.TWO_WAY
         ? await this.itineraryRepository.findByQuoteIdAndTripType(quoteId, 'return')
         : undefined;
 
@@ -93,7 +93,7 @@ export class CalculateQuotePricingUseCase implements ICalculateQuotePricingUseCa
         }
         vehiclesWithQuantity.push({
           vehicle,
-          quantity: quote.selectedVehicles![i].quantity,
+          quantity: quote.selectedVehicles[i].quantity,
         });
       }
 

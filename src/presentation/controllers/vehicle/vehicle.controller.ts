@@ -52,7 +52,7 @@ export class VehicleController {
    */
   async createVehicle(req: Request, res: Response): Promise<void> {
     try {
-      const request: CreateVehicleRequest = req.body;
+      const request = req.body as CreateVehicleRequest;
       logger.info('Vehicle creation request');
       
       const response = await this.createVehicleUseCase.execute(request);
@@ -173,7 +173,7 @@ export class VehicleController {
   async updateVehicle(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const request: UpdateVehicleRequest = req.body;
+      const request = req.body as UpdateVehicleRequest;
       logger.info(`Vehicle update request for ID: ${id}`);
       
       const response = await this.updateVehicleUseCase.execute(id, request);
@@ -192,7 +192,7 @@ export class VehicleController {
   async updateVehicleStatus(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const request: UpdateVehicleStatusRequest = req.body;
+      const request = req.body as UpdateVehicleStatusRequest;
       logger.info(`Vehicle status update request for ID: ${id}`);
       
       const response = await this.updateVehicleStatusUseCase.execute(id, request);
@@ -260,7 +260,7 @@ export class VehicleController {
    */
   async deleteImages(req: Request, res: Response): Promise<void> {
     try {
-      const request: DeleteVehicleImagesRequest = req.body;
+      const request = req.body as DeleteVehicleImagesRequest;
       logger.info(`Delete vehicle images request for ${request.urls.length} image(s)`);
       
       await this.deleteVehicleImagesUseCase.execute(request.urls);

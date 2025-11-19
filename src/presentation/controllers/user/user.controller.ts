@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IGetUserProfileUseCase } from '../../../application/use-cases/interface/user/get_user_profile_use_case.interface';
 import { IUpdateUserProfileUseCase } from '../../../application/use-cases/interface/user/update_user_profile_use_case.interface';
@@ -59,8 +59,11 @@ export class UserController {
         return;
       }
 
-      const request: UpdateUserProfileRequest = req.body;
-      const updateFields = Object.keys(request).filter(key => request[key as keyof UpdateUserProfileRequest] !== undefined);
+      const request = req.body as UpdateUserProfileRequest;
+      const updateFields = Object.keys(request).filter(key => {
+        const value = request[key as keyof UpdateUserProfileRequest];
+        return value !== undefined;
+      });
       logger.info(`Profile update request for user: ${req.user.userId}, fields: ${updateFields.join(', ')}`);
 
       const response = await this.updateUserProfileUseCase.execute(req.user.userId, request);
@@ -106,7 +109,7 @@ export class UserController {
         return;
       }
 
-      const request: ChangePasswordRequest = req.body;
+      const request = req.body as ChangePasswordRequest;
       logger.info(`Password change request for user: ${req.user.userId}`);
 
       const response = await this.changePasswordUseCase.execute(req.user.userId, request);

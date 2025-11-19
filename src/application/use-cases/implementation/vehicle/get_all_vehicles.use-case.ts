@@ -136,6 +136,11 @@ export class GetAllVehiclesUseCase implements IGetAllVehiclesUseCase {
         return sortOrder === 'asc' ? comparison : -comparison;
       }
 
+      // Handle object types - cannot meaningfully compare, treat as equal
+      if (typeof aValue === 'object' || typeof bValue === 'object') {
+        return 0;
+      }
+
       // Fallback: convert to string and compare
       const aStr = String(aValue);
       const bStr = String(bValue);

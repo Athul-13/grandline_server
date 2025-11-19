@@ -1,7 +1,7 @@
 import Redis from 'ioredis';
 import { injectable } from 'tsyringe';
 import { createRedisInstance } from '../../config/redis/redis';
-import { IRedisConnection } from '../../domain/services/redis_connection.interface';
+import { IRedisConnection } from '../../../domain/services/redis_connection.interface';
 
 /**
  * Redis connection class
@@ -107,7 +107,7 @@ export class RedisConnection implements IRedisConnection {
         return;
       }
 
-      await this.redis.disconnect();
+      await this.redis.quit();
       this.isConnected = false;
       console.log('Redis disconnected');
     } catch (error) {

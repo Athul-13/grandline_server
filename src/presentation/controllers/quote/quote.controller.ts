@@ -14,12 +14,7 @@ import {
   CreateQuoteDraftRequest,
   UpdateQuoteDraftRequest,
   CalculateRoutesRequest,
-  RouteCalculationResponse,
   GetRecommendationsRequest,
-  VehicleRecommendationResponse,
-  PricingBreakdownResponse,
-  SubmitQuoteRequest,
-  SubmitQuoteResponse,
 } from '../../../application/dtos/quote.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS, QuoteStatus } from '../../../shared/constants';
@@ -58,7 +53,7 @@ export class QuoteController {
    */
   async createQuoteDraft(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const request: CreateQuoteDraftRequest = req.body;
+      const request = req.body as CreateQuoteDraftRequest;
       const userId = req.user?.userId;
 
       if (!userId) {
@@ -85,7 +80,7 @@ export class QuoteController {
   async updateQuoteDraft(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const request: UpdateQuoteDraftRequest = req.body;
+      const request = req.body as UpdateQuoteDraftRequest;
       const userId = req.user?.userId;
 
       if (!userId) {
@@ -194,7 +189,7 @@ export class QuoteController {
   async calculateRoutes(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const request: CalculateRoutesRequest = req.body;
+      const request = req.body as CalculateRoutesRequest;
       const userId = req.user?.userId;
 
       if (!userId) {
@@ -220,7 +215,7 @@ export class QuoteController {
    */
   async getVehicleRecommendations(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const request: GetRecommendationsRequest = req.body;
+      const request = req.body as GetRecommendationsRequest;
       const userId = req.user?.userId;
 
       if (!userId) {

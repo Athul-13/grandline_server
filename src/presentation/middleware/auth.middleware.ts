@@ -17,7 +17,7 @@ function createAuthMiddleware(jwtService: IJWTService) {
   ): Promise<void> => {
     try {
       // Extract token from cookie (primary method)
-      let token = req.cookies?.[COOKIE_NAMES.ACCESS_TOKEN];
+      let token = req.cookies?.[COOKIE_NAMES.ACCESS_TOKEN] as string | undefined;
 
       // Fallback to Authorization header if cookie not found
       if (!token) {
@@ -37,6 +37,7 @@ function createAuthMiddleware(jwtService: IJWTService) {
       }
 
       // Verify token and extract payload
+      // token is guaranteed to be string here due to the check above
       try {
         const payload = await jwtService.verifyAccessToken(token);
         req.user = payload;
@@ -51,7 +52,7 @@ function createAuthMiddleware(jwtService: IJWTService) {
         });
         return;
       }
-    } catch (error) {
+    } catch {
       res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
         message: ERROR_MESSAGES.SERVER_ERROR,

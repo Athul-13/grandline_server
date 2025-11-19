@@ -6,7 +6,7 @@ import { IUserRepository } from '../../../../domain/repositories/user_repository
 import { ICalculateQuotePricingUseCase } from '../../interface/quote/calculate_quote_pricing_use_case.interface';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES, TripType } from '../../../../shared/constants';
+import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES, TripType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { Quote } from '../../../../domain/entities/quote.entity';

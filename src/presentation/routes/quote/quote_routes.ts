@@ -28,7 +28,7 @@ router.post(
   '/',
   authenticate,
   validationMiddleware(CreateQuoteDraftRequest),
-  quoteController.createQuoteDraft.bind(quoteController)
+  (req, res) => void quoteController.createQuoteDraft(req, res)
 );
 
 /**
@@ -36,14 +36,14 @@ router.post(
  * @desc    Get all quotes for the authenticated user
  * @access  Private
  */
-router.get('/', authenticate, quoteController.getQuotesList.bind(quoteController));
+router.get('/', authenticate, (req, res) => void quoteController.getQuotesList(req, res));
 
 /**
  * @route   GET /api/v1/quotes/:id
  * @desc    Get a quote by ID
  * @access  Private
  */
-router.get('/:id', authenticate, quoteController.getQuote.bind(quoteController));
+router.get('/:id', authenticate, (req, res) => void quoteController.getQuote(req, res));
 
 /**
  * @route   PUT /api/v1/quotes/:id
@@ -54,7 +54,7 @@ router.put(
   '/:id',
   authenticate,
   validationMiddleware(UpdateQuoteDraftRequest),
-  quoteController.updateQuoteDraft.bind(quoteController)
+  (req, res) => void quoteController.updateQuoteDraft(req, res)
 );
 
 /**
@@ -62,7 +62,7 @@ router.put(
  * @desc    Delete a quote draft
  * @access  Private
  */
-router.delete('/:id', authenticate, quoteController.deleteQuote.bind(quoteController));
+router.delete('/:id', authenticate, (req, res) => void quoteController.deleteQuote(req, res));
 
 /**
  * @route   POST /api/v1/quotes/:id/calculate-routes
@@ -73,7 +73,7 @@ router.post(
   '/:id/calculate-routes',
   authenticate,
   validationMiddleware(CalculateRoutesRequest),
-  quoteController.calculateRoutes.bind(quoteController)
+  (req, res) => void quoteController.calculateRoutes(req, res)
 );
 
 /**
@@ -85,7 +85,7 @@ router.post(
   '/recommendations',
   authenticate,
   validationMiddleware(GetRecommendationsRequest),
-  quoteController.getVehicleRecommendations.bind(quoteController)
+  (req, res) => void quoteController.getVehicleRecommendations(req, res)
 );
 
 /**
@@ -96,7 +96,7 @@ router.post(
 router.post(
   '/:id/calculate-pricing',
   authenticate,
-  quoteController.calculateQuotePricing.bind(quoteController)
+  (req, res) => void quoteController.calculateQuotePricing(req, res)
 );
 
 /**
@@ -107,7 +107,7 @@ router.post(
 router.post(
   '/:id/submit',
   authenticate,
-  quoteController.submitQuote.bind(quoteController)
+  (req, res) => void quoteController.submitQuote(req, res)
 );
 
   return router;

@@ -16,7 +16,7 @@ export class CreateVehicleTypeRequest {
   name!: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.description !== undefined)
+  @ValidateIf((o: CreateVehicleTypeRequest) => o.description !== undefined)
   @IsString()
   @Matches(/.*\S.*/, {
     message: 'Description must contain at least one non-whitespace character if provided',
@@ -30,7 +30,7 @@ export class CreateVehicleTypeRequest {
  */
 export class UpdateVehicleTypeRequest {
   @IsOptional()
-  @ValidateIf((o) => o.name !== undefined)
+  @ValidateIf((o: UpdateVehicleTypeRequest) => o.name !== undefined)
   @IsString()
   @IsNotEmpty()
   @MinLength(2)
@@ -41,7 +41,7 @@ export class UpdateVehicleTypeRequest {
   name?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.description !== undefined)
+  @ValidateIf((o: UpdateVehicleTypeRequest) => o.description !== undefined)
   @IsString()
   @Matches(/.*\S.*/, {
     message: 'Description must contain at least one non-whitespace character if provided',
@@ -121,7 +121,7 @@ export class CreateVehicleRequest {
  */
 export class UpdateVehicleRequest {
   @IsOptional()
-  @ValidateIf((o) => o.vehicleTypeId !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.vehicleTypeId !== undefined)
   @IsString()
   @IsNotEmpty()
   @Matches(/^\S+$/, {
@@ -130,25 +130,25 @@ export class UpdateVehicleRequest {
   vehicleTypeId?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.capacity !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.capacity !== undefined)
   @IsNumber()
   @Min(1)
   capacity?: number;
 
   @IsOptional()
-  @ValidateIf((o) => o.baseFare !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.baseFare !== undefined)
   @IsNumber()
   @Min(0)
   baseFare?: number;
 
   @IsOptional()
-  @ValidateIf((o) => o.maintenance !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.maintenance !== undefined)
   @IsNumber()
   @Min(0)
   maintenance?: number;
 
   @IsOptional()
-  @ValidateIf((o) => o.plateNumber !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.plateNumber !== undefined)
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
@@ -158,7 +158,7 @@ export class UpdateVehicleRequest {
   plateNumber?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.vehicleModel !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.vehicleModel !== undefined)
   @IsString()
   @IsNotEmpty()
   @MinLength(1)
@@ -168,34 +168,34 @@ export class UpdateVehicleRequest {
   vehicleModel?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.year !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.year !== undefined)
   @IsNumber()
   @Min(1900)
   @Max(new Date().getFullYear() + 1)
   year?: number;
 
   @IsOptional()
-  @ValidateIf((o) => o.fuelConsumption !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.fuelConsumption !== undefined)
   @IsNumber()
   @Min(0)
   fuelConsumption?: number;
 
   @IsOptional()
-  @ValidateIf((o) => o.imageUrls !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.imageUrls !== undefined)
   @IsArray()
   @ArrayMinSize(1, { message: 'Image URLs array must contain at least one URL if provided' })
   @IsUrl({}, { each: true, message: 'Each image URL must be a valid URL' })
   imageUrls?: string[];
 
   @IsOptional()
-  @ValidateIf((o) => o.amenityIds !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.amenityIds !== undefined)
   @IsArray()
   @IsString({ each: true, message: 'Each amenity ID must be a string' })
   @Matches(/^\S+$/, { each: true, message: 'Each amenity ID must not contain whitespace' })
   amenityIds?: string[];
 
   @IsOptional()
-  @ValidateIf((o) => o.status !== undefined)
+  @ValidateIf((o: UpdateVehicleRequest) => o.status !== undefined)
   @IsEnum(VehicleStatus, { message: 'Status must be a valid vehicle status' })
   status?: VehicleStatus;
 }

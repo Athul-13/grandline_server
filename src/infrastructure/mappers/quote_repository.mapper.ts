@@ -1,6 +1,5 @@
 import { Quote } from '../../domain/entities/quote.entity';
 import { IQuoteModel } from '../database/mongodb/models/quote.model';
-import { QuoteStatus, TripType } from '../../shared/constants';
 
 /**
  * Repository mapper for Quote entity
@@ -11,8 +10,8 @@ export class QuoteRepositoryMapper {
     return new Quote(
       doc.quoteId,
       doc.userId,
-      doc.tripType as TripType,
-      doc.status as QuoteStatus,
+      doc.tripType,
+      doc.status,
       doc.createdAt,
       doc.updatedAt,
       doc.tripName,

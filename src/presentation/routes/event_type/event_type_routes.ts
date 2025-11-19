@@ -19,7 +19,7 @@ export function createEventTypeRoutesWithDI(): Router {
  * @desc    Get all predefined event types
  * @access  Private
  */
-router.get('/', authenticate, eventTypeController.getEventTypes.bind(eventTypeController));
+router.get('/', authenticate, (req, res) => void eventTypeController.getEventTypes(req, res));
 
 /**
  * @route   POST /api/v1/event-types
@@ -30,7 +30,7 @@ router.post(
   '/',
   authenticate,
   validationMiddleware(CreateCustomEventTypeRequest),
-  eventTypeController.createCustomEventType.bind(eventTypeController)
+  (req, res) => void eventTypeController.createCustomEventType(req, res)
 );
 
   return router;

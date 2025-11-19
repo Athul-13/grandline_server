@@ -35,5 +35,8 @@ const startServer = async (): Promise<void> => {
   }
 };
 
-startServer();
+startServer().catch((error) => {
+  console.error('Unhandled error in startServer:', error);
+  process.exit(1);
+});
 

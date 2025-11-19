@@ -11,7 +11,6 @@ import {
   MinLength,
   MaxLength,
   ValidateIf,
-  Matches,
   ArrayMinSize,
   IsDateString,
   ValidateNested,
@@ -143,7 +142,7 @@ export class UpdateQuoteDraftRequest {
   eventType?: string;
 
   @IsOptional()
-  @ValidateIf((o) => o.eventType === 'Other')
+  @ValidateIf((o: UpdateQuoteDraftRequest) => o.eventType === 'Other')
   @IsString()
   @MinLength(2)
   @MaxLength(100)

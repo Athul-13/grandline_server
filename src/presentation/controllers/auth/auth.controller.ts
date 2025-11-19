@@ -14,7 +14,6 @@ import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES, COOKIE_NAMES, ERROR_MESSAGES } from '../../../shared/constants';
 import { setAccessTokenCookie, setRefreshTokenCookie, clearAllAuthCookies } from '../../../shared/utils/cookie.util';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
-import { logger } from '../../../shared/logger';
 
 /**
  * Authentication controller
@@ -46,7 +45,7 @@ export class AuthController {
    */
   async registerUser(req: Request, res: Response): Promise<void> {
     try {
-      const request: RegisterUserRequest = req.body;
+      const request = req.body as RegisterUserRequest;
       const response = await this.registerUserUseCase.execute(request);
 
       sendSuccessResponse(res, HTTP_STATUS.CREATED, response, SUCCESS_MESSAGES.USER_REGISTERED);
@@ -60,7 +59,7 @@ export class AuthController {
    */
   async loginUser(req: Request, res: Response): Promise<void> {
     try {
-      const request: LoginUserRequest = req.body;
+      const request = req.body as LoginUserRequest;
       const response = await this.loginUserUseCase.execute(request);
 
       // Set HTTP-only cookies for tokens
@@ -80,9 +79,9 @@ export class AuthController {
    */
   async logoutUser(req: Request, res: Response): Promise<void> {
     try {
-      const refreshToken = req.cookies[COOKIE_NAMES.REFRESH_TOKEN];
+      const refreshToken = req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN] as string | undefined;
 
-      const request: LogoutUserRequest = { refreshToken };
+      const request: LogoutUserRequest = { refreshToken: refreshToken ?? '' };
       const response = await this.logoutUserUseCase.execute(request);
 
       clearAllAuthCookies(res);
@@ -98,7 +97,7 @@ export class AuthController {
    */
   async forgotPassword(req: Request, res: Response): Promise<void> {
     try {
-      const request: ForgotPasswordRequest = req.body;
+      const request = req.body as ForgotPasswordRequest;
       const response = await this.forgotPasswordUseCase.execute(request);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
@@ -112,7 +111,7 @@ export class AuthController {
    */
   async resetPassword(req: Request, res: Response): Promise<void> {
     try {
-      const request: ResetPasswordRequest = req.body;
+      const request = req.body as ResetPasswordRequest;
       const response = await this.resetPasswordUseCase.execute(request);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.PASSWORD_RESET_SUCCESS);
@@ -126,7 +125,7 @@ export class AuthController {
    */
   async googleAuth(req: Request, res: Response): Promise<void> {
     try {
-      const request: GoogleAuthRequest = req.body;
+      const request = req.body as GoogleAuthRequest;
       const response = await this.googleAuthUseCase.execute(request);
 
       // Set HTTP-only cookies for tokens
@@ -150,7 +149,7 @@ export class AuthController {
         throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
       }
 
-      const request: SetupPasswordRequest = req.body;
+      const request = req.body as SetupPasswordRequest;
       const response = await this.setupPasswordUseCase.execute(req.user.userId, request);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.PASSWORD_SETUP_SUCCESS);
@@ -168,7 +167,7 @@ export class AuthController {
         throw new Error(ERROR_MESSAGES.UNAUTHORIZED);
       }
 
-      const request: LinkGoogleRequest = req.body;
+      const request = req.body as LinkGoogleRequest;
       const response = await this.linkGoogleAccountUseCase.execute(req.user.userId, request);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.GOOGLE_ACCOUNT_LINKED);

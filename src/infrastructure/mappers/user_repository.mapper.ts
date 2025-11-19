@@ -1,6 +1,5 @@
 import { User } from '../../domain/entities/user.entity';
 import { IUserModel } from '../database/mongodb/models/user.model';
-import { UserRole, UserStatus } from '../../shared/constants';
 
 /**
  * Repository mapper for User entity
@@ -13,8 +12,8 @@ export class UserRepositoryMapper {
       doc.userId,
       doc.fullName,
       doc.email,
-      doc.role as UserRole,
-      doc.status as UserStatus,
+      doc.role,
+      doc.status,
       doc.profilePicture || '',
       doc.isVerified,
       doc.createdAt,

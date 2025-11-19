@@ -7,7 +7,6 @@ import { IPricingBreakdown, IRouteData } from '../../domain/entities/quote.entit
 import { QuoteItinerary } from '../../domain/entities/quote_itinerary.entity';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { Amenity } from '../../domain/entities/amenity.entity';
-import { PricingConfig } from '../../domain/entities/pricing_config.entity';
 
 /**
  * Pricing calculation service implementation
@@ -91,9 +90,9 @@ export class PricingCalculationServiceImpl implements IPricingCalculationService
   }
 
   calculateFuelMaintenance(
-    totalDistance: number,
-    vehicles: Array<{ vehicle: Vehicle; quantity: number }>,
-    fuelPrice: number
+    _totalDistance: number,
+    _vehicles: Array<{ vehicle: Vehicle; quantity: number }>,
+    _fuelPrice: number
   ): number {
     // Removed - this was a duplicate of distanceFare
     // Distance fare already includes: distance × fuel consumption × fuel price

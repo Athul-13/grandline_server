@@ -9,7 +9,11 @@ const logger = winston.createLogger({
     winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
     winston.format.errors({ stack: true }),
     winston.format.printf(({ timestamp, level, message, stack }) => {
-      return `${timestamp} [${level.toUpperCase()}] ${stack || message}`;
+      const ts = typeof timestamp === 'string' ? timestamp : String(timestamp);
+      const lvl = typeof level === 'string' ? level : String(level);
+      const msg = typeof message === 'string' ? message : String(message);
+      const stk = typeof stack === 'string' ? stack : '';
+      return `${ts} [${lvl.toUpperCase()}] ${stk || msg}`;
     })
   ),
   transports: [
@@ -24,8 +28,12 @@ const logger = winston.createLogger({
         winston.format.errors({ stack: true }),
         winston.format.printf(({ timestamp, level, message, stack }) => {
           const dimGray = '\x1b[90m'; // ANSI code for bright black (gray)
-          const reset = '\x1b[0m'; 
-          return `[${level}] ${dimGray}${timestamp}${reset} ${stack || message}`;
+          const reset = '\x1b[0m';
+          const ts = typeof timestamp === 'string' ? timestamp : String(timestamp);
+          const lvl = typeof level === 'string' ? level : String(level);
+          const msg = typeof message === 'string' ? message : String(message);
+          const stk = typeof stack === 'string' ? stack : '';
+          return `[${lvl}] ${dimGray}${ts}${reset} ${stk || msg}`;
         })
       ),
     }),

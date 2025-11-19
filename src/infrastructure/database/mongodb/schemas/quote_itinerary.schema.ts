@@ -1,5 +1,5 @@
 import { Schema } from 'mongoose';
-import { TripType, StopType } from '../../../../shared/constants';
+import { StopType } from '../../../../shared/constants';
 
 /**
  * MongoDB schema for QuoteItinerary collection

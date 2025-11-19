@@ -6,7 +6,7 @@ import { IGoogleAuthService } from '../../../../domain/services/google_auth_serv
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { IJWTService } from '../../../../domain/services/jwt_service.interface';
 import { User } from '../../../../domain/entities/user.entity';
-import { UserRole, UserStatus, ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
+import { UserRole, UserStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { logger } from '../../../../shared/logger';

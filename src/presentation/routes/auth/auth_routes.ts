@@ -31,7 +31,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/register',
     validationMiddleware(RegisterUserRequest),
-    (req, res) => authController.registerUser(req, res)
+    (req, res) => void authController.registerUser(req, res)
   );
 
   /**
@@ -41,7 +41,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/login',
     validationMiddleware(LoginUserRequest),
-    (req, res) => authController.loginUser(req, res)
+    (req, res) => void authController.loginUser(req, res)
   );
 
   /**
@@ -51,7 +51,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/otp/verify',
     validationMiddleware(VerifyOtpRequest),
-    (req, res) => otpController.verifyOtp(req, res)
+    (req, res) => void otpController.verifyOtp(req, res)
   );
 
   /**
@@ -61,7 +61,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/otp/resend',
     validationMiddleware(ResendOtpRequest),
-    (req, res) => otpController.resendOtp(req, res)
+    (req, res) => void otpController.resendOtp(req, res)
   );
 
   /**
@@ -70,7 +70,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
    */
   router.post(
     '/token/refresh',
-    (req, res) => tokenController.refreshToken(req, res)
+    (req, res) => void tokenController.refreshToken(req, res)
   );
 
   /**
@@ -81,7 +81,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/logout',
     authenticate,
-    (req, res) => authController.logoutUser(req, res)
+    (req, res) => void authController.logoutUser(req, res)
   );
 
   /**
@@ -91,7 +91,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/forgot-password',
     validationMiddleware(ForgotPasswordRequest),
-    (req, res) => authController.forgotPassword(req, res)
+    (req, res) => void authController.forgotPassword(req, res)
   );
 
   /**
@@ -101,7 +101,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/reset-password',
     validationMiddleware(ResetPasswordRequest),
-    (req, res) => authController.resetPassword(req, res)
+    (req, res) => void authController.resetPassword(req, res)
   );
 
   /**
@@ -111,7 +111,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
   router.post(
     '/google',
     validationMiddleware(GoogleAuthRequest),
-    (req, res) => authController.googleAuth(req, res)
+    (req, res) => void authController.googleAuth(req, res)
   );
 
   /**
@@ -123,7 +123,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
     '/setup-password',
     authenticate,
     validationMiddleware(SetupPasswordRequest),
-    (req, res) => authController.setupPassword(req, res)
+    (req, res) => void authController.setupPassword(req, res)
   );
 
   /**
@@ -135,7 +135,7 @@ export function createAuthRoutes(config: AuthRoutesConfig): Router {
     '/link-google',
     authenticate,
     validationMiddleware(LinkGoogleRequest),
-    (req, res) => authController.linkGoogleAccount(req, res)
+    (req, res) => void authController.linkGoogleAccount(req, res)
   );
 
   return router;

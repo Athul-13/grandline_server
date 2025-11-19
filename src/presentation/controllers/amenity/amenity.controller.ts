@@ -38,7 +38,7 @@ export class AmenityController {
    */
   async createAmenity(req: Request, res: Response): Promise<void> {
     try {
-      const request: CreateAmenityRequest = req.body;
+      const request = req.body as CreateAmenityRequest;
       logger.info('Amenity creation request');
       
       const response = await this.createAmenityUseCase.execute(request);
@@ -114,7 +114,7 @@ export class AmenityController {
   async updateAmenity(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const request: UpdateAmenityRequest = req.body;
+      const request = req.body as UpdateAmenityRequest;
       logger.info(`Amenity update request for ID: ${id}`);
       
       const response = await this.updateAmenityUseCase.execute(id, request);

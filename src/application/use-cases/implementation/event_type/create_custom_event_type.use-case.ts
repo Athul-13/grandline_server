@@ -57,7 +57,13 @@ export class CreateCustomEventTypeUseCase implements ICreateCustomEventTypeUseCa
       );
 
       // Save to repository
-      const savedEventType = await this.eventTypeRepository.create(eventType);
+      await this.eventTypeRepository.create(eventType);
+
+      // Fetch the created entity
+      const savedEventType = await this.eventTypeRepository.findById(eventType.eventTypeId);
+      if (!savedEventType) {
+        throw new AppError(ERROR_MESSAGES.EVENT_TYPE_NOT_FOUND, 'EVENT_TYPE_CREATION_ERROR', 500);
+      }
 
       // Map to response DTO
       const response: EventTypeResponse = {

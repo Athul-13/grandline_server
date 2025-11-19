@@ -45,7 +45,7 @@ export class EventTypeController {
    */
   async createCustomEventType(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
-      const request: CreateCustomEventTypeRequest = req.body;
+      const request = req.body as CreateCustomEventTypeRequest;
       const userId = req.user?.userId;
 
       if (!userId) {

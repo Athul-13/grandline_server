@@ -25,7 +25,7 @@ export class OtpController {
    */
   async verifyOtp(req: Request, res: Response): Promise<void> {
     try {
-      const request: VerifyOtpRequest = req.body;
+      const request = req.body as VerifyOtpRequest;
       const response = await this.verifyOtpUseCase.execute(request);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.OTP_VERIFIED);
@@ -39,7 +39,7 @@ export class OtpController {
    */
   async resendOtp(req: Request, res: Response): Promise<void> {
     try {
-      const request: ResendOtpRequest = req.body;
+      const request = req.body as ResendOtpRequest;
       const response = await this.resendOtpUseCase.execute(request);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.OTP_SENT);

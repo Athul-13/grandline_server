@@ -1,6 +1,5 @@
 import { QuoteItinerary } from '../../domain/entities/quote_itinerary.entity';
 import { IQuoteItineraryModel } from '../database/mongodb/models/quote_itinerary.model';
-import { StopType } from '../../shared/constants';
 
 /**
  * Repository mapper for QuoteItinerary entity
@@ -17,7 +16,7 @@ export class QuoteItineraryRepositoryMapper {
       doc.latitude,
       doc.longitude,
       doc.arrivalTime,
-      doc.stopType as StopType,
+      doc.stopType,
       doc.createdAt,
       doc.updatedAt,
       doc.departureTime,
