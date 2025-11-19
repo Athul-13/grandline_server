@@ -65,6 +65,9 @@ export interface IQuoteModel extends Document {
   selectedAmenities?: string[];
   pricing?: IPricingBreakdown;
   routeData?: IRouteData;
+  assignedDriverId?: string;
+  actualDriverRate?: number;
+  pricingLastUpdatedAt?: Date;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;

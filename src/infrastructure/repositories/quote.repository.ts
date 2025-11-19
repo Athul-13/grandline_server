@@ -43,6 +43,9 @@ export class QuoteRepositoryImpl
       selectedAmenities: entity.selectedAmenities,
       pricing: entity.pricing,
       routeData: entity.routeData,
+      assignedDriverId: entity.assignedDriverId,
+      actualDriverRate: entity.actualDriverRate,
+      pricingLastUpdatedAt: entity.pricingLastUpdatedAt,
       isDeleted: entity.isDeleted,
     };
   }

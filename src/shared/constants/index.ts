@@ -50,6 +50,7 @@ export enum QuoteStatus {
   ACCEPTED = 'accepted',        // Quote has been accepted
   REJECTED = 'rejected',        // Quote has been rejected
   PAID = 'paid',                // Quote has been paid (becomes reservation)
+  QUOTED = 'quoted',            // Quote has been quoted with actual driver pricing
 }
 
 /**

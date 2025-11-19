@@ -99,6 +99,20 @@ export const QuoteSchema: Schema = new Schema(
         routeGeometry: { type: String, required: false },
       },
     },
+    assignedDriverId: {
+      type: String,
+      required: false,
+      index: true,
+    },
+    actualDriverRate: {
+      type: Number,
+      required: false,
+      min: 0,
+    },
+    pricingLastUpdatedAt: {
+      type: Date,
+      required: false,
+    },
     isDeleted: {
       type: Boolean,
       default: false,

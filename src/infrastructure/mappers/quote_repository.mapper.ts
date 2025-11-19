@@ -23,6 +23,9 @@ export class QuoteRepositoryMapper {
       doc.selectedAmenities,
       doc.pricing,
       doc.routeData,
+      doc.assignedDriverId,
+      doc.actualDriverRate,
+      doc.pricingLastUpdatedAt,
       doc.isDeleted
     );
   }

@@ -64,6 +64,9 @@ export class Quote {
     public readonly selectedAmenities?: string[],
     public readonly pricing?: IPricingBreakdown,
     public readonly routeData?: IRouteData,
+    public readonly assignedDriverId?: string,
+    public readonly actualDriverRate?: number,
+    public readonly pricingLastUpdatedAt?: Date,
     public readonly isDeleted: boolean = false
   ) {}
 
