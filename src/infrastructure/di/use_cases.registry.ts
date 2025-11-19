@@ -50,6 +50,9 @@ import { SubmitQuoteUseCase } from '../../application/use-cases/implementation/q
 import { GetAdminQuotesListUseCase } from '../../application/use-cases/implementation/admin/get_admin_quotes_list.use-case';
 import { GetAdminQuoteUseCase } from '../../application/use-cases/implementation/admin/get_admin_quote.use-case';
 import { UpdateQuoteStatusUseCase } from '../../application/use-cases/implementation/admin/update_quote_status.use-case';
+import { GetPricingConfigUseCase } from '../../application/use-cases/implementation/admin/get_pricing_config.use-case';
+import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/admin/create_pricing_config.use-case';
+import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/admin/get_pricing_config_history.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -106,5 +109,8 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetAdminQuotesListUseCase, GetAdminQuotesListUseCase);
   container.register(USE_CASE_TOKENS.GetAdminQuoteUseCase, GetAdminQuoteUseCase);
   container.register(USE_CASE_TOKENS.UpdateQuoteStatusUseCase, UpdateQuoteStatusUseCase);
+  container.register(USE_CASE_TOKENS.GetPricingConfigUseCase, GetPricingConfigUseCase);
+  container.register(USE_CASE_TOKENS.CreatePricingConfigUseCase, CreatePricingConfigUseCase);
+  container.register(USE_CASE_TOKENS.GetPricingConfigHistoryUseCase, GetPricingConfigHistoryUseCase);
 }
 

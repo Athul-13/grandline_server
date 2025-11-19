@@ -35,15 +35,10 @@ export class PricingCalculationServiceImpl implements IPricingCalculationService
       input.pricingConfig.nightChargePerNight
     );
 
-    const stayingCharge = this.calculateStayingCharge(
-      [...input.itinerary.outbound, ...(input.itinerary.return || [])],
-      input.pricingConfig.stayingChargePerDay
-    );
-
     const amenitiesTotal = this.calculateAmenitiesTotal(input.selectedAmenities);
 
     const subtotal =
-      baseFare + distanceFare + driverCharge + nightCharge + stayingCharge + amenitiesTotal;
+      baseFare + distanceFare + driverCharge + nightCharge + amenitiesTotal;
 
     const tax = this.calculateTax(subtotal, input.pricingConfig.taxPercentage);
 
@@ -58,7 +53,6 @@ export class PricingCalculationServiceImpl implements IPricingCalculationService
       driverCharge,
       fuelMaintenance: 0, // Removed duplicate - distanceFare already includes fuel cost
       nightCharge,
-      stayingCharge,
       amenitiesTotal,
       subtotal,
       tax,
@@ -115,22 +109,6 @@ export class PricingCalculationServiceImpl implements IPricingCalculationService
     }
 
     return nightCount * nightChargePerNight;
-  }
-
-  calculateStayingCharge(
-    itinerary: QuoteItinerary[],
-    stayingChargePerDay: number
-  ): number {
-    let totalStayingCharge = 0;
-
-    for (const stop of itinerary) {
-      if (stop.isDriverStaying && stop.stayingDuration && stop.stayingDuration >= 24) {
-        const days = Math.ceil(stop.stayingDuration / 24);
-        totalStayingCharge += days * stayingChargePerDay;
-      }
-    }
-
-    return totalStayingCharge;
   }
 
   calculateAmenitiesTotal(amenities: Amenity[]): number {

@@ -20,7 +20,6 @@ export interface IPricingBreakdown {
   driverCharge?: number;
   fuelMaintenance?: number;
   nightCharge?: number;
-  stayingCharge?: number;
   amenitiesTotal?: number;
   subtotal?: number;
   tax?: number;

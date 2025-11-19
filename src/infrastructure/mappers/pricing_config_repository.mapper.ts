@@ -12,7 +12,6 @@ export class PricingConfigRepositoryMapper {
       doc.version,
       doc.fuelPrice,
       doc.averageDriverPerHourRate,
-      doc.stayingChargePerDay,
       doc.taxPercentage,
       doc.nightChargePerNight,
       doc.isActive,

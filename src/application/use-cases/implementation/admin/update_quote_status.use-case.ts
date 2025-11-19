@@ -9,6 +9,7 @@ import { QuoteMapper } from '../../../mapper/quote.mapper';
 import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { Quote } from '../../../../domain/entities/quote.entity';
 
 /**
  * Use case for updating quote status
@@ -70,9 +71,10 @@ export class UpdateQuoteStatusUseCase implements IUpdateQuoteStatusUseCase {
     }
 
     // Update quote status
-    await this.quoteRepository.updateById(quoteId, {
+    const update: Partial<Quote> = {
       status: newStatus,
-    } as Partial<Quote>);
+    };
+    await this.quoteRepository.updateById(quoteId, update);
 
     // Fetch updated quote
     const updatedQuote = await this.quoteRepository.findById(quoteId);

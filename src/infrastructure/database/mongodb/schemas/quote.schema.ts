@@ -81,7 +81,6 @@ export const QuoteSchema: Schema = new Schema(
       driverCharge: { type: Number, required: false },
       fuelMaintenance: { type: Number, required: false },
       nightCharge: { type: Number, required: false },
-      stayingCharge: { type: Number, required: false },
       amenitiesTotal: { type: Number, required: false },
       subtotal: { type: Number, required: false },
       tax: { type: Number, required: false },

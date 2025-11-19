@@ -68,14 +68,6 @@ export interface IPricingCalculationService {
   ): number;
 
   /**
-   * Calculates staying charge if driver stays at location for 1+ days
-   */
-  calculateStayingCharge(
-    itinerary: QuoteItinerary[],
-    stayingChargePerDay: number
-  ): number;
-
-  /**
    * Calculates amenities total
    */
   calculateAmenitiesTotal(amenities: Amenity[]): number;

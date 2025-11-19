@@ -53,5 +53,8 @@ export const USE_CASE_TOKENS = {
   GetAdminQuotesListUseCase: Symbol.for('GetAdminQuotesListUseCase'),
   GetAdminQuoteUseCase: Symbol.for('GetAdminQuoteUseCase'),
   UpdateQuoteStatusUseCase: Symbol.for('UpdateQuoteStatusUseCase'),
+  GetPricingConfigUseCase: Symbol.for('GetPricingConfigUseCase'),
+  CreatePricingConfigUseCase: Symbol.for('CreatePricingConfigUseCase'),
+  GetPricingConfigHistoryUseCase: Symbol.for('GetPricingConfigHistoryUseCase'),
 } as const;
 

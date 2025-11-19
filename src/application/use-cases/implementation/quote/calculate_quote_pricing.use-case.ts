@@ -137,7 +137,6 @@ export class CalculateQuotePricingUseCase implements ICalculateQuotePricingUseCa
         driverCharge: pricingBreakdown.driverCharge ?? 0,
         fuelMaintenance: pricingBreakdown.fuelMaintenance ?? 0,
         nightCharge: pricingBreakdown.nightCharge ?? 0,
-        stayingCharge: pricingBreakdown.stayingCharge ?? 0,
         amenitiesTotal: pricingBreakdown.amenitiesTotal ?? 0,
         subtotal: pricingBreakdown.subtotal ?? 0,
         tax: pricingBreakdown.tax ?? 0,

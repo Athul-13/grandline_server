@@ -38,7 +38,11 @@ export class AdminQuoteController {
             : [req.query.status]
           ).map((s) => s as QuoteStatus)
         : undefined;
-      const includeDeleted = req.query.includeDeleted === 'true' || req.query.includeDeleted === true;
+      const includeDeletedParam = req.query.includeDeleted;
+      const includeDeleted =
+        includeDeletedParam === 'true' ||
+        includeDeletedParam === '1' ||
+        (typeof includeDeletedParam === 'string' && includeDeletedParam.toLowerCase() === 'true');
       const search = req.query.search as string | undefined;
       const sortBy = req.query.sortBy as string | undefined;
       const sortOrder = req.query.sortOrder as 'asc' | 'desc' | undefined;

@@ -36,7 +36,6 @@ export class PricingConfigRepositoryImpl
       version: entity.version,
       fuelPrice: entity.fuelPrice,
       averageDriverPerHourRate: entity.averageDriverPerHourRate,
-      stayingChargePerDay: entity.stayingChargePerDay,
       taxPercentage: entity.taxPercentage,
       nightChargePerNight: entity.nightChargePerNight,
       isActive: entity.isActive,

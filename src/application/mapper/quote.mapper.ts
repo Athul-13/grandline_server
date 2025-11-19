@@ -66,7 +66,6 @@ export class QuoteMapper {
             driverCharge: quote.pricing.driverCharge ?? 0,
             fuelMaintenance: quote.pricing.fuelMaintenance ?? 0,
             nightCharge: quote.pricing.nightCharge ?? 0,
-            stayingCharge: quote.pricing.stayingCharge ?? 0,
             amenitiesTotal: quote.pricing.amenitiesTotal ?? 0,
             subtotal: quote.pricing.subtotal ?? 0,
             tax: quote.pricing.tax ?? 0,

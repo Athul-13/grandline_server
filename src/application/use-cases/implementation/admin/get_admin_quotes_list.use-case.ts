@@ -67,7 +67,9 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
       let matchingUserIds: string[] = [];
       if (normalizedSearch) {
         const searchLower = normalizedSearch.toLowerCase();
-        const allUsers = await this.userRepository.findAll();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+        const allUsersResult = await this.userRepository.findAll();
+        const allUsers = allUsersResult as User[];
         matchingUserIds = allUsers
           .filter(
             (user) =>
@@ -150,10 +152,14 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
         });
       }
 
-      // Step 5: Apply sorting if sortBy is provided
+      // Step 5: Apply sorting
+      // If no sortBy provided, default to newest first (createdAt desc)
       let sortedQuotes = quotesWithUsers;
       if (normalizedSortBy) {
         sortedQuotes = this.sortQuotes(quotesWithUsers, normalizedSortBy, normalizedSortOrder);
+      } else {
+        // Default: sort by createdAt descending (newest first)
+        sortedQuotes = this.sortQuotes(quotesWithUsers, 'createdAt', 'desc');
       }
 
       // Step 6: Calculate pagination

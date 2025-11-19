@@ -82,7 +82,6 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
           driverCharge: pricing.driverCharge,
           fuelMaintenance: pricing.fuelMaintenance,
           nightCharge: pricing.nightCharge,
-          stayingCharge: pricing.stayingCharge,
           amenitiesTotal: pricing.amenitiesTotal,
           subtotal: pricing.subtotal,
           tax: pricing.tax,

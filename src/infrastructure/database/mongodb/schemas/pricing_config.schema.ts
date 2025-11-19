@@ -26,11 +26,6 @@ export const PricingConfigSchema: Schema = new Schema(
       required: true,
       min: 0,
     },
-    stayingChargePerDay: {
-      type: Number,
-      required: true,
-      min: 0,
-    },
     taxPercentage: {
       type: Number,
       required: true,

@@ -12,7 +12,6 @@ export interface IPricingConfigModel extends Document {
   version: number;
   fuelPrice: number;
   averageDriverPerHourRate: number;
-  stayingChargePerDay: number;
   taxPercentage: number;
   nightChargePerNight: number;
   isActive: boolean;

@@ -8,7 +8,6 @@ export class PricingConfig {
     public readonly version: number,
     public readonly fuelPrice: number,
     public readonly averageDriverPerHourRate: number,
-    public readonly stayingChargePerDay: number,
     public readonly taxPercentage: number,
     public readonly nightChargePerNight: number,
     public readonly isActive: boolean,
@@ -38,7 +37,6 @@ export class PricingConfig {
     return (
       this.fuelPrice >= 0 &&
       this.averageDriverPerHourRate >= 0 &&
-      this.stayingChargePerDay >= 0 &&
       this.nightChargePerNight >= 0
     );
   }
