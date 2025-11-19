@@ -1,6 +1,8 @@
 import { injectable, inject } from 'tsyringe';
 import { IGetQuoteUseCase } from '../../interface/quote/get_quote_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
+import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
+import { IPassengerRepository } from '../../../../domain/repositories/passenger_repository.interface';
 import { QuoteResponse } from '../../../dtos/quote.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { QuoteMapper } from '../../../mapper/quote.mapper';
@@ -16,7 +18,11 @@ import { AppError } from '../../../../shared/utils/app_error.util';
 export class GetQuoteUseCase implements IGetQuoteUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IQuoteRepository)
-    private readonly quoteRepository: IQuoteRepository
+    private readonly quoteRepository: IQuoteRepository,
+    @inject(REPOSITORY_TOKENS.IQuoteItineraryRepository)
+    private readonly itineraryRepository: IQuoteItineraryRepository,
+    @inject(REPOSITORY_TOKENS.IPassengerRepository)
+    private readonly passengerRepository: IPassengerRepository
   ) {}
 
   async execute(quoteId: string, userId: string): Promise<QuoteResponse> {
@@ -42,7 +48,11 @@ export class GetQuoteUseCase implements IGetQuoteUseCase {
       throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
     }
 
-    return QuoteMapper.toQuoteResponse(quote);
+    // Fetch itinerary and passengers
+    const itineraryStops = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
+    const passengers = await this.passengerRepository.findByQuoteId(quoteId);
+
+    return QuoteMapper.toQuoteResponse(quote, itineraryStops, passengers);
   }
 }
 

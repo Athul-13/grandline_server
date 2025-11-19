@@ -46,8 +46,9 @@ export class ItineraryStopDto {
   @IsNumber()
   longitude!: number;
 
+  @IsOptional()
   @IsDateString()
-  arrivalTime!: string;
+  arrivalTime?: string;
 
   @IsOptional()
   @IsDateString()
@@ -300,6 +301,11 @@ export interface QuoteResponse {
     outbound?: { totalDistance: number; totalDuration: number; routeGeometry: string };
     return?: { totalDistance: number; totalDuration: number; routeGeometry: string };
   };
+  itinerary?: {
+    outbound?: ItineraryStopDto[];
+    return?: ItineraryStopDto[];
+  };
+  passengers?: PassengerDto[];
   createdAt: Date;
   updatedAt: Date;
 }

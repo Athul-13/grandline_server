@@ -24,11 +24,11 @@
 
 **User Action**: User navigates to `/quotes`
 
-**API Call**: `GET /api/v1/quotes?status=draft,quote&page=1&limit=20`
+**API Call**: `GET /api/v1/quotes`
 - **Query Params**: 
-  - `page` (number, default: 1)
-  - `limit` (number, default: 20)
-  - `status` (array: `draft`, `quote`)
+  - `page` (number, optional, default: 1)
+  - `limit` (number, optional, default: 20)
+  - `status` (string, optional, comma-separated: `draft,submitted`)
 - **Response**: `QuoteListResponse`
   ```json
   {
@@ -636,8 +636,10 @@
   - Quote created successfully
   - Show success message
   - Redirect to quotes page (`/quotes`)
-  - Draft is now a quote (status: `"quote"`) and appears in quotes table
+  - Draft status changes from `"draft"` to `"submitted"` and appears in quotes table
 - **Email**: Confirmation email sent automatically (doesn't block submission if it fails)
+  - Email contains: Quote ID, trip name, trip type, total price, quote date
+  - Email template matches application theme (GRANDLINE)
 
 ---
 
@@ -666,8 +668,15 @@
 
 ### Delete Draft
 - **API Call**: `DELETE /api/v1/quotes/:id`
-- **Response**: `204 No Content`
-- **Note**: Can only delete drafts (status: `draft`)
+- **Response**: `204 No Content` (on success)
+- **Error Response** (if quote cannot be deleted):
+  ```json
+  {
+    "success": false,
+    "message": "Cannot delete quote. Quote has been submitted"
+  }
+  ```
+- **Note**: Can only delete drafts (status: `draft`). Submitted quotes cannot be deleted.
 
 ---
 
@@ -703,18 +712,29 @@
   ```json
   {
     "success": false,
-    "error": "Error message",
-    "code": "ERROR_CODE"
+    "message": "Error message"
   }
   ```
+- **HTTP Status Codes**: 
+  - `400 Bad Request`: Invalid input data, validation errors
+  - `401 Unauthorized`: Missing or invalid authentication token
+  - `403 Forbidden`: User doesn't have permission (e.g., accessing another user's quote)
+  - `404 Not Found`: Resource not found (quote, vehicle, etc.)
+  - `409 Conflict`: Resource already exists (e.g., duplicate event type)
+  - `500 Internal Server Error`: Server errors
 
 ### Validation
 - **Request bodies are validated** using `class-validator`
 - **Validation errors return**: 400 Bad Request with detailed field errors
 
 ### Status Flow
-- **Draft**: `draft` (steps 1-5, incomplete)
-- **Submitted**: `submitted` (all 5 steps complete, pricing calculated)
+- **Draft**: `draft` (steps 1-5, incomplete or in progress)
+- **Submitted**: `submitted` (all 5 steps complete, pricing calculated, ready for admin review)
+- **Future Statuses** (not yet implemented):
+  - `negotiating`: Admin and user are negotiating price
+  - `accepted`: Quote accepted by user
+  - `rejected`: Quote rejected
+  - `paid`: Quote paid, becomes a reservation
 
 ### Email Integration
 - **Email sent automatically** on quote submission
@@ -722,48 +742,66 @@
 - **Email contains**: Quote ID, trip name, trip type, total price, quote date
 
 ### Route Calculation
-- **Routes are calculated** using Mapbox Directions API
-- **Stored in quote**: Total distance, total duration, route geometry (GeoJSON)
-- **Night travel detection**: Automatically detected for pricing calculations
+- **Routes are calculated** using Mapbox Directions API (server-side)
+- **Stored in quote**: 
+  - `routeData.outbound`: Total distance (km), total duration (seconds), route geometry (GeoJSON string)
+  - `routeData.return`: Same structure for return trip (if two-way)
+- **Night travel detection**: Automatically detected for segments between 10 PM - 6 AM for pricing calculations
+- **Route segments**: Each segment between stops includes distance, duration, and night travel flag
+- **Route geometry**: Stored as GeoJSON string for map rendering on frontend
 
 ### Pricing Calculation
 - **Components**:
-  - `baseFare`: From selected vehicles
-  - `distanceFare`: Distance × fuel consumption × fuel price
-  - `driverCharge`: Driver per-hour rate × hours needed
-  - `nightCharge`: Driver per-night rate (10 PM - 6 AM)
-  - `stayingCharge`: Per-day rate for driver stays ≥ 1 day
-  - `amenitiesTotal`: Sum of selected paid amenities
-  - `tax`: Percentage of subtotal
-  - `fuelMaintenance`: Returns 0 (fuel cost included in distanceFare)
+  - `baseFare`: From selected vehicles (sum of all selected vehicles' base fares × quantity)
+  - `distanceFare`: Total distance × fuel consumption per km × fuel price per liter
+  - `driverCharge`: Average driver per-hour rate × total hours needed (calculated from route duration)
+  - `nightCharge`: Driver per-night rate × number of nights (for travel between 10 PM - 6 AM)
+  - `stayingCharge`: Per-day rate × number of days (for driver stays ≥ 1 day at a location)
+  - `amenitiesTotal`: Sum of selected paid amenities prices
+  - `subtotal`: baseFare + distanceFare + driverCharge + nightCharge + stayingCharge + amenitiesTotal
+  - `tax`: Tax percentage × subtotal (tax percentage is configurable by admin)
+  - `total`: subtotal + tax
+  - `fuelMaintenance`: Always returns 0 (fuel cost is already included in distanceFare)
+- **Pricing Configuration**: 
+  - Fuel price, average driver rate, tax percentage, staying charge, night charge are stored in `pricing_config` collection
+  - Values are captured at the time of calculation and stored in pricing breakdown
+  - Admin can update pricing config and recalculate quotes (future feature)
 
 ### Vehicle Recommendations
-- **Algorithm**: Finds exact matches and combinations
+- **Algorithm**: Finds exact matches and combinations based on passenger count
+  - Exact match: Single vehicle or combination that exactly matches passenger count
+  - Combinations: Multiple vehicles that together can accommodate passengers
+  - Example: 54 passengers → Option 1: 1 Coach Bus (54 seats), Option 2: 2 Mini Buses (30 seats each)
 - **Sorting**: Exact matches first, then by capacity closest to passenger count
-- **Returns**: Top 5 recommendations
+- **Returns**: Top 5 recommendations + all available vehicles
+- **Availability**: Recommendations consider vehicle availability for trip dates
+- **Included Amenities**: Each vehicle shows its included amenities
 
 ### Event Types
-- **Predefined**: Wedding, Corporate, etc.
-- **Custom**: User can create custom event types
+- **Predefined**: Wedding, Corporate, etc. (stored in `event_types` collection with `isCustom: false`)
+- **Custom**: User can create custom event types (stored with `isCustom: true`)
 - **Validation**: Custom event type name must be unique
+- **Usage**: When user selects "Other" in Step 3, they can enter a custom event type name, which is saved to the database
 
 ---
 
 ## Complete API Endpoint Summary
 
-| Method | Endpoint | Description | Request Body | Response |
-|--------|----------|-------------|--------------|-----------|
-| GET | `/api/v1/quotes` | Get quotes list | Query params | `QuoteListResponse` |
-| GET | `/api/v1/quotes/:id` | Get quote by ID | - | `QuoteResponse` |
-| POST | `/api/v1/quotes` | Create quote draft | `CreateQuoteDraftRequest` | `CreateQuoteDraftResponse` |
-| PUT | `/api/v1/quotes/:id` | Update quote draft | `UpdateQuoteDraftRequest` | `QuoteResponse` |
-| DELETE | `/api/v1/quotes/:id` | Delete quote draft | - | `204 No Content` |
-| POST | `/api/v1/quotes/:id/calculate-routes` | Calculate routes | `CalculateRoutesRequest` | `RouteCalculationResponse` |
-| POST | `/api/v1/quotes/recommendations` | Get vehicle recommendations | `GetRecommendationsRequest` | `VehicleRecommendationResponse` |
-| POST | `/api/v1/quotes/:id/calculate-pricing` | Calculate pricing | - | `PricingBreakdownResponse` |
-| POST | `/api/v1/quotes/:id/submit` | Submit quote | - | `SubmitQuoteResponse` |
-| GET | `/api/v1/event-types` | Get event types | - | `EventTypeResponse[]` |
-| POST | `/api/v1/event-types` | Create custom event type | `CreateCustomEventTypeRequest` | `EventTypeResponse` |
+| Method | Endpoint | Description | Request Body | Response | Auth Required |
+|--------|----------|-------------|--------------|----------|---------------|
+| GET | `/api/v1/quotes` | Get quotes list | Query: `page`, `limit`, `status` | `QuoteListResponse` | Yes |
+| GET | `/api/v1/quotes/:id` | Get quote by ID | - | `QuoteResponse` | Yes |
+| POST | `/api/v1/quotes` | Create quote draft | `CreateQuoteDraftRequest` | `CreateQuoteDraftResponse` | Yes |
+| PUT | `/api/v1/quotes/:id` | Update quote draft | `UpdateQuoteDraftRequest` | `QuoteResponse` | Yes |
+| DELETE | `/api/v1/quotes/:id` | Delete quote draft | - | `204 No Content` | Yes |
+| POST | `/api/v1/quotes/:id/calculate-routes` | Calculate routes | `CalculateRoutesRequest` | `RouteCalculationResponse` | Yes |
+| POST | `/api/v1/quotes/recommendations` | Get vehicle recommendations | `GetRecommendationsRequest` | `VehicleRecommendationResponse` | Yes |
+| POST | `/api/v1/quotes/:id/calculate-pricing` | Calculate pricing | - | `PricingBreakdownResponse` | Yes |
+| POST | `/api/v1/quotes/:id/submit` | Submit quote | - | `SubmitQuoteResponse` | Yes |
+| GET | `/api/v1/event-types` | Get event types | - | `EventTypeResponse[]` | Yes |
+| POST | `/api/v1/event-types` | Create custom event type | `CreateCustomEventTypeRequest` | `EventTypeResponse` | Yes |
+
+**Note**: All endpoints require authentication via `Authorization: Bearer <token>` header.
 
 ---
 
@@ -851,6 +889,101 @@
   name: string
 }
 ```
+
+---
+
+## Response Format Examples
+
+### Success Response Format
+All successful responses follow this format:
+```json
+{
+  "success": true,
+  "quoteId": "uuid",
+  "status": "draft",
+  // ... other response fields
+}
+```
+
+For array responses:
+```json
+{
+  "success": true,
+  "data": [
+    { /* item 1 */ },
+    { /* item 2 */ }
+  ]
+}
+```
+
+### Error Response Format
+All error responses follow this format:
+```json
+{
+  "success": false,
+  "message": "Error message description"
+}
+```
+
+### Validation Error Format
+When request validation fails (400 Bad Request):
+```json
+{
+  "success": false,
+  "message": "Validation failed",
+  "errors": [
+    {
+      "field": "tripType",
+      "message": "tripType must be one of: one_way, two_way"
+    }
+  ]
+}
+```
+
+---
+
+## Important Notes
+
+### Quote Ownership
+- Users can only access their own quotes
+- Attempting to access another user's quote returns `403 Forbidden`
+- Quote `userId` is automatically set from the authenticated user's token
+
+### Draft Auto-Save
+- Auto-save is triggered on field changes with 500ms debounce
+- Auto-save uses `PUT /api/v1/quotes/:id` with only changed fields
+- Auto-save does not advance `currentStep` (only manual "Next" clicks do)
+- Auto-save works even if quote is incomplete
+
+### Quote Submission
+- Quote can only be submitted when all 5 steps are complete
+- Submission automatically:
+  1. Calculates final pricing
+  2. Updates status from `draft` to `submitted`
+  3. Sends confirmation email (non-blocking)
+- After submission, quote can still be edited (status remains `submitted` until paid)
+
+### Itinerary Structure
+- **Outbound**: Always required, must have at least pickup and dropoff
+- **Return**: Only required for two-way trips, auto-populated from outbound but can be modified
+- **Stops**: Can be added between pickup and dropoff
+- **Driver Stay**: Checkbox for each stop, if checked and staying ≥ 1 day, requires departure time/date
+
+### Passengers
+- Passengers are stored separately in `passengers` collection, linked to quote via `quoteId`
+- `passengerCount` in quote is calculated from passengers array length
+- Passengers are required in Step 3, at least one passenger must be added
+
+### Vehicle Selection
+- Vehicles must be selected in Step 4
+- Recommendations are based on passenger count
+- User can select recommended options or choose custom vehicles
+- Selected vehicles include quantity (e.g., 2 Mini Buses)
+
+### Amenities
+- Step 5 shows only paid amenities not already included in selected vehicles
+- Amenities are optional (can skip Step 5)
+- Selected amenities are stored as array of amenity IDs
 
 ---
 

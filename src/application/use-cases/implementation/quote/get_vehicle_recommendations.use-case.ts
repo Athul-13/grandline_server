@@ -4,6 +4,7 @@ import { GetRecommendationsRequest, VehicleRecommendationResponse } from '../../
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { IVehicleRecommendationService } from '../../../../domain/services/vehicle_recommendation_service.interface';
 import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
+import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
 import { VehicleStatus } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
@@ -30,13 +31,16 @@ export class GetVehicleRecommendationsUseCase implements IGetVehicleRecommendati
       );
 
       // Get all available vehicles
-      const availableVehicles = await this.vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
+      const allAvailableVehicles = await this.vehicleRepository.findByStatus(VehicleStatus.AVAILABLE);
 
-      // Get recommendations
+      // Get recommendations (service will filter duplicates internally)
       const recommendations = this.vehicleRecommendationService.getRecommendations(
         request.passengerCount,
-        availableVehicles
+        allAvailableVehicles
       );
+
+      // Filter duplicates from available vehicles for response (case-insensitive by name)
+      const uniqueAvailableVehicles = this.filterDuplicateVehiclesByName(allAvailableVehicles);
 
       // Get all amenities for mapping
       const allAmenities = await this.amenityRepository.findAll();
@@ -58,7 +62,7 @@ export class GetVehicleRecommendationsUseCase implements IGetVehicleRecommendati
       }));
 
       // Map available vehicles to response format
-      const availableVehiclesResponse = availableVehicles.map((vehicle) => ({
+      const availableVehiclesResponse = uniqueAvailableVehicles.map((vehicle) => ({
         vehicleId: vehicle.vehicleId,
         vehicleTypeId: vehicle.vehicleTypeId,
         name: vehicle.vehicleModel,
@@ -85,6 +89,26 @@ export class GetVehicleRecommendationsUseCase implements IGetVehicleRecommendati
       );
       throw error;
     }
+  }
+
+  /**
+   * Filters out duplicate vehicles by name (case-insensitive)
+   * When duplicates are found, keeps the first occurrence
+   */
+  private filterDuplicateVehiclesByName(vehicles: Vehicle[]): Vehicle[] {
+    const seen = new Map<string, Vehicle>();
+
+    for (const vehicle of vehicles) {
+      const normalizedName = vehicle.vehicleModel.trim().toLowerCase();
+      
+      // If we haven't seen this vehicle name before, add it
+      if (!seen.has(normalizedName)) {
+        seen.set(normalizedName, vehicle);
+      }
+      // If duplicate found, keep the first one (already in map)
+    }
+
+    return Array.from(seen.values());
   }
 }
 

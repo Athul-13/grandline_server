@@ -1,12 +1,46 @@
 import { Quote } from '../../domain/entities/quote.entity';
-import { QuoteResponse, QuoteListItemResponse } from '../dtos/quote.dto';
+import { QuoteItinerary } from '../../domain/entities/quote_itinerary.entity';
+import { Passenger } from '../../domain/entities/passenger.entity';
+import { QuoteResponse, QuoteListItemResponse, ItineraryStopDto, PassengerDto } from '../dtos/quote.dto';
 
 /**
  * Quote mapper
  * Converts domain entities to DTOs
  */
 export class QuoteMapper {
-  static toQuoteResponse(quote: Quote): QuoteResponse {
+  static toQuoteResponse(
+    quote: Quote,
+    itineraryStops?: QuoteItinerary[],
+    passengers?: Passenger[]
+  ): QuoteResponse {
+    // Map itinerary stops to DTO format
+    let itinerary: { outbound?: ItineraryStopDto[]; return?: ItineraryStopDto[] } | undefined;
+    if (itineraryStops && itineraryStops.length > 0) {
+      const outbound = itineraryStops
+        .filter((stop) => stop.tripType === 'outbound')
+        .sort((a, b) => a.stopOrder - b.stopOrder)
+        .map((stop) => this.mapItineraryStopToDto(stop));
+
+      const returnStops = itineraryStops
+        .filter((stop) => stop.tripType === 'return')
+        .sort((a, b) => a.stopOrder - b.stopOrder)
+        .map((stop) => this.mapItineraryStopToDto(stop));
+
+      itinerary = {
+        outbound: outbound.length > 0 ? outbound : undefined,
+        return: returnStops.length > 0 ? returnStops : undefined,
+      };
+    }
+
+    // Map passengers to DTO format
+    const passengersDto: PassengerDto[] | undefined = passengers
+      ? passengers.map((passenger) => ({
+          fullName: passenger.fullName,
+          phoneNumber: passenger.phoneNumber,
+          age: passenger.age,
+        }))
+      : undefined;
+
     return {
       quoteId: quote.quoteId,
       userId: quote.userId,
@@ -40,8 +74,23 @@ export class QuoteMapper {
           }
         : undefined,
       routeData: quote.routeData,
+      itinerary,
+      passengers: passengersDto,
       createdAt: quote.createdAt,
       updatedAt: quote.updatedAt,
+    };
+  }
+
+  private static mapItineraryStopToDto(stop: QuoteItinerary): ItineraryStopDto {
+    return {
+      locationName: stop.locationName,
+      latitude: stop.latitude,
+      longitude: stop.longitude,
+      arrivalTime: stop.arrivalTime.toISOString(),
+      departureTime: stop.departureTime?.toISOString(),
+      isDriverStaying: stop.isDriverStaying,
+      stayingDuration: stop.stayingDuration,
+      stopType: stop.stopType,
     };
   }
 

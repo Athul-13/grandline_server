@@ -9,7 +9,9 @@ export interface IGetQuotesListUseCase {
     userId: string,
     page?: number,
     limit?: number,
-    status?: QuoteStatus[]
+    status?: QuoteStatus[],
+    sortBy?: string,
+    sortOrder?: 'asc' | 'desc'
   ): Promise<QuoteListResponse>;
 }
 

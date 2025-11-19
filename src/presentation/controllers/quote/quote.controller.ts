@@ -149,9 +149,13 @@ export class QuoteController {
           ).map((s) => s as QuoteStatus)
         : undefined;
 
-      logger.info(`Quotes list request by user: ${userId}, page: ${page}, limit: ${limit}`);
+      // Extract sorting parameters from query string
+      const sortBy = req.query.sortBy as string | undefined;
+      const sortOrder = req.query.sortOrder as 'asc' | 'desc' | undefined;
 
-      const response = await this.getQuotesListUseCase.execute(userId, page, limit, status);
+      logger.info(`Quotes list request by user: ${userId}, page: ${page}, limit: ${limit}, sortBy: ${sortBy}, sortOrder: ${sortOrder}`);
+
+      const response = await this.getQuotesListUseCase.execute(userId, page, limit, status, sortBy, sortOrder);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
