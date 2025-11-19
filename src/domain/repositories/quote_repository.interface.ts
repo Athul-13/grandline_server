@@ -41,5 +41,14 @@ export interface IQuoteRepository extends IBaseRepository<Quote> {
    * Finds quotes by trip type
    */
   findByTripType(tripType: TripType): Promise<Quote[]>;
+
+  /**
+   * Finds all quotes for admin view
+   */
+  findAllForAdmin(
+    includeDeleted: boolean,
+    statuses?: QuoteStatus[],
+    userIds?: string[]
+  ): Promise<Quote[]>;
 }
 

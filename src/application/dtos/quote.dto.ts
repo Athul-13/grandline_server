@@ -14,6 +14,7 @@ import {
   ArrayMinSize,
   IsDateString,
   ValidateNested,
+  IsIn,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { QuoteStatus, TripType, StopType } from '../../shared/constants';
@@ -351,5 +352,57 @@ export interface SubmitQuoteResponse {
   quoteId: string;
   status: QuoteStatus;
   pricing: PricingBreakdownResponse;
+}
+
+/**
+ * User information for admin quote responses
+ */
+export interface AdminUserInfo {
+  userId: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+}
+
+/**
+ * Admin quote list item response DTO
+ * Extends QuoteListItemResponse with user information
+ */
+export interface AdminQuoteListItemResponse extends QuoteListItemResponse {
+  user: AdminUserInfo;
+}
+
+/**
+ * Admin quote list response DTO
+ */
+export interface AdminQuotesListResponse {
+  quotes: AdminQuoteListItemResponse[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+/**
+ * Admin quote response DTO
+ * Extends QuoteResponse with full user details
+ */
+export interface AdminQuoteResponse extends QuoteResponse {
+  user: AdminUserInfo;
+}
+
+/**
+ * Request DTO for updating quote status
+ * Admin can only change status to PAID and back to SUBMITTED
+ */
+export class UpdateQuoteStatusRequest {
+  @IsEnum(QuoteStatus)
+  @IsIn([QuoteStatus.PAID, QuoteStatus.SUBMITTED], {
+    message: 'Status can only be changed to PAID or back to SUBMITTED',
+  })
+  @IsNotEmpty()
+  status!: QuoteStatus;
 }
 

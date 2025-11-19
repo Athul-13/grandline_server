@@ -83,5 +83,31 @@ export class QuoteRepositoryImpl
     const docs = await this.quoteModel.find({ tripType, isDeleted: false });
     return QuoteRepositoryMapper.toEntities(docs);
   }
+
+  async findAllForAdmin(
+    includeDeleted: boolean,
+    statuses?: QuoteStatus[],
+    userIds?: string[]
+  ): Promise<Quote[]> {
+    const filter: Record<string, unknown> = {};
+
+    // Handle deleted filter
+    if (!includeDeleted) {
+      filter.isDeleted = false;
+    }
+
+    // Handle status filter
+    if (statuses && statuses.length > 0) {
+      filter.status = { $in: statuses };
+    }
+
+    // Handle user IDs filter
+    if (userIds && userIds.length > 0) {
+      filter.userId = { $in: userIds };
+    }
+
+    const docs = await this.quoteModel.find(filter);
+    return QuoteRepositoryMapper.toEntities(docs);
+  }
 }
 
