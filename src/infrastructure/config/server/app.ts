@@ -11,6 +11,7 @@ import { createVehicleRoutesWithDI } from '../../../presentation/routes/vehicle/
 import { createAmenityRoutesWithDI } from '../../../presentation/routes/amenity/amenity_routes';
 import { createQuoteRoutesWithDI } from '../../../presentation/routes/quote/quote_routes';
 import { createEventTypeRoutesWithDI } from '../../../presentation/routes/event_type/event_type_routes';
+import { createAdminQuoteRoutesWithDI } from '../../../presentation/routes/admin/admin_quote_routes';
 
 /**
  * Express application wrapper class
@@ -89,6 +90,9 @@ export class App {
 
     const eventTypeRoutes = createEventTypeRoutesWithDI();
     this.app.use(`/api/v1/event-types`, eventTypeRoutes);
+
+    const adminQuoteRoutes = createAdminQuoteRoutesWithDI();
+    this.app.use(`/api/v1/admin/quotes`, adminQuoteRoutes);
   }
 
   /**
