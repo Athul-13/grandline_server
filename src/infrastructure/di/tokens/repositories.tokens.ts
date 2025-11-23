@@ -13,4 +13,7 @@ export const REPOSITORY_TOKENS = {
   IPassengerRepository: Symbol.for('IPassengerRepository'),
   IPricingConfigRepository: Symbol.for('IPricingConfigRepository'),
   IEventTypeRepository: Symbol.for('IEventTypeRepository'),
+  IChatRepository: Symbol.for('IChatRepository'),
+  IMessageRepository: Symbol.for('IMessageRepository'),
+  INotificationRepository: Symbol.for('INotificationRepository'),
 } as const;

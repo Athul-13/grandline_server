@@ -18,6 +18,12 @@ import { IPricingConfigRepository } from '../../domain/repositories/pricing_conf
 import { PricingConfigRepositoryImpl } from '../repositories/pricing_config.repository';
 import { IEventTypeRepository } from '../../domain/repositories/event_type_repository.interface';
 import { EventTypeRepositoryImpl } from '../repositories/event_type.repository';
+import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
+import { ChatRepositoryImpl } from '../repositories/chat.repository';
+import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
+import { MessageRepositoryImpl } from '../repositories/message.repository';
+import { INotificationRepository } from '../../domain/repositories/notification_repository.interface';
+import { NotificationRepositoryImpl } from '../repositories/notification.repository';
 
 /**
  * Registers all repository dependencies in the DI container
@@ -67,5 +73,20 @@ export function registerRepositories(): void {
   container.register<IEventTypeRepository>(
     REPOSITORY_TOKENS.IEventTypeRepository,
     { useClass: EventTypeRepositoryImpl }
+  );
+
+  container.register<IChatRepository>(
+    REPOSITORY_TOKENS.IChatRepository,
+    { useClass: ChatRepositoryImpl }
+  );
+
+  container.register<IMessageRepository>(
+    REPOSITORY_TOKENS.IMessageRepository,
+    { useClass: MessageRepositoryImpl }
+  );
+
+  container.register<INotificationRepository>(
+    REPOSITORY_TOKENS.INotificationRepository,
+    { useClass: NotificationRepositoryImpl }
   );
 }
