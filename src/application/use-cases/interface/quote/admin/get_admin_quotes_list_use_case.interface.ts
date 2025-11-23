@@ -1,5 +1,5 @@
-import { AdminQuotesListResponse } from '../../../dtos/quote.dto';
-import { QuoteStatus } from '../../../../shared/constants';
+import { AdminQuotesListResponse } from '../../../../dtos/quote.dto';
+import { QuoteStatus } from '../../../../../shared/constants';
 
 /**
  * Use case interface for getting admin quotes list

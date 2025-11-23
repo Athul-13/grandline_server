@@ -1,4 +1,4 @@
-import { AdminQuoteResponse } from '../../../dtos/quote.dto';
+import { AdminQuoteResponse } from '../../../../dtos/quote.dto';
 
 /**
  * Use case interface for getting admin quote details

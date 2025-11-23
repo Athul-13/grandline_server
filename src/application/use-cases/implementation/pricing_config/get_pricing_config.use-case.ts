@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { IGetPricingConfigUseCase } from '../../interface/admin/get_pricing_config_use_case.interface';
+import { IGetPricingConfigUseCase } from '../../interface/pricing_config/get_pricing_config_use_case.interface';
 import { IPricingConfigRepository } from '../../../../domain/repositories/pricing_config_repository.interface';
 import { PricingConfigResponse } from '../../../dtos/pricing_config.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';

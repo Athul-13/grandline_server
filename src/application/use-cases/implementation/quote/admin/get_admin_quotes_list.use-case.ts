@@ -1,14 +1,14 @@
 import { injectable, inject } from 'tsyringe';
-import { IGetAdminQuotesListUseCase } from '../../interface/admin/get_admin_quotes_list_use_case.interface';
-import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
-import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
-import { AdminQuotesListResponse, AdminQuoteListItemResponse } from '../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { QuoteMapper } from '../../../mapper/quote.mapper';
-import { QuoteStatus } from '../../../../shared/constants';
-import { AppError } from '../../../../shared/utils/app_error.util';
-import { logger } from '../../../../shared/logger';
-import { User } from '../../../../domain/entities/user.entity';
+import { IGetAdminQuotesListUseCase } from '../../../interface/quote/admin/get_admin_quotes_list_use_case.interface';
+import { IQuoteRepository } from '../../../../../domain/repositories/quote_repository.interface';
+import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
+import { AdminQuotesListResponse, AdminQuoteListItemResponse } from '../../../../dtos/quote.dto';
+import { REPOSITORY_TOKENS } from '../../../../../infrastructure/di/tokens';
+import { QuoteMapper } from '../../../../mapper/quote.mapper';
+import { QuoteStatus } from '../../../../../shared/constants';
+import { AppError } from '../../../../../shared/utils/app_error.util';
+import { logger } from '../../../../../shared/logger';
+import { User } from '../../../../../domain/entities/user.entity';
 
 /**
  * Allowed sort fields for admin quote sorting

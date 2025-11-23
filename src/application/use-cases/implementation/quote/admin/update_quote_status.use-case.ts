@@ -1,15 +1,15 @@
 import { injectable, inject } from 'tsyringe';
-import { IUpdateQuoteStatusUseCase } from '../../interface/admin/update_quote_status_use_case.interface';
-import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
-import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
-import { IPassengerRepository } from '../../../../domain/repositories/passenger_repository.interface';
-import { UpdateQuoteStatusRequest, QuoteResponse } from '../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { QuoteMapper } from '../../../mapper/quote.mapper';
-import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
-import { logger } from '../../../../shared/logger';
-import { AppError } from '../../../../shared/utils/app_error.util';
-import { Quote } from '../../../../domain/entities/quote.entity';
+import { IUpdateQuoteStatusUseCase } from '../../../interface/quote/admin/update_quote_status_use_case.interface';
+import { IQuoteRepository } from '../../../../../domain/repositories/quote_repository.interface';
+import { IQuoteItineraryRepository } from '../../../../../domain/repositories/quote_itinerary_repository.interface';
+import { IPassengerRepository } from '../../../../../domain/repositories/passenger_repository.interface';
+import { UpdateQuoteStatusRequest, QuoteResponse } from '../../../../dtos/quote.dto';
+import { REPOSITORY_TOKENS } from '../../../../../infrastructure/di/tokens';
+import { QuoteMapper } from '../../../../mapper/quote.mapper';
+import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../../shared/constants';
+import { logger } from '../../../../../shared/logger';
+import { AppError } from '../../../../../shared/utils/app_error.util';
+import { Quote } from '../../../../../domain/entities/quote.entity';
 
 /**
  * Use case for updating quote status

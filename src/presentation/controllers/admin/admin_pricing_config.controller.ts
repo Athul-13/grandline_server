@@ -1,10 +1,10 @@
 import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
-import { IGetPricingConfigUseCase } from '../../../application/use-cases/interface/admin/get_pricing_config_use_case.interface';
-import { ICreatePricingConfigUseCase } from '../../../application/use-cases/interface/admin/create_pricing_config_use_case.interface';
-import { IGetPricingConfigHistoryUseCase } from '../../../application/use-cases/interface/admin/get_pricing_config_history_use_case.interface';
-import { IActivatePricingConfigUseCase } from '../../../application/use-cases/interface/admin/activate_pricing_config_use_case.interface';
+import { IGetPricingConfigUseCase } from '../../../application/use-cases/interface/pricing_config/get_pricing_config_use_case.interface';
+import { ICreatePricingConfigUseCase } from '../../../application/use-cases/interface/pricing_config/create_pricing_config_use_case.interface';
+import { IGetPricingConfigHistoryUseCase } from '../../../application/use-cases/interface/pricing_config/get_pricing_config_history_use_case.interface';
+import { IActivatePricingConfigUseCase } from '../../../application/use-cases/interface/pricing_config/activate_pricing_config_use_case.interface';
 import { CreatePricingConfigRequest } from '../../../application/dtos/pricing_config.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';

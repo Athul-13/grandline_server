@@ -47,13 +47,13 @@ import { CreateCustomEventTypeUseCase } from '../../application/use-cases/implem
 import { GetVehicleRecommendationsUseCase } from '../../application/use-cases/implementation/quote/get_vehicle_recommendations.use-case';
 import { CalculateQuotePricingUseCase } from '../../application/use-cases/implementation/quote/calculate_quote_pricing.use-case';
 import { SubmitQuoteUseCase } from '../../application/use-cases/implementation/quote/submit_quote.use-case';
-import { GetAdminQuotesListUseCase } from '../../application/use-cases/implementation/admin/get_admin_quotes_list.use-case';
-import { GetAdminQuoteUseCase } from '../../application/use-cases/implementation/admin/get_admin_quote.use-case';
-import { UpdateQuoteStatusUseCase } from '../../application/use-cases/implementation/admin/update_quote_status.use-case';
-import { GetPricingConfigUseCase } from '../../application/use-cases/implementation/admin/get_pricing_config.use-case';
-import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/admin/create_pricing_config.use-case';
-import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/admin/get_pricing_config_history.use-case';
-import { ActivatePricingConfigUseCase } from '../../application/use-cases/implementation/admin/activate_pricing_config.use-case';
+import { GetAdminQuotesListUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quotes_list.use-case';
+import { GetAdminQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quote.use-case';
+import { UpdateQuoteStatusUseCase } from '../../application/use-cases/implementation/quote/admin/update_quote_status.use-case';
+import { GetPricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config.use-case';
+import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/create_pricing_config.use-case';
+import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config_history.use-case';
+import { ActivatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/activate_pricing_config.use-case';
 
 /**
  * Registers all use case dependencies in the DI container

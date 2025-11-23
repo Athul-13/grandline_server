@@ -71,9 +71,11 @@ export class PricingCalculationServiceImpl implements IPricingCalculationService
     vehicles: Array<{ vehicle: Vehicle; quantity: number }>,
     fuelPrice: number
   ): number {
-    // Distance fare = distance × fuel consumption × fuel price
+    // Distance fare = distance × fuel consumption (L/km) × fuel price
+    // Note: fuelConsumption is stored as km/L in DB, convert to L/km: 1 / (km/L) = L/km
     const totalFuelConsumption = vehicles.reduce((total, { vehicle, quantity }) => {
-      return total + vehicle.fuelConsumption * quantity;
+      const fuelConsumptionInLPerKm = 1 / vehicle.fuelConsumption; // Convert km/L to L/km
+      return total + fuelConsumptionInLPerKm * quantity;
     }, 0);
 
     return totalDistance * totalFuelConsumption * fuelPrice;

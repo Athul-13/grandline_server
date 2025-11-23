@@ -1,9 +1,9 @@
 import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
-import { IGetAdminQuotesListUseCase } from '../../../application/use-cases/interface/admin/get_admin_quotes_list_use_case.interface';
-import { IGetAdminQuoteUseCase } from '../../../application/use-cases/interface/admin/get_admin_quote_use_case.interface';
-import { IUpdateQuoteStatusUseCase } from '../../../application/use-cases/interface/admin/update_quote_status_use_case.interface';
+import { IGetAdminQuotesListUseCase } from '../../../application/use-cases/interface/quote/admin/get_admin_quotes_list_use_case.interface';
+import { IGetAdminQuoteUseCase } from '../../../application/use-cases/interface/quote/admin/get_admin_quote_use_case.interface';
+import { IUpdateQuoteStatusUseCase } from '../../../application/use-cases/interface/quote/admin/update_quote_status_use_case.interface';
 import { UpdateQuoteStatusRequest } from '../../../application/dtos/quote.dto';
 import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
 import { HTTP_STATUS, QuoteStatus } from '../../../shared/constants';

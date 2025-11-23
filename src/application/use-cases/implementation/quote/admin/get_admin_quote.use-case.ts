@@ -1,15 +1,15 @@
 import { injectable, inject } from 'tsyringe';
-import { IGetAdminQuoteUseCase } from '../../interface/admin/get_admin_quote_use_case.interface';
-import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
-import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
-import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
-import { IPassengerRepository } from '../../../../domain/repositories/passenger_repository.interface';
-import { AdminQuoteResponse } from '../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { QuoteMapper } from '../../../mapper/quote.mapper';
-import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
-import { logger } from '../../../../shared/logger';
-import { AppError } from '../../../../shared/utils/app_error.util';
+import { IGetAdminQuoteUseCase } from '../../../interface/quote/admin/get_admin_quote_use_case.interface';
+import { IQuoteRepository } from '../../../../../domain/repositories/quote_repository.interface';
+import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
+import { IQuoteItineraryRepository } from '../../../../../domain/repositories/quote_itinerary_repository.interface';
+import { IPassengerRepository } from '../../../../../domain/repositories/passenger_repository.interface';
+import { AdminQuoteResponse } from '../../../../dtos/quote.dto';
+import { REPOSITORY_TOKENS } from '../../../../../infrastructure/di/tokens';
+import { QuoteMapper } from '../../../../mapper/quote.mapper';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../../shared/constants';
+import { logger } from '../../../../../shared/logger';
+import { AppError } from '../../../../../shared/utils/app_error.util';
 
 /**
  * Use case for getting admin quote details

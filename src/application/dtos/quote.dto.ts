@@ -297,8 +297,8 @@ export interface QuoteResponse {
   selectedAmenities?: string[];
   pricing?: PricingBreakdownResponse;
   routeData?: {
-    outbound?: { totalDistance: number; totalDuration: number; routeGeometry: string };
-    return?: { totalDistance: number; totalDuration: number; routeGeometry: string };
+    outbound?: { totalDistance?: number; totalDuration?: number; routeGeometry?: string };
+    return?: { totalDistance?: number; totalDuration?: number; routeGeometry?: string };
   };
   itinerary?: {
     outbound?: ItineraryStopDto[];
@@ -319,6 +319,8 @@ export interface QuoteListItemResponse {
   status: QuoteStatus;
   currentStep?: number;
   totalPrice?: number;
+  startLocation?: string;
+  endLocation?: string;
   createdAt: Date;
 }
 

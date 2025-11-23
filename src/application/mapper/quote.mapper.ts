@@ -2,6 +2,7 @@ import { Quote } from '../../domain/entities/quote.entity';
 import { QuoteItinerary } from '../../domain/entities/quote_itinerary.entity';
 import { Passenger } from '../../domain/entities/passenger.entity';
 import { QuoteResponse, QuoteListItemResponse, ItineraryStopDto, PassengerDto } from '../dtos/quote.dto';
+import { StopType, TripType } from '../../shared/constants';
 
 /**
  * Quote mapper
@@ -93,7 +94,51 @@ export class QuoteMapper {
     };
   }
 
-  static toQuoteListItemResponse(quote: Quote): QuoteListItemResponse {
+  static toQuoteListItemResponse(
+    quote: Quote,
+    itineraryStops?: QuoteItinerary[]
+  ): QuoteListItemResponse {
+    // Extract start and end locations from itinerary
+    let startLocation: string | undefined;
+    let endLocation: string | undefined;
+
+    if (itineraryStops && itineraryStops.length > 0) {
+      // Get outbound stops sorted by order
+      const outboundStops = itineraryStops
+        .filter((stop) => stop.tripType === 'outbound')
+        .sort((a, b) => a.stopOrder - b.stopOrder);
+
+      // Start location: first pickup in outbound
+      const pickupStop = outboundStops.find((stop) => stop.stopType === StopType.PICKUP);
+      if (pickupStop) {
+        startLocation = pickupStop.locationName;
+      }
+
+      // End location: last dropoff in outbound (for one_way) or return (for two_way)
+      if (quote.tripType === TripType.ONE_WAY) {
+        // For one-way, find last dropoff in outbound
+        const dropoffStops = outboundStops.filter((stop) => stop.stopType === StopType.DROPOFF);
+        if (dropoffStops.length > 0) {
+          endLocation = dropoffStops[dropoffStops.length - 1].locationName;
+        }
+      } else {
+        // For two-way, find last dropoff in return itinerary
+        const returnStops = itineraryStops
+          .filter((stop) => stop.tripType === 'return')
+          .sort((a, b) => a.stopOrder - b.stopOrder);
+        const dropoffStops = returnStops.filter((stop) => stop.stopType === StopType.DROPOFF);
+        if (dropoffStops.length > 0) {
+          endLocation = dropoffStops[dropoffStops.length - 1].locationName;
+        } else {
+          // Fallback: if no return dropoff, use last outbound dropoff
+          const outboundDropoffStops = outboundStops.filter((stop) => stop.stopType === StopType.DROPOFF);
+          if (outboundDropoffStops.length > 0) {
+            endLocation = outboundDropoffStops[outboundDropoffStops.length - 1].locationName;
+          }
+        }
+      }
+    }
+
     return {
       quoteId: quote.quoteId,
       tripName: quote.tripName,
@@ -101,6 +146,8 @@ export class QuoteMapper {
       status: quote.status,
       currentStep: quote.currentStep,
       totalPrice: quote.pricing?.total,
+      startLocation,
+      endLocation,
       createdAt: quote.createdAt,
     };
   }

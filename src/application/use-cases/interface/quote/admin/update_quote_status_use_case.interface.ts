@@ -1,5 +1,5 @@
-import { QuoteResponse } from '../../../dtos/quote.dto';
-import { UpdateQuoteStatusRequest } from '../../../dtos/quote.dto';
+import { QuoteResponse } from '../../../../dtos/quote.dto';
+import { UpdateQuoteStatusRequest } from '../../../../dtos/quote.dto';
 
 /**
  * Use case interface for updating quote status

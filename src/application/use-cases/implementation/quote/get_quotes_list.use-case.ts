@@ -1,6 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IGetQuotesListUseCase } from '../../interface/quote/get_quotes_list_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
+import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
 import { QuoteListResponse, QuoteListItemResponse } from '../../../dtos/quote.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { QuoteMapper } from '../../../mapper/quote.mapper';
@@ -27,7 +28,9 @@ const ALLOWED_SORT_FIELDS: readonly string[] = [
 export class GetQuotesListUseCase implements IGetQuotesListUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IQuoteRepository)
-    private readonly quoteRepository: IQuoteRepository
+    private readonly quoteRepository: IQuoteRepository,
+    @inject(REPOSITORY_TOKENS.IQuoteItineraryRepository)
+    private readonly itineraryRepository: IQuoteItineraryRepository
   ) {}
 
   async execute(
@@ -69,8 +72,23 @@ export class GetQuotesListUseCase implements IGetQuotesListUseCase {
     // Filter out paid quotes (they are reservations, not quotes)
     quotes = quotes.filter((quote) => quote.status !== QuoteStatus.PAID);
 
+    // Fetch itinerary for all quotes to get start and end locations
+    const quoteIds = quotes.map((quote) => quote.quoteId);
+    const allItineraryStops = await Promise.all(
+      quoteIds.map((quoteId) => this.itineraryRepository.findByQuoteIdOrdered(quoteId))
+    );
+
+    // Create a map of quoteId -> itinerary stops for quick lookup
+    const itineraryMap = new Map<string, typeof allItineraryStops[0]>();
+    quoteIds.forEach((quoteId, index) => {
+      itineraryMap.set(quoteId, allItineraryStops[index]);
+    });
+
     // Map to response DTOs before sorting (to access DTO fields)
-    let quotesData = quotes.map((quote) => QuoteMapper.toQuoteListItemResponse(quote));
+    let quotesData = quotes.map((quote) => {
+      const itineraryStops = itineraryMap.get(quote.quoteId);
+      return QuoteMapper.toQuoteListItemResponse(quote, itineraryStops);
+    });
 
     // Apply sorting if sortBy is provided
     if (normalizedSortBy) {
