@@ -19,5 +19,9 @@ export const CONTROLLER_TOKENS = {
   AmenityController: Symbol.for('AmenityController'),
   EventTypeController: Symbol.for('EventTypeController'),
   AdminPricingConfigController: Symbol.for('AdminPricingConfigController'),
+  // Chat, Message & Notification controllers
+  ChatController: Symbol.for('ChatController'),
+  MessageController: Symbol.for('MessageController'),
+  NotificationController: Symbol.for('NotificationController'),
 } as const;
 
