@@ -11,6 +11,9 @@ import { QuoteController } from '../../presentation/controllers/quote/quote.cont
 import { EventTypeController } from '../../presentation/controllers/event_type/event_type.controller';
 import { AdminQuoteController } from '../../presentation/controllers/admin/admin_quote.controller';
 import { AdminPricingConfigController } from '../../presentation/controllers/admin/admin_pricing_config.controller';
+import { ChatController } from '../../presentation/controllers/chat/chat.controller';
+import { MessageController } from '../../presentation/controllers/message/message.controller';
+import { NotificationController } from '../../presentation/controllers/notification/notification.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -33,5 +36,9 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.AmenityController, AmenityController);
   container.register(CONTROLLER_TOKENS.EventTypeController, EventTypeController);
   container.register(CONTROLLER_TOKENS.AdminPricingConfigController, AdminPricingConfigController);
+  // Chat, Message & Notification controllers
+  container.register(CONTROLLER_TOKENS.ChatController, ChatController);
+  container.register(CONTROLLER_TOKENS.MessageController, MessageController);
+  container.register(CONTROLLER_TOKENS.NotificationController, NotificationController);
 }
 

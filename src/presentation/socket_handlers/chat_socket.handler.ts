@@ -2,9 +2,10 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../../infrastructure/config/server/socket.config';
 import { getSocketUser, isSocketAuthenticated } from '../middleware/socket_auth.middleware';
 import { container } from 'tsyringe';
-import { USE_CASE_TOKENS, REPOSITORY_TOKENS } from '../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS, REPOSITORY_TOKENS, CONFIG_TOKENS } from '../../infrastructure/di/tokens';
 import { ICreateChatUseCase } from '../../application/use-cases/interface/chat/create_chat_use_case.interface';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
+import { IRedisConnection } from '../../domain/services/redis_connection.interface';
 import { CreateChatRequest } from '../../application/dtos/chat.dto';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../shared/constants';
 import { logger } from '../../shared/logger';
@@ -27,15 +28,23 @@ export const CHAT_SOCKET_EVENTS = {
 /**
  * Chat socket handler
  * Handles chat-related socket events
+ * Uses Redis for presence management
  */
 export class ChatSocketHandler {
   private io: Server;
-  private connectedUsers: Map<string, Set<string>>; // userId -> Set of chatIds
+  private redis: IRedisConnection;
 
   constructor(io: Server) {
     this.io = io;
-    this.connectedUsers = new Map();
+    this.redis = container.resolve<IRedisConnection>(CONFIG_TOKENS.RedisConnection);
   }
+
+  /**
+   * Redis key patterns:
+   * - chat:{chatId}:users - Set of userIds in chat
+   * - user:{userId}:chats - Set of chatIds user is in
+   * - socket:{socketId} - userId for socket mapping
+   */
 
   /**
    * Registers all chat-related socket event handlers
@@ -57,10 +66,8 @@ export class ChatSocketHandler {
 
       logger.info(`Socket connected: ${socket.id} for user: ${user.userId}`);
 
-      // Initialize user's chat set
-      if (!this.connectedUsers.has(user.userId)) {
-        this.connectedUsers.set(user.userId, new Set());
-      }
+      // Map socket to user in Redis
+      void this.redis.set(`socket:${socket.id}`, user.userId);
 
       // Handle join chat
       socket.on(CHAT_SOCKET_EVENTS.JOIN_CHAT, async (data: { chatId: string }) => {
@@ -69,7 +76,7 @@ export class ChatSocketHandler {
 
       // Handle leave chat
       socket.on(CHAT_SOCKET_EVENTS.LEAVE_CHAT, (data: { chatId: string }) => {
-        this.handleLeaveChat(socket, user.userId, data.chatId);
+        void this.handleLeaveChat(socket, user.userId, data.chatId);
       });
 
       // Handle create chat
@@ -79,7 +86,7 @@ export class ChatSocketHandler {
 
       // Handle disconnect
       socket.on('disconnect', () => {
-        this.handleDisconnect(socket, user.userId);
+        void this.handleDisconnect(socket, user.userId);
       });
     });
   }
@@ -117,11 +124,9 @@ export class ChatSocketHandler {
       // Join the socket room for this chat
       await socket.join(`chat:${chatId}`);
 
-      // Track user's active chats
-      const userChats = this.connectedUsers.get(userId);
-      if (userChats) {
-        userChats.add(chatId);
-      }
+      // Track user in Redis
+      await this.redis.sadd(`chat:${chatId}:users`, userId);
+      await this.redis.sadd(`user:${userId}:chats`, chatId);
 
       logger.info(`User ${userId} joined chat: ${chatId}`);
 
@@ -141,7 +146,7 @@ export class ChatSocketHandler {
   /**
    * Handles leaving a chat room
    */
-  private handleLeaveChat(socket: AuthenticatedSocket, userId: string, chatId: string): void {
+  private async handleLeaveChat(socket: AuthenticatedSocket, userId: string, chatId: string): Promise<void> {
     try {
       if (!chatId) {
         socket.emit(CHAT_SOCKET_EVENTS.ERROR, { message: 'Chat ID is required' });
@@ -151,11 +156,9 @@ export class ChatSocketHandler {
       // Leave the socket room
       socket.leave(`chat:${chatId}`);
 
-      // Remove from user's active chats
-      const userChats = this.connectedUsers.get(userId);
-      if (userChats) {
-        userChats.delete(chatId);
-      }
+      // Remove user from Redis
+      await this.redis.srem(`chat:${chatId}:users`, userId);
+      await this.redis.srem(`user:${userId}:chats`, chatId);
 
       logger.info(`User ${userId} left chat: ${chatId}`);
 
@@ -201,35 +204,40 @@ export class ChatSocketHandler {
   /**
    * Handles socket disconnect
    */
-  private handleDisconnect(socket: AuthenticatedSocket, userId: string): void {
+  private async handleDisconnect(socket: AuthenticatedSocket, userId: string): Promise<void> {
     logger.info(`Socket disconnected: ${socket.id} for user: ${userId}`);
 
-    // Get user's active chats
-    const userChats = this.connectedUsers.get(userId);
-    if (userChats) {
+    // Remove socket mapping
+    await this.redis.del(`socket:${socket.id}`);
+
+    // Get user's active chats from Redis
+    const chatIds = await this.redis.smembers(`user:${userId}:chats`);
+    if (chatIds.length > 0) {
       // Notify all chats that user went offline
-      userChats.forEach((chatId) => {
+      for (const chatId of chatIds) {
         socket.to(`chat:${chatId}`).emit('user-offline', { userId, chatId });
-      });
+        // Remove user from chat
+        await this.redis.srem(`chat:${chatId}:users`, userId);
+      }
 
       // Clear user's active chats
-      this.connectedUsers.delete(userId);
+      await this.redis.sremall(`user:${userId}:chats`);
     }
   }
 
   /**
    * Gets all chat IDs a user is currently in
    */
-  getUserActiveChats(userId: string): Set<string> {
-    return this.connectedUsers.get(userId) || new Set();
+  async getUserActiveChats(userId: string): Promise<string[]> {
+    return await this.redis.smembers(`user:${userId}:chats`);
   }
 
   /**
    * Checks if a user is online in a specific chat
    */
-  isUserOnlineInChat(userId: string, chatId: string): boolean {
-    const userChats = this.connectedUsers.get(userId);
-    return userChats ? userChats.has(chatId) : false;
+  async isUserOnlineInChat(userId: string, chatId: string): Promise<boolean> {
+    const result = await this.redis.sismember(`chat:${chatId}:users`, userId);
+    return result === 1;
   }
 }
 

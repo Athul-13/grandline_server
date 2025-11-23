@@ -2,9 +2,10 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../../infrastructure/config/server/socket.config';
 import { getSocketUser, isSocketAuthenticated } from '../middleware/socket_auth.middleware';
 import { container } from 'tsyringe';
-import { USE_CASE_TOKENS } from '../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS, CONFIG_TOKENS } from '../../infrastructure/di/tokens';
 import { ICreateNotificationUseCase } from '../../application/use-cases/interface/notification/create_notification_use_case.interface';
 import { IGetUnreadNotificationCountUseCase } from '../../application/use-cases/interface/notification/mark_notification_as_read_use_case.interface';
+import { IRedisConnection } from '../../domain/services/redis_connection.interface';
 import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
 import { logger } from '../../shared/logger';
 
@@ -23,15 +24,22 @@ export const NOTIFICATION_SOCKET_EVENTS = {
 /**
  * Notification socket handler
  * Handles notification-related socket events
+ * Uses Redis for user socket tracking
  */
 export class NotificationSocketHandler {
   private io: Server;
-  private userSockets: Map<string, Set<string>>; // userId -> Set of socketIds
+  private redis: IRedisConnection;
 
   constructor(io: Server) {
     this.io = io;
-    this.userSockets = new Map();
+    this.redis = container.resolve<IRedisConnection>(CONFIG_TOKENS.RedisConnection);
   }
+
+  /**
+   * Redis key patterns:
+   * - user:{userId}:sockets - Set of socketIds for user
+   * - socket:{socketId} - userId for socket mapping
+   */
 
   /**
    * Registers all notification-related socket event handlers
@@ -47,11 +55,9 @@ export class NotificationSocketHandler {
         return;
       }
 
-      // Track user's socket connections
-      if (!this.userSockets.has(user.userId)) {
-        this.userSockets.set(user.userId, new Set());
-      }
-      this.userSockets.get(user.userId)?.add(socket.id);
+      // Track user's socket connections in Redis
+      await this.redis.sadd(`user:${user.userId}:sockets`, socket.id);
+      await this.redis.set(`socket:${socket.id}`, user.userId);
 
       // Join user's notification room
       void socket.join(`user:${user.userId}`);
@@ -63,7 +69,7 @@ export class NotificationSocketHandler {
 
       // Clean up on disconnect
       socket.on('disconnect', () => {
-        this.handleDisconnect(user.userId, socket.id);
+        void this.handleDisconnect(user.userId, socket.id);
       });
     });
   }
@@ -139,22 +145,19 @@ export class NotificationSocketHandler {
   /**
    * Handles socket disconnect
    */
-  private handleDisconnect(userId: string, socketId: string): void {
-    const userSocketSet = this.userSockets.get(userId);
-    if (userSocketSet) {
-      userSocketSet.delete(socketId);
-      if (userSocketSet.size === 0) {
-        this.userSockets.delete(userId);
-      }
-    }
+  private async handleDisconnect(userId: string, socketId: string): Promise<void> {
+    // Remove socket from user's socket set
+    await this.redis.srem(`user:${userId}:sockets`, socketId);
+    // Remove socket mapping
+    await this.redis.del(`socket:${socketId}`);
   }
 
   /**
    * Checks if a user is online (has active socket connections)
    */
-  isUserOnline(userId: string): boolean {
-    const userSocketSet = this.userSockets.get(userId);
-    return userSocketSet ? userSocketSet.size > 0 : false;
+  async isUserOnline(userId: string): Promise<boolean> {
+    const socketCount = await this.redis.scard(`user:${userId}:sockets`);
+    return socketCount > 0;
   }
 }
 
