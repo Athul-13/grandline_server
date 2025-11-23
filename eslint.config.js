@@ -42,13 +42,6 @@ module.exports = tseslint.config(
   },
   {
     files: ['src/infrastructure/config/server/socket.config.ts'],
-    languageOptions: {
-      parserOptions: {
-        // Disable type checking for this file due to ESLint limitation with socket.io v4 types
-        // The types are valid TypeScript and work correctly at runtime
-        project: false,
-      },
-    },
     rules: {
       // Socket.io v4 types are not fully recognized by ESLint's type checker
       // but are valid TypeScript types that work correctly at runtime
@@ -62,13 +55,6 @@ module.exports = tseslint.config(
   },
   {
     files: ['src/presentation/socket_handlers/**/*.ts'],
-    languageOptions: {
-      parserOptions: {
-        // Disable type checking for socket handler files due to ESLint limitation with socket.io v4 types
-        // The types are valid TypeScript and work correctly at runtime
-        project: false,
-      },
-    },
     rules: {
       // Socket.io v4 types are not fully recognized by ESLint's type checker
       // but are valid TypeScript types that work correctly at runtime

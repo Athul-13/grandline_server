@@ -2,10 +2,11 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../../infrastructure/config/server/socket.config';
 import { getSocketUser, isSocketAuthenticated } from '../middleware/socket_auth.middleware';
 import { container } from 'tsyringe';
-import { USE_CASE_TOKENS } from '../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS, REPOSITORY_TOKENS } from '../../infrastructure/di/tokens';
 import { ICreateChatUseCase } from '../../application/use-cases/interface/chat/create_chat_use_case.interface';
-import { IGetChatByContextUseCase } from '../../application/use-cases/interface/chat/get_chat_by_context_use_case.interface';
+import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { CreateChatRequest } from '../../application/dtos/chat.dto';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../shared/constants';
 import { logger } from '../../shared/logger';
 
 /**
@@ -93,10 +94,25 @@ export class ChatSocketHandler {
         return;
       }
 
-      // Verify user has access to chat (this will be done via use case)
-      const getChatByContextUseCase = container.resolve<IGetChatByContextUseCase>(
-        USE_CASE_TOKENS.GetChatByContextUseCase
-      );
+      // Verify user has access to chat
+      const chatRepository = container.resolve<IChatRepository>(REPOSITORY_TOKENS.IChatRepository);
+      const chat = await chatRepository.findById(chatId);
+
+      if (!chat) {
+        logger.warn(`User ${userId} attempted to join non-existent chat: ${chatId}`);
+        socket.emit(CHAT_SOCKET_EVENTS.ERROR, { message: 'Chat not found', code: 'CHAT_NOT_FOUND' });
+        return;
+      }
+
+      // Verify user is a participant
+      if (!chat.hasParticipant(userId)) {
+        logger.warn(`User ${userId} attempted to join chat ${chatId} without permission`);
+        socket.emit(CHAT_SOCKET_EVENTS.ERROR, {
+          message: ERROR_MESSAGES.FORBIDDEN,
+          code: ERROR_CODES.FORBIDDEN,
+        });
+        return;
+      }
 
       // Join the socket room for this chat
       await socket.join(`chat:${chatId}`);
