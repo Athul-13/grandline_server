@@ -17,16 +17,21 @@ import { AdminPricingConfigController } from '../../presentation/controllers/adm
  * Controllers handle HTTP requests and delegate to use cases
  */
 export function registerControllers(): void {
+  // Auth controllers
   container.register(CONTROLLER_TOKENS.AuthController, AuthController);
   container.register(CONTROLLER_TOKENS.OtpController, OtpController);
   container.register(CONTROLLER_TOKENS.TokenController, TokenController);
+  // User controller
   container.register(CONTROLLER_TOKENS.UserController, UserController);
+  // Vehicle controllers
   container.register(CONTROLLER_TOKENS.VehicleTypeController, VehicleTypeController);
   container.register(CONTROLLER_TOKENS.VehicleController, VehicleController);
-  container.register(CONTROLLER_TOKENS.AmenityController, AmenityController);
+  // Quote controllers
   container.register(CONTROLLER_TOKENS.QuoteController, QuoteController);
-  container.register(CONTROLLER_TOKENS.EventTypeController, EventTypeController);
   container.register(CONTROLLER_TOKENS.AdminQuoteController, AdminQuoteController);
+  // Other controllers
+  container.register(CONTROLLER_TOKENS.AmenityController, AmenityController);
+  container.register(CONTROLLER_TOKENS.EventTypeController, EventTypeController);
   container.register(CONTROLLER_TOKENS.AdminPricingConfigController, AdminPricingConfigController);
 }
 

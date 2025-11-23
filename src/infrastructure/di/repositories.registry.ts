@@ -30,11 +30,13 @@ import { NotificationRepositoryImpl } from '../repositories/notification.reposit
  * Repositories are infrastructure implementations of domain repository interfaces
  */
 export function registerRepositories(): void {
+  // User & Driver repositories
   container.register<IUserRepository>(
     REPOSITORY_TOKENS.IUserRepository,
     { useClass: UserRepositoryImpl }
   );
 
+  // Vehicle repositories
   container.register<IVehicleTypeRepository>(
     REPOSITORY_TOKENS.IVehicleTypeRepository,
     { useClass: VehicleTypeRepositoryImpl }
@@ -45,11 +47,13 @@ export function registerRepositories(): void {
     { useClass: VehicleRepositoryImpl }
   );
 
+  // Amenity repository
   container.register<IAmenityRepository>(
     REPOSITORY_TOKENS.IAmenityRepository,
     { useClass: AmenityRepositoryImpl }
   );
 
+  // Quote repositories
   container.register<IQuoteRepository>(
     REPOSITORY_TOKENS.IQuoteRepository,
     { useClass: QuoteRepositoryImpl }
@@ -65,6 +69,7 @@ export function registerRepositories(): void {
     { useClass: PassengerRepositoryImpl }
   );
 
+  // Pricing & Event Type repositories
   container.register<IPricingConfigRepository>(
     REPOSITORY_TOKENS.IPricingConfigRepository,
     { useClass: PricingConfigRepositoryImpl }
@@ -75,6 +80,7 @@ export function registerRepositories(): void {
     { useClass: EventTypeRepositoryImpl }
   );
 
+  // Chat, Message & Notification repositories
   container.register<IChatRepository>(
     REPOSITORY_TOKENS.IChatRepository,
     { useClass: ChatRepositoryImpl }

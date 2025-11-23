@@ -25,6 +25,7 @@ import { MapboxService } from '../service/mapbox.service';
  * Services are infrastructure implementations of domain interfaces
  */
 export function registerServices(): void {
+  // Authentication services
   container.register<IOTPService>(
     SERVICE_TOKENS.IOTPService,
     { useClass: OTPServiceImpl }
@@ -40,11 +41,13 @@ export function registerServices(): void {
     { useClass: JWTServiceImpl }
   );
 
+  // Communication services
   container.register<IEmailService>(
     SERVICE_TOKENS.IEmailService,
     { useClass: EmailServiceImpl }
   );
 
+  // External services
   container.register<ICloudinaryService>(
     SERVICE_TOKENS.ICloudinaryService,
     { useClass: CloudinaryServiceImpl }
@@ -55,6 +58,7 @@ export function registerServices(): void {
     { useClass: GoogleAuthServiceImpl }
   );
 
+  // Business logic services
   // Register MapboxService (used by RouteCalculationService)
   container.register(MapboxService, { useClass: MapboxService });
 

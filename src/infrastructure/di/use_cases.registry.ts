@@ -54,12 +54,30 @@ import { GetPricingConfigUseCase } from '../../application/use-cases/implementat
 import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/create_pricing_config.use-case';
 import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config_history.use-case';
 import { ActivatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/activate_pricing_config.use-case';
+import { CreateChatUseCase } from '../../application/use-cases/implementation/chat/create_chat.use-case';
+import { GetUserChatsUseCase } from '../../application/use-cases/implementation/chat/get_user_chats.use-case';
+import { GetChatByContextUseCase } from '../../application/use-cases/implementation/chat/get_chat_by_context.use-case';
+import { SendMessageUseCase } from '../../application/use-cases/implementation/message/send_message.use-case';
+import { GetChatMessagesUseCase } from '../../application/use-cases/implementation/message/get_chat_messages.use-case';
+import { MarkMessageAsReadUseCase } from '../../application/use-cases/implementation/message/mark_message_as_read.use-case';
+import {
+  GetUnreadMessageCountUseCase,
+  GetTotalUnreadMessageCountUseCase,
+} from '../../application/use-cases/implementation/message/get_unread_message_count.use-case';
+import { CreateNotificationUseCase } from '../../application/use-cases/implementation/notification/create_notification.use-case';
+import { GetUserNotificationsUseCase } from '../../application/use-cases/implementation/notification/get_user_notifications.use-case';
+import {
+  MarkNotificationAsReadUseCase,
+  MarkAllNotificationsAsReadUseCase,
+  GetUnreadNotificationCountUseCase,
+} from '../../application/use-cases/implementation/notification/mark_notification_as_read.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
  * Use cases are application layer components that orchestrate business operations
  */
 export function registerUseCases(): void {
+  // Auth use cases
   container.register(USE_CASE_TOKENS.RegisterUserUseCase, RegisterUserUseCase);
   container.register(USE_CASE_TOKENS.VerifyOtpUseCase, VerifyOtpUseCase);
   container.register(USE_CASE_TOKENS.ResendOtpUseCase, ResendOtpUseCase);
@@ -68,18 +86,21 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.LogoutUserUseCase, LogoutUserUseCase);
   container.register(USE_CASE_TOKENS.ForgotPasswordUseCase, ForgotPasswordUseCase);
   container.register(USE_CASE_TOKENS.ResetPasswordUseCase, ResetPasswordUseCase);
-  container.register(USE_CASE_TOKENS.GetUserProfileUseCase, GetUserProfileUseCase);
-  container.register(USE_CASE_TOKENS.UpdateUserProfileUseCase, UpdateUserProfileUseCase);
-  container.register(USE_CASE_TOKENS.GenerateUploadUrlUseCase, GenerateUploadUrlUseCase);
   container.register(USE_CASE_TOKENS.GoogleAuthUseCase, GoogleAuthUseCase);
   container.register(USE_CASE_TOKENS.SetupPasswordUseCase, SetupPasswordUseCase);
   container.register(USE_CASE_TOKENS.LinkGoogleAccountUseCase, LinkGoogleAccountUseCase);
+  // User use cases
+  container.register(USE_CASE_TOKENS.GetUserProfileUseCase, GetUserProfileUseCase);
+  container.register(USE_CASE_TOKENS.UpdateUserProfileUseCase, UpdateUserProfileUseCase);
+  container.register(USE_CASE_TOKENS.GenerateUploadUrlUseCase, GenerateUploadUrlUseCase);
   container.register(USE_CASE_TOKENS.ChangePasswordUseCase, ChangePasswordUseCase);
+  // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetAllVehicleTypesUseCase, GetAllVehicleTypesUseCase);
   container.register(USE_CASE_TOKENS.UpdateVehicleTypeUseCase, UpdateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.DeleteVehicleTypeUseCase, DeleteVehicleTypeUseCase);
+  // Vehicle use cases
   container.register(USE_CASE_TOKENS.CreateVehicleUseCase, CreateVehicleUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleUseCase, GetVehicleUseCase);
   container.register(USE_CASE_TOKENS.GetAllVehiclesUseCase, GetAllVehiclesUseCase);
@@ -90,29 +111,50 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetVehicleFilterOptionsUseCase, GetVehicleFilterOptionsUseCase);
   container.register(USE_CASE_TOKENS.GenerateVehicleImageUploadUrlUseCase, GenerateVehicleImageUploadUrlUseCase);
   container.register(USE_CASE_TOKENS.DeleteVehicleImagesUseCase, DeleteVehicleImagesUseCase);
+  // Amenity use cases
   container.register(USE_CASE_TOKENS.CreateAmenityUseCase, CreateAmenityUseCase);
   container.register(USE_CASE_TOKENS.GetAmenityUseCase, GetAmenityUseCase);
   container.register(USE_CASE_TOKENS.GetAllAmenitiesUseCase, GetAllAmenitiesUseCase);
   container.register(USE_CASE_TOKENS.GetPaidAmenitiesUseCase, GetPaidAmenitiesUseCase);
   container.register(USE_CASE_TOKENS.UpdateAmenityUseCase, UpdateAmenityUseCase);
   container.register(USE_CASE_TOKENS.DeleteAmenityUseCase, DeleteAmenityUseCase);
+  // Quote use cases
   container.register(USE_CASE_TOKENS.CreateQuoteDraftUseCase, CreateQuoteDraftUseCase);
   container.register(USE_CASE_TOKENS.UpdateQuoteDraftUseCase, UpdateQuoteDraftUseCase);
   container.register(USE_CASE_TOKENS.GetQuoteUseCase, GetQuoteUseCase);
   container.register(USE_CASE_TOKENS.GetQuotesListUseCase, GetQuotesListUseCase);
   container.register(USE_CASE_TOKENS.DeleteQuoteUseCase, DeleteQuoteUseCase);
   container.register(USE_CASE_TOKENS.CalculateRoutesUseCase, CalculateRoutesUseCase);
-  container.register(USE_CASE_TOKENS.GetEventTypesUseCase, GetEventTypesUseCase);
-  container.register(USE_CASE_TOKENS.CreateCustomEventTypeUseCase, CreateCustomEventTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleRecommendationsUseCase, GetVehicleRecommendationsUseCase);
   container.register(USE_CASE_TOKENS.CalculateQuotePricingUseCase, CalculateQuotePricingUseCase);
   container.register(USE_CASE_TOKENS.SubmitQuoteUseCase, SubmitQuoteUseCase);
+  // Event Type use cases
+  container.register(USE_CASE_TOKENS.GetEventTypesUseCase, GetEventTypesUseCase);
+  container.register(USE_CASE_TOKENS.CreateCustomEventTypeUseCase, CreateCustomEventTypeUseCase);
+  // Admin Quote use cases
   container.register(USE_CASE_TOKENS.GetAdminQuotesListUseCase, GetAdminQuotesListUseCase);
   container.register(USE_CASE_TOKENS.GetAdminQuoteUseCase, GetAdminQuoteUseCase);
   container.register(USE_CASE_TOKENS.UpdateQuoteStatusUseCase, UpdateQuoteStatusUseCase);
+  // Pricing Config use cases
   container.register(USE_CASE_TOKENS.GetPricingConfigUseCase, GetPricingConfigUseCase);
   container.register(USE_CASE_TOKENS.CreatePricingConfigUseCase, CreatePricingConfigUseCase);
   container.register(USE_CASE_TOKENS.GetPricingConfigHistoryUseCase, GetPricingConfigHistoryUseCase);
   container.register(USE_CASE_TOKENS.ActivatePricingConfigUseCase, ActivatePricingConfigUseCase);
+  // Chat use cases
+  container.register(USE_CASE_TOKENS.CreateChatUseCase, CreateChatUseCase);
+  container.register(USE_CASE_TOKENS.GetUserChatsUseCase, GetUserChatsUseCase);
+  container.register(USE_CASE_TOKENS.GetChatByContextUseCase, GetChatByContextUseCase);
+  // Message use cases
+  container.register(USE_CASE_TOKENS.SendMessageUseCase, SendMessageUseCase);
+  container.register(USE_CASE_TOKENS.GetChatMessagesUseCase, GetChatMessagesUseCase);
+  container.register(USE_CASE_TOKENS.MarkMessageAsReadUseCase, MarkMessageAsReadUseCase);
+  container.register(USE_CASE_TOKENS.GetUnreadMessageCountUseCase, GetUnreadMessageCountUseCase);
+  container.register(USE_CASE_TOKENS.GetTotalUnreadMessageCountUseCase, GetTotalUnreadMessageCountUseCase);
+  // Notification use cases
+  container.register(USE_CASE_TOKENS.CreateNotificationUseCase, CreateNotificationUseCase);
+  container.register(USE_CASE_TOKENS.GetUserNotificationsUseCase, GetUserNotificationsUseCase);
+  container.register(USE_CASE_TOKENS.MarkNotificationAsReadUseCase, MarkNotificationAsReadUseCase);
+  container.register(USE_CASE_TOKENS.MarkAllNotificationsAsReadUseCase, MarkAllNotificationsAsReadUseCase);
+  container.register(USE_CASE_TOKENS.GetUnreadNotificationCountUseCase, GetUnreadNotificationCountUseCase);
 }
 
