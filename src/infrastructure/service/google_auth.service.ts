@@ -1,7 +1,6 @@
 import { injectable } from 'tsyringe';
 import { OAuth2Client } from 'google-auth-library';
 import { IGoogleAuthService, GoogleUserInfo } from '../../domain/services/google_auth_service.interface';
-import { APP_CONFIG } from '../../shared/config';
 import { ERROR_MESSAGES } from '../../shared/constants';
 import { logger } from '../../shared/logger';
 

@@ -212,7 +212,7 @@ export class VehicleRepositoryImpl
     if (finalQuery.length > 1) {
       mongoQuery = { $and: finalQuery };
     } else if (finalQuery.length === 1) {
-      mongoQuery = finalQuery[0] as Record<string, unknown>;
+      mongoQuery = finalQuery[0];
     } else {
       mongoQuery = {};
     }

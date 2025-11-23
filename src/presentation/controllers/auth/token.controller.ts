@@ -25,7 +25,7 @@ export class TokenController {
   async refreshToken(req: Request, res: Response): Promise<void> {
     try {
       // Read refresh token from HTTP-only cookie (not from request body)
-      const refreshToken = req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN];
+      const refreshToken = req.cookies?.[COOKIE_NAMES.REFRESH_TOKEN] as string | undefined;
       
       if (!refreshToken) {
         logger.warn('Refresh token not found in cookies');

@@ -3,10 +3,11 @@ import { IUpdateAmenityUseCase } from '../../interface/amenity/update_amenity_us
 import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { UpdateAmenityRequest, UpdateAmenityResponse } from '../../../dtos/amenity.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AmenityMapper } from '../../../mapper/amenity.mapper';
 import { Amenity } from '../../../../domain/entities/amenity.entity';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for updating amenity
@@ -20,12 +21,21 @@ export class UpdateAmenityUseCase implements IUpdateAmenityUseCase {
   ) {}
 
   async execute(id: string, request: UpdateAmenityRequest): Promise<UpdateAmenityResponse> {
+    // Input validation
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_AMENITY_ID, 400);
+    }
+
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
     // Find existing amenity
     const existingAmenity = await this.amenityRepository.findById(id);
     
     if (!existingAmenity) {
       logger.warn(`Amenity update attempt for non-existent ID: ${id}`);
-      throw new Error(ERROR_MESSAGES.AMENITY_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.AMENITY_NOT_FOUND, ERROR_CODES.AMENITY_NOT_FOUND, 404);
     }
 
     // Check if name is being updated and if new name already exists
@@ -33,7 +43,7 @@ export class UpdateAmenityUseCase implements IUpdateAmenityUseCase {
       const amenityWithSameName = await this.amenityRepository.findByName(request.name.trim());
       if (amenityWithSameName) {
         logger.warn(`Attempt to update amenity with duplicate name: ${request.name}`);
-        throw new Error(ERROR_MESSAGES.AMENITY_ALREADY_EXISTS);
+        throw new AppError(ERROR_MESSAGES.AMENITY_ALREADY_EXISTS, ERROR_CODES.INVALID_REQUEST, 409);
       }
     }
 
@@ -52,7 +62,7 @@ export class UpdateAmenityUseCase implements IUpdateAmenityUseCase {
     // Fetch updated amenity
     const updatedAmenity = await this.amenityRepository.findById(id);
     if (!updatedAmenity) {
-      throw new Error(ERROR_MESSAGES.AMENITY_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.AMENITY_NOT_FOUND, ERROR_CODES.AMENITY_NOT_FOUND, 404);
     }
 
     logger.info(`Amenity updated: ${updatedAmenity.name} (${id})`);

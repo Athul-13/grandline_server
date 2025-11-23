@@ -4,9 +4,10 @@ import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repo
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
 import { GetVehicleResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for getting vehicle by ID
@@ -22,18 +23,23 @@ export class GetVehicleUseCase implements IGetVehicleUseCase {
   ) {}
 
   async execute(vehicleId: string): Promise<GetVehicleResponse> {
+    // Input validation
+    if (!vehicleId || typeof vehicleId !== 'string' || vehicleId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_VEHICLE_ID, 400);
+    }
+
     const vehicle = await this.vehicleRepository.findById(vehicleId);
     
     if (!vehicle) {
       logger.warn(`Vehicle fetch attempt for non-existent ID: ${vehicleId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_NOT_FOUND, ERROR_CODES.VEHICLE_NOT_FOUND, 404);
     }
 
     // Fetch vehicle type
     const vehicleType = await this.vehicleTypeRepository.findById(vehicle.vehicleTypeId);
     if (!vehicleType) {
       logger.error(`Vehicle type not found for vehicle: ${vehicleId}, vehicleTypeId: ${vehicle.vehicleTypeId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
     }
 
     logger.info(`Vehicle fetched: ${vehicle.plateNumber} (${vehicleId})`);

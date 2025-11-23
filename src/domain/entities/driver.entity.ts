@@ -15,7 +15,6 @@ export class Driver {
     public readonly licenseNumber: string,
     public readonly status: DriverStatus,
     public readonly salary: number,
-    public readonly nightSurcharge: number,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}

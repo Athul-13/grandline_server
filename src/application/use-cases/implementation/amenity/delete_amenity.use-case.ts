@@ -3,8 +3,9 @@ import { IDeleteAmenityUseCase } from '../../interface/amenity/delete_amenity_us
 import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for deleting amenity
@@ -20,12 +21,17 @@ export class DeleteAmenityUseCase implements IDeleteAmenityUseCase {
   ) {}
 
   async execute(id: string): Promise<void> {
+    // Input validation
+    if (!id || typeof id !== 'string' || id.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_AMENITY_ID, 400);
+    }
+
     // Check if amenity exists
     const amenity = await this.amenityRepository.findById(id);
     
     if (!amenity) {
       logger.warn(`Amenity delete attempt for non-existent ID: ${id}`);
-      throw new Error(ERROR_MESSAGES.AMENITY_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.AMENITY_NOT_FOUND, ERROR_CODES.AMENITY_NOT_FOUND, 404);
     }
 
     // Check if any vehicles are using this amenity
@@ -33,7 +39,7 @@ export class DeleteAmenityUseCase implements IDeleteAmenityUseCase {
     
     if (vehicles.length > 0) {
       logger.warn(`Attempt to delete amenity in use: ${amenity.name} (${id})`);
-      throw new Error(ERROR_MESSAGES.AMENITY_IN_USE);
+      throw new AppError(ERROR_MESSAGES.AMENITY_IN_USE, ERROR_CODES.INVALID_REQUEST, 400);
     }
 
     // Delete amenity

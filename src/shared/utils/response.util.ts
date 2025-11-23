@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import { HTTP_STATUS, ERROR_MESSAGES } from '../constants';
+import { AppError } from './app_error.util';
 
 /**
  * Maps error messages to HTTP status codes
@@ -58,10 +59,19 @@ export function sendSuccessResponse<T extends object>(
 /**
  * Sends an error response
  * Automatically maps error messages to appropriate HTTP status codes
+ * Uses AppError.statusCode if error is an AppError instance
  */
 export function sendErrorResponse(res: Response, error: unknown): void {
   const message = error instanceof Error ? error.message : ERROR_MESSAGES.SERVER_ERROR;
-  const statusCode = ERROR_TO_STATUS_MAP[message] || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  
+  // If error is an AppError, use its statusCode property
+  let statusCode: number;
+  if (error instanceof AppError) {
+    statusCode = error.statusCode;
+  } else {
+    // Fallback to error message mapping or default to 500
+    statusCode = ERROR_TO_STATUS_MAP[message] || HTTP_STATUS.INTERNAL_SERVER_ERROR;
+  }
 
   res.status(statusCode).json({
     success: false,

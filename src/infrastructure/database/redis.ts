@@ -107,7 +107,7 @@ export class RedisConnection implements IRedisConnection {
         return;
       }
 
-      await this.redis.disconnect();
+      await this.redis.quit();
       this.isConnected = false;
       console.log('Redis disconnected');
     } catch (error) {

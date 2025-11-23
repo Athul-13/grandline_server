@@ -3,11 +3,12 @@ import { ICreateVehicleTypeUseCase } from '../../interface/vehicle_type/create_v
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
 import { CreateVehicleTypeRequest, CreateVehicleTypeResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { VehicleType } from '../../../../domain/entities/vehicle_type.entity';
 import { logger } from '../../../../shared/logger';
 import { randomUUID } from 'crypto';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for creating vehicle type
@@ -21,12 +22,21 @@ export class CreateVehicleTypeUseCase implements ICreateVehicleTypeUseCase {
   ) {}
 
   async execute(request: CreateVehicleTypeRequest): Promise<CreateVehicleTypeResponse> {
+    // Input validation
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
+    if (!request.name || typeof request.name !== 'string' || request.name.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
     // Check if vehicle type with same name already exists
     const existingVehicleType = await this.vehicleTypeRepository.findByName(request.name.trim());
     
     if (existingVehicleType) {
       logger.warn(`Attempt to create duplicate vehicle type: ${request.name}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_ALREADY_EXISTS);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_ALREADY_EXISTS, ERROR_CODES.INVALID_REQUEST, 409);
     }
 
     // Generate vehicle type ID

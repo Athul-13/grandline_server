@@ -36,6 +36,24 @@ import { GetAllAmenitiesUseCase } from '../../application/use-cases/implementati
 import { GetPaidAmenitiesUseCase } from '../../application/use-cases/implementation/amenity/get_paid_amenities.use-case';
 import { UpdateAmenityUseCase } from '../../application/use-cases/implementation/amenity/update_amenity.use-case';
 import { DeleteAmenityUseCase } from '../../application/use-cases/implementation/amenity/delete_amenity.use-case';
+import { CreateQuoteDraftUseCase } from '../../application/use-cases/implementation/quote/create_quote_draft.use-case';
+import { UpdateQuoteDraftUseCase } from '../../application/use-cases/implementation/quote/update_quote_draft.use-case';
+import { GetQuoteUseCase } from '../../application/use-cases/implementation/quote/get_quote.use-case';
+import { GetQuotesListUseCase } from '../../application/use-cases/implementation/quote/get_quotes_list.use-case';
+import { DeleteQuoteUseCase } from '../../application/use-cases/implementation/quote/delete_quote.use-case';
+import { CalculateRoutesUseCase } from '../../application/use-cases/implementation/quote/calculate_routes.use-case';
+import { GetEventTypesUseCase } from '../../application/use-cases/implementation/event_type/get_event_types.use-case';
+import { CreateCustomEventTypeUseCase } from '../../application/use-cases/implementation/event_type/create_custom_event_type.use-case';
+import { GetVehicleRecommendationsUseCase } from '../../application/use-cases/implementation/quote/get_vehicle_recommendations.use-case';
+import { CalculateQuotePricingUseCase } from '../../application/use-cases/implementation/quote/calculate_quote_pricing.use-case';
+import { SubmitQuoteUseCase } from '../../application/use-cases/implementation/quote/submit_quote.use-case';
+import { GetAdminQuotesListUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quotes_list.use-case';
+import { GetAdminQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quote.use-case';
+import { UpdateQuoteStatusUseCase } from '../../application/use-cases/implementation/quote/admin/update_quote_status.use-case';
+import { GetPricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config.use-case';
+import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/create_pricing_config.use-case';
+import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config_history.use-case';
+import { ActivatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/activate_pricing_config.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -78,5 +96,23 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetPaidAmenitiesUseCase, GetPaidAmenitiesUseCase);
   container.register(USE_CASE_TOKENS.UpdateAmenityUseCase, UpdateAmenityUseCase);
   container.register(USE_CASE_TOKENS.DeleteAmenityUseCase, DeleteAmenityUseCase);
+  container.register(USE_CASE_TOKENS.CreateQuoteDraftUseCase, CreateQuoteDraftUseCase);
+  container.register(USE_CASE_TOKENS.UpdateQuoteDraftUseCase, UpdateQuoteDraftUseCase);
+  container.register(USE_CASE_TOKENS.GetQuoteUseCase, GetQuoteUseCase);
+  container.register(USE_CASE_TOKENS.GetQuotesListUseCase, GetQuotesListUseCase);
+  container.register(USE_CASE_TOKENS.DeleteQuoteUseCase, DeleteQuoteUseCase);
+  container.register(USE_CASE_TOKENS.CalculateRoutesUseCase, CalculateRoutesUseCase);
+  container.register(USE_CASE_TOKENS.GetEventTypesUseCase, GetEventTypesUseCase);
+  container.register(USE_CASE_TOKENS.CreateCustomEventTypeUseCase, CreateCustomEventTypeUseCase);
+  container.register(USE_CASE_TOKENS.GetVehicleRecommendationsUseCase, GetVehicleRecommendationsUseCase);
+  container.register(USE_CASE_TOKENS.CalculateQuotePricingUseCase, CalculateQuotePricingUseCase);
+  container.register(USE_CASE_TOKENS.SubmitQuoteUseCase, SubmitQuoteUseCase);
+  container.register(USE_CASE_TOKENS.GetAdminQuotesListUseCase, GetAdminQuotesListUseCase);
+  container.register(USE_CASE_TOKENS.GetAdminQuoteUseCase, GetAdminQuoteUseCase);
+  container.register(USE_CASE_TOKENS.UpdateQuoteStatusUseCase, UpdateQuoteStatusUseCase);
+  container.register(USE_CASE_TOKENS.GetPricingConfigUseCase, GetPricingConfigUseCase);
+  container.register(USE_CASE_TOKENS.CreatePricingConfigUseCase, CreatePricingConfigUseCase);
+  container.register(USE_CASE_TOKENS.GetPricingConfigHistoryUseCase, GetPricingConfigHistoryUseCase);
+  container.register(USE_CASE_TOKENS.ActivatePricingConfigUseCase, ActivatePricingConfigUseCase);
 }
 

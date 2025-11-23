@@ -17,7 +17,7 @@ export class JWTServiceImpl implements IJWTService {
     private tokenBlacklistService: ITokenBlacklistService,
   ) {}
 
-  async generateTokens(payload: JWTPayload): Promise<TokenPair> {
+  generateTokens(payload: JWTPayload): Promise<TokenPair> {
     const secret: Secret = APP_CONFIG.JWT_SECRET;
     
     // Generate access token
@@ -38,10 +38,10 @@ export class JWTServiceImpl implements IJWTService {
       }
     );
 
-    return {
+    return Promise.resolve({
       accessToken,
       refreshToken,
-    };
+    });
   }
 
   async verifyAccessToken(token: string): Promise<JWTPayload> {

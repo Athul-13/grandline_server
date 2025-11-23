@@ -5,6 +5,7 @@
 export enum EmailType {
   OTP = 'OTP',
   PASSWORD_RESET = 'PASSWORD_RESET',
+  QUOTE = 'QUOTE',
 }
 
 /**
@@ -27,5 +28,20 @@ export interface PasswordResetEmailData {
   resetLink: string;
   fullName?: string;
   expiryMinutes?: number;
+}
+
+/**
+ * Quote email data interface
+ * Contains all data needed to send a quote confirmation email
+ */
+export interface QuoteEmailData {
+  email: string;
+  fullName?: string;
+  quoteId: string;
+  tripName?: string;
+  tripType: string;
+  totalPrice: number;
+  quoteDate: Date;
+  viewQuoteLink?: string;
 }
 

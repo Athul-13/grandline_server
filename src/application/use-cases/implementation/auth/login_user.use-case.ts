@@ -6,12 +6,13 @@ import { LoginUserRequest, LoginUserResponse } from '../../../dtos/user.dto';
 import { comparePassword } from '../../../../shared/utils/password.util';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES, OTP_CONFIG } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, OTP_CONFIG } from '../../../../shared/constants';
 import { generateOTP } from '../../../../shared/utils/otp.util';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
 import { logger } from '../../../../shared/logger';
 import { ILoginUserUseCase } from '../../interface/auth/login_user_use_case.interface';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 @injectable()
 export class LoginUserUseCase implements ILoginUserUseCase {
@@ -27,10 +28,23 @@ export class LoginUserUseCase implements ILoginUserUseCase {
   ) {}
 
   async execute(request: LoginUserRequest): Promise<LoginUserResponse> {
+    // Input validation
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
+    if (!request.email || typeof request.email !== 'string' || request.email.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_EMAIL, 400);
+    }
+
+    if (!request.password || typeof request.password !== 'string' || request.password.length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_PASSWORD, 400);
+    }
+
     const user = await this.userRepository.findByEmail(request.email);
     if (!user) {
       logger.warn(`Login attempt with non-existent email: ${request.email}`);
-      throw new Error(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AppError(ERROR_MESSAGES.INVALID_CREDENTIALS, ERROR_CODES.USER_NOT_FOUND, 401);
     }
 
     if (!user.isVerified) {
@@ -46,19 +60,19 @@ export class LoginUserUseCase implements ILoginUserUseCase {
       await this.emailService.sendEmail(EmailType.OTP, emailData);
       
       logger.warn(`Login attempt by unverified user: ${user.email}`);
-      throw new Error(ERROR_MESSAGES.ACCOUNT_NOT_VERIFIED);
+      throw new AppError(ERROR_MESSAGES.ACCOUNT_NOT_VERIFIED, ERROR_CODES.AUTH_ACCOUNT_BLOCKED, 403);
     }
 
     if (!user.canLogin()) {
       logger.warn(`Login attempt by blocked/inactive user: ${user.email}`);
-      throw new Error(ERROR_MESSAGES.FORBIDDEN);
+      throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
     }
 
     const passwordHash = await this.userRepository.getPasswordHash(user.userId);
     const isValidPassword = await comparePassword(request.password, passwordHash);
     if (!isValidPassword) {
       logger.warn(`Invalid password attempt for user: ${user.email}`);
-      throw new Error(ERROR_MESSAGES.INVALID_CREDENTIALS);
+      throw new AppError(ERROR_MESSAGES.INVALID_CREDENTIALS, ERROR_CODES.INVALID_PASSWORD, 401);
     }
 
     const payload = { userId: user.userId, email: user.email, role: user.role };

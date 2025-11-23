@@ -1,4 +1,4 @@
-import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
+import { IDatabaseModel } from '../../../domain/services/mongodb_model.interface';
 
 export abstract class MongoBaseRepository<TModel, TEntity> {
   protected constructor(
@@ -11,7 +11,7 @@ export abstract class MongoBaseRepository<TModel, TEntity> {
 
   async findById(id: string): Promise<TEntity | null> {
     const filter = { [this.idField]: id };
-    const doc = await this.model.findOne(filter);
+    const doc: TModel | null = await this.model.findOne(filter);
     return doc ? this.toEntity(doc) : null;
   }
 
@@ -25,7 +25,7 @@ export abstract class MongoBaseRepository<TModel, TEntity> {
     // Filter out undefined values - MongoDB $set doesn't handle undefined correctly
     const cleanUpdate = Object.fromEntries(
       Object.entries(update).filter(([_, value]) => value !== undefined)
-    ) as Partial<TEntity>;
+    ) as Record<string, unknown>;
     await this.model.updateOne(filter, { $set: cleanUpdate });
   }
 

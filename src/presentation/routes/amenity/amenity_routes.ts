@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { AmenityController } from '../../controllers/amenity/amenity.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
-import { authorize } from '../../middleware/authorize.middleware';
+import { requireAdmin } from '../../middleware/authorize.middleware';
 import { CreateAmenityRequest, UpdateAmenityRequest } from '../../../application/dtos/amenity.dto';
 
 /**
@@ -27,9 +27,9 @@ export function createAmenityRoutes(config: AmenityRoutesConfig): Router {
   router.post(
     '/',
     authenticate,
-    authorize(['admin']),
+    requireAdmin,
     validationMiddleware(CreateAmenityRequest),
-    (req, res) => amenityController.createAmenity(req, res)
+    (req, res) => void amenityController.createAmenity(req, res)
   );
 
   /**
@@ -38,7 +38,7 @@ export function createAmenityRoutes(config: AmenityRoutesConfig): Router {
    */
   router.get(
     '/',
-    (req, res) => amenityController.getAllAmenities(req, res)
+    (req, res) => void amenityController.getAllAmenities(req, res)
   );
 
   /**
@@ -48,7 +48,7 @@ export function createAmenityRoutes(config: AmenityRoutesConfig): Router {
    */
   router.get(
     '/paid',
-    (req, res) => amenityController.getPaidAmenities(req, res)
+    (req, res) => void amenityController.getPaidAmenities(req, res)
   );
 
   /**
@@ -57,7 +57,7 @@ export function createAmenityRoutes(config: AmenityRoutesConfig): Router {
    */
   router.get(
     '/:id',
-    (req, res) => amenityController.getAmenity(req, res)
+    (req, res) => void amenityController.getAmenity(req, res)
   );
 
   /**
@@ -67,9 +67,9 @@ export function createAmenityRoutes(config: AmenityRoutesConfig): Router {
   router.put(
     '/:id',
     authenticate,
-    authorize(['admin']),
+    requireAdmin,
     validationMiddleware(UpdateAmenityRequest),
-    (req, res) => amenityController.updateAmenity(req, res)
+    (req, res) => void amenityController.updateAmenity(req, res)
   );
 
   /**
@@ -79,8 +79,8 @@ export function createAmenityRoutes(config: AmenityRoutesConfig): Router {
   router.delete(
     '/:id',
     authenticate,
-    authorize(['admin']),
-    (req, res) => amenityController.deleteAmenity(req, res)
+    requireAdmin,
+    (req, res) => void amenityController.deleteAmenity(req, res)
   );
 
   return router;

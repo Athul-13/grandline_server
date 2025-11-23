@@ -44,7 +44,7 @@ export const validationMiddleware = <T extends object>(dtoClass: ClassConstructo
   ): Promise<void> => {
     try {
       // Only validate request body
-      const data = req.body || {};
+      const data = (req.body || {}) as Record<string, unknown>;
 
       // Transform plain object to DTO class instance
       const dtoObj = plainToInstance(dtoClass, data);

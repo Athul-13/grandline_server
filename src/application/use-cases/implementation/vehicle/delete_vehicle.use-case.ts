@@ -3,9 +3,10 @@ import { IDeleteVehicleUseCase } from '../../interface/vehicle/delete_vehicle_us
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleStatus } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for deleting vehicle
@@ -21,18 +22,23 @@ export class DeleteVehicleUseCase implements IDeleteVehicleUseCase {
   ) {}
 
   async execute(vehicleId: string): Promise<void> {
+    // Input validation
+    if (!vehicleId || typeof vehicleId !== 'string' || vehicleId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_VEHICLE_ID, 400);
+    }
+
     // Find existing vehicle
     const vehicle = await this.vehicleRepository.findById(vehicleId);
     
     if (!vehicle) {
       logger.warn(`Vehicle delete attempt for non-existent ID: ${vehicleId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_NOT_FOUND, ERROR_CODES.VEHICLE_NOT_FOUND, 404);
     }
 
     // Check if vehicle is in service
     if (vehicle.status === VehicleStatus.IN_SERVICE) {
       logger.warn(`Attempt to delete vehicle in service: ${vehicle.plateNumber} (${vehicleId})`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_IN_USE);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_IN_USE, ERROR_CODES.INVALID_REQUEST, 400);
     }
 
     // Delete images from Cloudinary before deleting vehicle

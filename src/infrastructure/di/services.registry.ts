@@ -12,6 +12,13 @@ import { ICloudinaryService } from '../../domain/services/cloudinary_service.int
 import { CloudinaryServiceImpl } from '../service/cloudinary.service';
 import { IGoogleAuthService } from '../../domain/services/google_auth_service.interface';
 import { GoogleAuthServiceImpl } from '../service/google_auth.service';
+import { IRouteCalculationService } from '../../domain/services/route_calculation_service.interface';
+import { RouteCalculationServiceImpl } from '../service/route_calculation.service';
+import { IPricingCalculationService } from '../../domain/services/pricing_calculation_service.interface';
+import { PricingCalculationServiceImpl } from '../service/pricing_calculation.service';
+import { IVehicleRecommendationService } from '../../domain/services/vehicle_recommendation_service.interface';
+import { VehicleRecommendationServiceImpl } from '../service/vehicle_recommendation.service';
+import { MapboxService } from '../service/mapbox.service';
 
 /**
  * Registers all service dependencies in the DI container
@@ -46,5 +53,23 @@ export function registerServices(): void {
   container.register<IGoogleAuthService>(
     SERVICE_TOKENS.IGoogleAuthService,
     { useClass: GoogleAuthServiceImpl }
+  );
+
+  // Register MapboxService (used by RouteCalculationService)
+  container.register(MapboxService, { useClass: MapboxService });
+
+  container.register<IRouteCalculationService>(
+    SERVICE_TOKENS.IRouteCalculationService,
+    { useClass: RouteCalculationServiceImpl }
+  );
+
+  container.register<IPricingCalculationService>(
+    SERVICE_TOKENS.IPricingCalculationService,
+    { useClass: PricingCalculationServiceImpl }
+  );
+
+  container.register<IVehicleRecommendationService>(
+    SERVICE_TOKENS.IVehicleRecommendationService,
+    { useClass: VehicleRecommendationServiceImpl }
   );
 }

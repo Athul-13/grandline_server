@@ -4,10 +4,11 @@ import { IUserRepository } from '../../../../domain/repositories/user_repository
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { UpdateUserProfileRequest, UpdateUserProfileResponse } from '../../../dtos/user.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES, SUCCESS_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
 import { CLOUDINARY_CONFIG } from '../../../../shared/config';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for updating user profile
@@ -23,11 +24,20 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
   ) {}
 
   async execute(userId: string, request: UpdateUserProfileRequest): Promise<UpdateUserProfileResponse> {
+    // Input validation
+    if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_USER_ID, 400);
+    }
+
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
     // Check if user exists
     const existingUser = await this.userRepository.findById(userId);
     if (!existingUser) {
       logger.warn(`Profile update attempt for non-existent user: ${userId}`);
-      throw new Error(ERROR_MESSAGES.USER_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, ERROR_CODES.USER_NOT_FOUND, 404);
     }
 
     // Build update object (only include defined fields)
@@ -43,35 +53,35 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
       // Validate Cloudinary URL format (simple regex check)
       if (!this.isValidCloudinaryUrl(request.profilePicture)) {
         logger.warn(`Invalid profile picture URL format for user: ${userId}`);
-        throw new Error('Invalid profile picture URL format');
+        throw new AppError('Invalid profile picture URL format', ERROR_CODES.INVALID_REQUEST, 400);
       }
 
       // Verify file exists in Cloudinary
       const fileExists = await this.cloudinaryService.verifyFileExists(request.profilePicture);
       if (!fileExists) {
         logger.warn(`Profile picture file not found in Cloudinary for user: ${userId}`);
-        throw new Error('Profile picture file not found in Cloudinary');
+        throw new AppError('Profile picture file not found in Cloudinary', ERROR_CODES.INVALID_REQUEST, 404);
       }
 
       // Validate file size and format (server-side validation)
       const fileInfo = await this.cloudinaryService.getFileInfo(request.profilePicture);
       if (!fileInfo) {
         logger.warn(`Failed to get file info for user: ${userId}`);
-        throw new Error('Failed to validate profile picture file');
+        throw new AppError('Failed to validate profile picture file', ERROR_CODES.INVALID_REQUEST, 400);
       }
 
       // Validate file size (max 5MB)
       const MAX_FILE_SIZE = 5242880; // 5MB
       if (fileInfo.bytes > MAX_FILE_SIZE) {
         logger.warn(`Profile picture file too large for user: ${userId}, size: ${fileInfo.bytes} bytes`);
-        throw new Error('Profile picture file is too large. Maximum size is 5MB');
+        throw new AppError('Profile picture file is too large. Maximum size is 5MB', ERROR_CODES.INVALID_REQUEST, 400);
       }
 
       // Validate file format
       const ALLOWED_FORMATS = ['jpg', 'jpeg', 'png', 'webp'];
       if (!ALLOWED_FORMATS.includes(fileInfo.format.toLowerCase())) {
         logger.warn(`Invalid file format for user: ${userId}, format: ${fileInfo.format}`);
-        throw new Error('Invalid file format. Allowed formats: JPG, PNG, WEBP');
+        throw new AppError('Invalid file format. Allowed formats: JPG, PNG, WEBP', ERROR_CODES.INVALID_REQUEST, 400);
       }
 
       // Delete old profile picture if it exists
@@ -91,7 +101,7 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
     // Check if there are any updates to make
     if (Object.keys(updates).length === 0) {
       logger.warn(`Profile update attempt with no changes for user: ${userId}`);
-      throw new Error(ERROR_MESSAGES.BAD_REQUEST);
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
     }
 
     // Track new profile picture URL for cleanup if database save fails

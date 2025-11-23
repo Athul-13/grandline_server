@@ -7,12 +7,12 @@ export interface IDatabaseModel<T> {
   /**
    * Finds a single document by filter
    */
-  findOne(filter: Record<string, unknown>, options?: { select?: string }): Promise<T | null>;
+  findOne(filter: Record<string, unknown>, options?: { select?: string; sort?: Record<string, 1 | -1> }): Promise<T | null>;
 
   /**
    * Finds multiple documents by filter
    */
-  find(filter: Record<string, unknown>): Promise<T[]>;
+  find(filter: Record<string, unknown>, options?: { sort?: Record<string, 1 | -1> }): Promise<T[]>;
 
   /**
    * Creates a new document
@@ -25,9 +25,19 @@ export interface IDatabaseModel<T> {
   updateOne(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<{ matchedCount: number }>;
 
   /**
+   * Updates multiple documents
+   */
+  updateMany(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<{ matchedCount: number }>;
+
+  /**
    * Deletes a single document
    */
   deleteOne(filter: Record<string, unknown>): Promise<void>;
+
+  /**
+   * Deletes multiple documents
+   */
+  deleteMany(filter: Record<string, unknown>): Promise<void>;
 
   /**
    * Executes an aggregation pipeline

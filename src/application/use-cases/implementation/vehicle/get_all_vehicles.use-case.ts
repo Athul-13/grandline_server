@@ -6,8 +6,9 @@ import { VehicleFilter } from '../../../../domain/repositories/vehicle_filter.in
 import { GetAllVehiclesResponse, VehicleResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Allowed sort fields for vehicle sorting
@@ -66,7 +67,7 @@ export class GetAllVehiclesUseCase implements IGetAllVehiclesUseCase {
       const vehicleType = vehicleTypeMap.get(vehicle.vehicleTypeId);
       if (!vehicleType) {
         logger.error(`Vehicle type not found for vehicle: ${vehicle.vehicleId}, vehicleTypeId: ${vehicle.vehicleTypeId}`);
-        throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+        throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
       }
       return VehicleMapper.toVehicleResponse(vehicle, vehicleType);
     });
@@ -133,6 +134,11 @@ export class GetAllVehiclesUseCase implements IGetAllVehiclesUseCase {
       if (aValue instanceof Date && bValue instanceof Date) {
         const comparison = aValue.getTime() - bValue.getTime();
         return sortOrder === 'asc' ? comparison : -comparison;
+      }
+
+      // Handle object types - cannot meaningfully compare, treat as equal
+      if (typeof aValue === 'object' || typeof bValue === 'object') {
+        return 0;
       }
 
       // Fallback: convert to string and compare

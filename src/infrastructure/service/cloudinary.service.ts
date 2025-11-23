@@ -10,6 +10,24 @@ import { logger } from '../../shared/logger';
 import crypto from 'crypto';
 
 /**
+ * Cloudinary destroy API response
+ */
+interface CloudinaryDestroyResult {
+  result: string;
+}
+
+/**
+ * Cloudinary resource API response
+ */
+interface CloudinaryResourceResult {
+  format?: string;
+  bytes?: number;
+  width?: number;
+  height?: number;
+  [key: string]: unknown;
+}
+
+/**
  * Cloudinary service implementation
  * Handles Cloudinary operations using Cloudinary SDK
  */
@@ -61,7 +79,7 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
 
       const result = await cloudinary.uploader.destroy(extractedPublicId, {
         invalidate: true, // Invalidate CDN cache
-      });
+      }) as CloudinaryDestroyResult;
 
       if (result.result === 'not found') {
         logger.warn(`File not found in Cloudinary: ${extractedPublicId}`);
@@ -103,7 +121,7 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
     }
 
     try {
-      const result = await cloudinary.api.resource(publicId);
+      const result = await cloudinary.api.resource(publicId) as CloudinaryResourceResult;
       return !!result;
     } catch (error) {
       // File doesn't exist or API error
@@ -125,7 +143,7 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
     }
 
     try {
-      const result = await cloudinary.api.resource(publicId);
+      const result = await cloudinary.api.resource(publicId) as CloudinaryResourceResult;
       
       return {
         format: result.format,

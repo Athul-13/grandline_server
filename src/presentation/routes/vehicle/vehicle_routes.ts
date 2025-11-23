@@ -2,8 +2,7 @@ import { Router } from 'express';
 import { VehicleController } from '../../controllers/vehicle/vehicle.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
-import { authorize } from '../../middleware/authorize.middleware';
-import { UserRole } from '../../../shared/constants';
+import { requireAdmin } from '../../middleware/authorize.middleware';
 import { CreateVehicleRequest, UpdateVehicleRequest, UpdateVehicleStatusRequest, DeleteVehicleImagesRequest } from '../../../application/dtos/vehicle.dto';
 
 /**
@@ -28,9 +27,9 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
   router.post(
     '/',
     authenticate,
-    authorize([UserRole.ADMIN]),
+    requireAdmin,
     validationMiddleware(CreateVehicleRequest),
-    (req, res) => vehicleController.createVehicle(req, res)
+    (req, res) => void vehicleController.createVehicle(req, res)
   );
 
   /**
@@ -39,7 +38,7 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
    */
   router.get(
     '/',
-    (req, res) => vehicleController.getAllVehicles(req, res)
+    (req, res) => void vehicleController.getAllVehicles(req, res)
   );
 
   /**
@@ -49,7 +48,7 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
    */
   router.get(
     '/type/:vehicleTypeId',
-    (req, res) => vehicleController.getVehiclesByType(req, res)
+    (req, res) => void vehicleController.getVehiclesByType(req, res)
   );
 
   /**
@@ -59,7 +58,7 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
    */
   router.get(
     '/filter-options',
-    (req, res) => vehicleController.getFilterOptions(req, res)
+    (req, res) => void vehicleController.getFilterOptions(req, res)
   );
 
   /**
@@ -70,8 +69,8 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
   router.post(
     '/upload-signature',
     authenticate,
-    authorize([UserRole.ADMIN]),
-    (req, res) => vehicleController.generateImageUploadUrl(req, res)
+    requireAdmin,
+    (req, res) => void vehicleController.generateImageUploadUrl(req, res)
   );
 
   /**
@@ -82,9 +81,9 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
   router.delete(
     '/images',
     authenticate,
-    authorize([UserRole.ADMIN]),
+    requireAdmin,
     validationMiddleware(DeleteVehicleImagesRequest),
-    (req, res) => vehicleController.deleteImages(req, res)
+    (req, res) => void vehicleController.deleteImages(req, res)
   );
 
   /**
@@ -93,7 +92,7 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
    */
   router.get(
     '/:id',
-    (req, res) => vehicleController.getVehicle(req, res)
+    (req, res) => void vehicleController.getVehicle(req, res)
   );
 
   /**
@@ -103,9 +102,9 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
   router.put(
     '/:id',
     authenticate,
-    authorize([UserRole.ADMIN]),
+    requireAdmin,
     validationMiddleware(UpdateVehicleRequest),
-    (req, res) => vehicleController.updateVehicle(req, res)
+    (req, res) => void vehicleController.updateVehicle(req, res)
   );
 
   /**
@@ -115,9 +114,9 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
   router.patch(
     '/:id/status',
     authenticate,
-    authorize([UserRole.ADMIN]),
+    requireAdmin,
     validationMiddleware(UpdateVehicleStatusRequest),
-    (req, res) => vehicleController.updateVehicleStatus(req, res)
+    (req, res) => void vehicleController.updateVehicleStatus(req, res)
   );
 
   /**
@@ -127,8 +126,8 @@ export function createVehicleRoutes(config: VehicleRoutesConfig): Router {
   router.delete(
     '/:id',
     authenticate,
-    authorize([UserRole.ADMIN]),
-    (req, res) => vehicleController.deleteVehicle(req, res)
+    requireAdmin,
+    (req, res) => void vehicleController.deleteVehicle(req, res)
   );
 
   return router;

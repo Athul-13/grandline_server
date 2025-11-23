@@ -35,7 +35,7 @@ export class VehicleTypeController {
    */
   async createVehicleType(req: Request, res: Response): Promise<void> {
     try {
-      const request: CreateVehicleTypeRequest = req.body;
+      const request = req.body as CreateVehicleTypeRequest;
       logger.info('Vehicle type creation request');
       
       const response = await this.createVehicleTypeUseCase.execute(request);
@@ -91,7 +91,7 @@ export class VehicleTypeController {
   async updateVehicleType(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const request: UpdateVehicleTypeRequest = req.body;
+      const request = req.body as UpdateVehicleTypeRequest;
       logger.info(`Vehicle type update request for ID: ${id}`);
       
       const response = await this.updateVehicleTypeUseCase.execute(id, request);

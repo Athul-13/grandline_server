@@ -4,10 +4,11 @@ import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { UpdateVehicleTypeRequest, VehicleTypeResponse } from '../../../dtos/vehicle.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { VehicleType } from '../../../../domain/entities/vehicle_type.entity';
 import { logger } from '../../../../shared/logger';
+import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for updating vehicle type
@@ -23,12 +24,21 @@ export class UpdateVehicleTypeUseCase implements IUpdateVehicleTypeUseCase {
   ) {}
 
   async execute(vehicleTypeId: string, request: UpdateVehicleTypeRequest): Promise<VehicleTypeResponse> {
+    // Input validation
+    if (!vehicleTypeId || typeof vehicleTypeId !== 'string' || vehicleTypeId.trim().length === 0) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_VEHICLE_TYPE_ID, 400);
+    }
+
+    if (!request) {
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
+    }
+
     // Find existing vehicle type
     const existingVehicleType = await this.vehicleTypeRepository.findById(vehicleTypeId);
     
     if (!existingVehicleType) {
       logger.warn(`Vehicle type update attempt for non-existent ID: ${vehicleTypeId}`);
-      throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
     }
 
     // Check if name is being updated and if new name already exists
@@ -36,7 +46,7 @@ export class UpdateVehicleTypeUseCase implements IUpdateVehicleTypeUseCase {
       const vehicleTypeWithSameName = await this.vehicleTypeRepository.findByName(request.name.trim());
       if (vehicleTypeWithSameName) {
         logger.warn(`Attempt to update vehicle type with duplicate name: ${request.name}`);
-        throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_ALREADY_EXISTS);
+        throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_ALREADY_EXISTS, ERROR_CODES.INVALID_REQUEST, 409);
       }
     }
 
@@ -55,7 +65,7 @@ export class UpdateVehicleTypeUseCase implements IUpdateVehicleTypeUseCase {
     // Fetch updated vehicle type
     const updatedVehicleType = await this.vehicleTypeRepository.findById(vehicleTypeId);
     if (!updatedVehicleType) {
-      throw new Error(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND);
+      throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
     }
 
     logger.info(`Vehicle type updated: ${updatedVehicleType.name} (${vehicleTypeId})`);
