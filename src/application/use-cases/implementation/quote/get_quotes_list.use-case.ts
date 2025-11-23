@@ -2,6 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IGetQuotesListUseCase } from '../../interface/quote/get_quotes_list_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
+import { IChatRepository } from '../../../../domain/repositories/chat_repository.interface';
 import { QuoteListResponse, QuoteListItemResponse } from '../../../dtos/quote.dto';
 import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
 import { QuoteMapper } from '../../../mapper/quote.mapper';
@@ -30,7 +31,9 @@ export class GetQuotesListUseCase implements IGetQuotesListUseCase {
     @inject(REPOSITORY_TOKENS.IQuoteRepository)
     private readonly quoteRepository: IQuoteRepository,
     @inject(REPOSITORY_TOKENS.IQuoteItineraryRepository)
-    private readonly itineraryRepository: IQuoteItineraryRepository
+    private readonly itineraryRepository: IQuoteItineraryRepository,
+    @inject(REPOSITORY_TOKENS.IChatRepository)
+    private readonly chatRepository: IChatRepository
   ) {}
 
   async execute(
@@ -84,10 +87,36 @@ export class GetQuotesListUseCase implements IGetQuotesListUseCase {
       itineraryMap.set(quoteId, allItineraryStops[index]);
     });
 
+    // Check chat availability for all quotes
+    const chatAvailabilityMap = new Map<string, { chatAvailable: boolean; chatId?: string }>();
+    for (const quote of quotes) {
+      const chatAvailable =
+        quote.status === QuoteStatus.SUBMITTED ||
+        quote.status === QuoteStatus.NEGOTIATING ||
+        quote.status === QuoteStatus.ACCEPTED ||
+        quote.status === QuoteStatus.QUOTED;
+
+      let chatId: string | undefined;
+      if (chatAvailable) {
+        const chat = await this.chatRepository.findByContext('quote', quote.quoteId);
+        if (chat) {
+          chatId = chat.chatId;
+        }
+      }
+
+      chatAvailabilityMap.set(quote.quoteId, { chatAvailable, chatId });
+    }
+
     // Map to response DTOs before sorting (to access DTO fields)
     let quotesData = quotes.map((quote) => {
       const itineraryStops = itineraryMap.get(quote.quoteId);
-      return QuoteMapper.toQuoteListItemResponse(quote, itineraryStops);
+      const response = QuoteMapper.toQuoteListItemResponse(quote, itineraryStops);
+      const chatInfo = chatAvailabilityMap.get(quote.quoteId);
+      if (chatInfo) {
+        response.chatAvailable = chatInfo.chatAvailable;
+        response.chatId = chatInfo.chatId;
+      }
+      return response;
     });
 
     // Apply sorting if sortBy is provided

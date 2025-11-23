@@ -305,6 +305,8 @@ export interface QuoteResponse {
     return?: ItineraryStopDto[];
   };
   passengers?: PassengerDto[];
+  chatAvailable?: boolean;
+  chatId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -321,6 +323,8 @@ export interface QuoteListItemResponse {
   totalPrice?: number;
   startLocation?: string;
   endLocation?: string;
+  chatAvailable?: boolean;
+  chatId?: string;
   createdAt: Date;
 }
 

@@ -2,6 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IGetAdminQuotesListUseCase } from '../../../interface/quote/admin/get_admin_quotes_list_use_case.interface';
 import { IQuoteRepository } from '../../../../../domain/repositories/quote_repository.interface';
 import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
+import { IChatRepository } from '../../../../../domain/repositories/chat_repository.interface';
 import { AdminQuotesListResponse, AdminQuoteListItemResponse } from '../../../../dtos/quote.dto';
 import { REPOSITORY_TOKENS } from '../../../../../infrastructure/di/tokens';
 import { QuoteMapper } from '../../../../mapper/quote.mapper';
@@ -32,7 +33,9 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
     @inject(REPOSITORY_TOKENS.IQuoteRepository)
     private readonly quoteRepository: IQuoteRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IUserRepository,
+    @inject(REPOSITORY_TOKENS.IChatRepository)
+    private readonly chatRepository: IChatRepository
   ) {}
 
   async execute(
@@ -112,7 +115,27 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
         }
       }
 
-      // Step 4: Map quotes to admin response DTOs with user information
+      // Step 4: Check chat availability for all quotes
+      const chatAvailabilityMap = new Map<string, { chatAvailable: boolean; chatId?: string }>();
+      for (const quote of quotes) {
+        const chatAvailable =
+          quote.status === QuoteStatus.SUBMITTED ||
+          quote.status === QuoteStatus.NEGOTIATING ||
+          quote.status === QuoteStatus.ACCEPTED ||
+          quote.status === QuoteStatus.QUOTED;
+
+        let chatId: string | undefined;
+        if (chatAvailable) {
+          const chat = await this.chatRepository.findByContext('quote', quote.quoteId);
+          if (chat) {
+            chatId = chat.chatId;
+          }
+        }
+
+        chatAvailabilityMap.set(quote.quoteId, { chatAvailable, chatId });
+      }
+
+      // Step 5: Map quotes to admin response DTOs with user information
       const quotesWithUsers: AdminQuoteListItemResponse[] = [];
       for (const quote of quotes) {
         const user = usersMap.get(quote.userId);
@@ -141,8 +164,11 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
         }
 
         const quoteListItem = QuoteMapper.toQuoteListItemResponse(quote);
+        const chatInfo = chatAvailabilityMap.get(quote.quoteId);
         quotesWithUsers.push({
           ...quoteListItem,
+          chatAvailable: chatInfo?.chatAvailable,
+          chatId: chatInfo?.chatId,
           user: {
             userId: user.userId,
             fullName: user.fullName,
@@ -152,7 +178,7 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
         });
       }
 
-      // Step 5: Apply sorting
+      // Step 6: Apply sorting
       // If no sortBy provided, default to newest first (createdAt desc)
       let sortedQuotes = quotesWithUsers;
       if (normalizedSortBy) {
@@ -162,11 +188,11 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
         sortedQuotes = this.sortQuotes(quotesWithUsers, 'createdAt', 'desc');
       }
 
-      // Step 6: Calculate pagination
+      // Step 7: Calculate pagination
       const total = sortedQuotes.length;
       const totalPages = Math.ceil(total / normalizedLimit);
 
-      // Step 7: Apply pagination
+      // Step 8: Apply pagination
       const startIndex = (normalizedPage - 1) * normalizedLimit;
       const endIndex = startIndex + normalizedLimit;
       const paginatedQuotes = sortedQuotes.slice(startIndex, endIndex);
