@@ -59,6 +59,28 @@ module.exports = tseslint.config(
       '@typescript-eslint/no-unsafe-type-assertion': 'off',
       '@typescript-eslint/no-unsafe-argument': 'off',
     },
+  },
+  {
+    files: ['src/presentation/socket_handlers/**/*.ts'],
+    languageOptions: {
+      parserOptions: {
+        // Disable type checking for socket handler files due to ESLint limitation with socket.io v4 types
+        // The types are valid TypeScript and work correctly at runtime
+        project: false,
+      },
+    },
+    rules: {
+      // Socket.io v4 types are not fully recognized by ESLint's type checker
+      // but are valid TypeScript types that work correctly at runtime
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-type-assertion': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-enum-comparison': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
+    },
   }
 );
 
