@@ -5,7 +5,7 @@ import { IOTPService } from '../../../../domain/services/otp_service.interface';
 import { LoginUserRequest, LoginUserResponse } from '../../../dtos/user.dto';
 import { comparePassword } from '../../../../shared/utils/password.util';
 import { UserMapper } from '../../../mapper/user.mapper';
-import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES, OTP_CONFIG } from '../../../../shared/constants';
 import { generateOTP } from '../../../../shared/utils/otp.util';
 import { IEmailService } from '../../../../domain/services/email_service.interface';

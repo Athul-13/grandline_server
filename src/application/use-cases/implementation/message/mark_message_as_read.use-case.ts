@@ -3,7 +3,7 @@ import { IMarkMessageAsReadUseCase } from '../../interface/message/mark_message_
 import { IChatRepository } from '../../../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../../../domain/repositories/message_repository.interface';
 import { MarkMessageAsReadRequest, MarkMessageAsReadResponse } from '../../../dtos/message.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';

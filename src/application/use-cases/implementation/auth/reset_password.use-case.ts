@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IResetPasswordUseCase } from '../../interface/auth/reset_password_use_case.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ResetPasswordRequest, ResetPasswordResponse } from '../../../dtos/user.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { APP_CONFIG } from '../../../../shared/config';

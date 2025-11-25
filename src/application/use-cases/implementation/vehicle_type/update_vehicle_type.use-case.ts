@@ -3,7 +3,7 @@ import { IUpdateVehicleTypeUseCase } from '../../interface/vehicle_type/update_v
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { UpdateVehicleTypeRequest, VehicleTypeResponse } from '../../../dtos/vehicle.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { VehicleType } from '../../../../domain/entities/vehicle_type.entity';

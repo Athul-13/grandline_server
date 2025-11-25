@@ -82,5 +82,6 @@ export const USE_CASE_TOKENS = {
   MarkNotificationAsReadUseCase: Symbol.for('MarkNotificationAsReadUseCase'),
   MarkAllNotificationsAsReadUseCase: Symbol.for('MarkAllNotificationsAsReadUseCase'),
   GetUnreadNotificationCountUseCase: Symbol.for('GetUnreadNotificationCountUseCase'),
+  MarkChatNotificationsAsReadUseCase: Symbol.for('MarkChatNotificationsAsReadUseCase'),
 } as const;
 

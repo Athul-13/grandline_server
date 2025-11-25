@@ -1,5 +1,5 @@
 import { container } from 'tsyringe';
-import { REPOSITORY_TOKENS } from './tokens';
+import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
 import { UserRepositoryImpl } from '../repositories/user.repository';
 import { IVehicleTypeRepository } from '../../domain/repositories/vehicle_type_repository.interface';

@@ -9,7 +9,7 @@ import { IPricingConfigRepository } from '../../../../domain/repositories/pricin
 import { IPricingCalculationService } from '../../../../domain/services/pricing_calculation_service.interface';
 import { Amenity } from '../../../../domain/entities/amenity.entity';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES, TripType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';

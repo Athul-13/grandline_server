@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IGetUserProfileUseCase } from '../../interface/user/get_user_profile_use_case.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { GetUserProfileResponse } from '../../../dtos/user.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { logger } from '../../../../shared/logger';

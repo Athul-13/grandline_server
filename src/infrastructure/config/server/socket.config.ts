@@ -6,7 +6,7 @@ import type { ServerOptions } from 'socket.io';
 import { Application } from 'express';
 import { container } from 'tsyringe';
 import { IJWTService } from '../../../domain/services/jwt_service.interface';
-import { SERVICE_TOKENS } from '../../di/tokens';
+import { SERVICE_TOKENS } from '../../../application/di/tokens';
 import { COOKIE_NAMES } from '../../../shared/constants';
 import { JWTPayload } from '../../../domain/services/jwt_service.interface';
 
@@ -38,14 +38,14 @@ export class SocketConfig {
   initialize(server: HTTPServer, _app: Application): SocketIOServer {
     const options: Partial<ServerOptions> = {
       cors: {
-        origin: process.env.CLIENT_URL || '*',
+        origin: process.env.CORS_ORIGIN || '*',
         methods: ['GET', 'POST'],
         credentials: true,
       },
       transports: ['websocket', 'polling'],
     };
 
-    this.io = new Server(server, options) as SocketIOServer;
+    this.io = new Server(server, options);
 
     // Set up authentication middleware
     this.setupAuthentication();

@@ -1,5 +1,5 @@
 import { container } from 'tsyringe';
-import { USE_CASE_TOKENS } from './tokens';
+import { USE_CASE_TOKENS } from '../../application/di/tokens';
 import { RegisterUserUseCase } from '../../application/use-cases/implementation/auth/register_user.use-case';
 import { VerifyOtpUseCase } from '../../application/use-cases/implementation/auth/verify_otp.use-case';
 import { ResendOtpUseCase } from '../../application/use-cases/implementation/auth/resend_otp.use-case';
@@ -60,17 +60,14 @@ import { GetChatByContextUseCase } from '../../application/use-cases/implementat
 import { SendMessageUseCase } from '../../application/use-cases/implementation/message/send_message.use-case';
 import { GetChatMessagesUseCase } from '../../application/use-cases/implementation/message/get_chat_messages.use-case';
 import { MarkMessageAsReadUseCase } from '../../application/use-cases/implementation/message/mark_message_as_read.use-case';
-import {
-  GetUnreadMessageCountUseCase,
-  GetTotalUnreadMessageCountUseCase,
-} from '../../application/use-cases/implementation/message/get_unread_message_count.use-case';
+import { GetUnreadMessageCountUseCase } from '../../application/use-cases/implementation/message/get_unread_message_count.use-case';
+import { GetTotalUnreadMessageCountUseCase } from '../../application/use-cases/implementation/message/get_total_unread_message_count.use-case';
 import { CreateNotificationUseCase } from '../../application/use-cases/implementation/notification/create_notification.use-case';
 import { GetUserNotificationsUseCase } from '../../application/use-cases/implementation/notification/get_user_notifications.use-case';
-import {
-  MarkNotificationAsReadUseCase,
-  MarkAllNotificationsAsReadUseCase,
-  GetUnreadNotificationCountUseCase,
-} from '../../application/use-cases/implementation/notification/mark_notification_as_read.use-case';
+import { MarkNotificationAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_notification_as_read.use-case';
+import { MarkAllNotificationsAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_all_notifications_as_read.use-case';
+import { GetUnreadNotificationCountUseCase } from '../../application/use-cases/implementation/notification/get_unread_notification_count.use-case';
+import { MarkChatNotificationsAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_chat_notifications_as_read.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -156,5 +153,6 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.MarkNotificationAsReadUseCase, MarkNotificationAsReadUseCase);
   container.register(USE_CASE_TOKENS.MarkAllNotificationsAsReadUseCase, MarkAllNotificationsAsReadUseCase);
   container.register(USE_CASE_TOKENS.GetUnreadNotificationCountUseCase, GetUnreadNotificationCountUseCase);
+  container.register(USE_CASE_TOKENS.MarkChatNotificationsAsReadUseCase, MarkChatNotificationsAsReadUseCase);
 }
 

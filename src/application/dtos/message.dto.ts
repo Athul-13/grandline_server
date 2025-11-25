@@ -1,21 +1,36 @@
 import {
   IsString,
   IsNotEmpty,
-  IsEnum,
   IsOptional,
   MaxLength,
   Min,
   Max,
+  ValidateIf,
 } from 'class-validator';
 import { MessageDeliveryStatus } from '../../shared/constants';
 
 /**
  * Request DTO for sending a message
+ * Either chatId OR (contextType + contextId) must be provided
+ * Validation for this requirement is handled in the use case
  */
 export class SendMessageRequest {
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  chatId!: string;
+  chatId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @ValidateIf((o: SendMessageRequest) => !o.chatId)
+  contextType?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @ValidateIf((o: SendMessageRequest) => !o.chatId)
+  contextId?: string;
 
   @IsString()
   @IsNotEmpty()

@@ -3,7 +3,7 @@ import { IUpdateUserProfileUseCase } from '../../interface/user/update_user_prof
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { UpdateUserProfileRequest, UpdateUserProfileResponse } from '../../../dtos/user.dto';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
 import { CLOUDINARY_CONFIG } from '../../../../shared/config';
 import { UserMapper } from '../../../mapper/user.mapper';

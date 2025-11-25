@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IJWTService, JWTPayload, TokenPair } from '../../domain/services/jwt_service.interface';
 import { ITokenBlacklistService } from '../../domain/services/token_blacklist_service.interface';
-import { SERVICE_TOKENS } from '../di/tokens';
+import { SERVICE_TOKENS } from '../../application/di/tokens';
 import { APP_CONFIG, JWT_CONFIG } from '../../shared/config';
 import jwt, { Secret } from 'jsonwebtoken';
 import type { StringValue } from 'ms';

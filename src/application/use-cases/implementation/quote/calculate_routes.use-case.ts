@@ -4,7 +4,7 @@ import { CalculateRoutesRequest, RouteCalculationResponse } from '../../../dtos/
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { IRouteCalculationService, IRouteSegment } from '../../../../domain/services/route_calculation_service.interface';
 import { QuoteItinerary } from '../../../../domain/entities/quote_itinerary.entity';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';

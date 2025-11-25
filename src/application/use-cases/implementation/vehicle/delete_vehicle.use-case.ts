@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IDeleteVehicleUseCase } from '../../interface/vehicle/delete_vehicle_use_case.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleStatus } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';

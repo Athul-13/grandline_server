@@ -1,10 +1,10 @@
-import { injectable, inject } from 'tsyringe';
+import { injectable, inject, container } from 'tsyringe';
 import { ICreateChatUseCase } from '../../interface/chat/create_chat_use_case.interface';
 import { IChatRepository } from '../../../../domain/repositories/chat_repository.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { CreateChatRequest, ChatResponse } from '../../../dtos/chat.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { Chat, IChatParticipant } from '../../../../domain/entities/chat.entity';
 import { ParticipantType, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { randomUUID } from 'crypto';
@@ -21,9 +21,7 @@ export class CreateChatUseCase implements ICreateChatUseCase {
     @inject(REPOSITORY_TOKENS.IChatRepository)
     private readonly chatRepository: IChatRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
-    private readonly userRepository: IUserRepository,
-    @inject(REPOSITORY_TOKENS.IDriverRepository)
-    private readonly driverRepository: IDriverRepository
+    private readonly userRepository: IUserRepository
   ) {}
 
   async execute(request: CreateChatRequest, userId: string): Promise<ChatResponse> {
@@ -95,9 +93,20 @@ export class CreateChatUseCase implements ICreateChatUseCase {
     const validatedParticipants: IChatParticipant[] = [];
 
     for (const participant of participants) {
-      // Check if user or driver exists
+      // Check if user exists
       const user = await this.userRepository.findById(participant.userId);
-      const driver = await this.driverRepository.findById(participant.userId);
+      
+      // Check if driver exists (only if driver repository is available)
+      let driver = null;
+      try {
+        const driverRepository = container.resolve<IDriverRepository>(
+          REPOSITORY_TOKENS.IDriverRepository
+        );
+        driver = await driverRepository.findById(participant.userId);
+      } catch {
+        // Driver repository not registered, skip driver check
+        // This is expected until driver repository is fully implemented
+      }
 
       if (!user && !driver) {
         throw new AppError(

@@ -1,7 +1,7 @@
 import { NextFunction, Response } from 'express';
 import { container } from 'tsyringe';
 import { IJWTService } from '../../domain/services/jwt_service.interface';
-import { SERVICE_TOKENS } from '../../infrastructure/di/tokens';
+import { SERVICE_TOKENS } from '../../application/di/tokens';
 import { COOKIE_NAMES, ERROR_MESSAGES, HTTP_STATUS } from '../../shared/constants';
 import { AuthenticatedRequest } from '../../shared/types/express.types';
 

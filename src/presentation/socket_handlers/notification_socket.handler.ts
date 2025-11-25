@@ -2,9 +2,10 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../../infrastructure/config/server/socket.config';
 import { getSocketUser, isSocketAuthenticated } from '../middleware/socket_auth.middleware';
 import { container } from 'tsyringe';
-import { USE_CASE_TOKENS, CONFIG_TOKENS } from '../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../application/di/tokens';
+import { CONFIG_TOKENS } from '../../infrastructure/di/tokens';
 import { ICreateNotificationUseCase } from '../../application/use-cases/interface/notification/create_notification_use_case.interface';
-import { IGetUnreadNotificationCountUseCase } from '../../application/use-cases/interface/notification/mark_notification_as_read_use_case.interface';
+import { IGetUnreadNotificationCountUseCase } from '../../application/use-cases/interface/notification/get_unread_notification_count_use_case.interface';
 import { IRedisConnection } from '../../domain/services/redis_connection.interface';
 import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
 import { logger } from '../../shared/logger';
@@ -45,7 +46,7 @@ export class NotificationSocketHandler {
    * Registers all notification-related socket event handlers
    */
   registerHandlers(): void {
-    this.io.on('connection', (socket: AuthenticatedSocket) => {
+    this.io.on('connection', async (socket: AuthenticatedSocket) => {
       if (!isSocketAuthenticated(socket)) {
         return;
       }
@@ -56,11 +57,56 @@ export class NotificationSocketHandler {
       }
 
       // Track user's socket connections in Redis
-      await this.redis.sadd(`user:${user.userId}:sockets`, socket.id);
-      await this.redis.set(`socket:${socket.id}`, user.userId);
+      try {
+        await this.redis.sadd(`user:${user.userId}:sockets`, socket.id);
+        await this.redis.set(`socket:${socket.id}`, user.userId);
+        logger.info(`[NotificationSocketHandler] Tracked socket connection in Redis for user: ${user.userId}, socket: ${socket.id}`);
+        
+        // Clean up stale socket entries for this user
+        // This removes sockets that are no longer connected but still in Redis
+        try {
+          const allUserSockets = await this.redis.smembers(`user:${user.userId}:sockets`);
+          let staleCount = 0;
+          
+          for (const socketId of allUserSockets) {
+            // Check if socket still exists and is connected in Socket.io
+            const existingSocket = this.io.sockets.sockets.get(socketId);
+            if (!existingSocket || !existingSocket.connected) {
+              // Stale socket - remove it from Redis
+              await this.redis.srem(`user:${user.userId}:sockets`, socketId);
+              await this.redis.del(`socket:${socketId}`);
+              staleCount++;
+              logger.info(`[NotificationSocketHandler] Cleaned up stale socket: ${socketId} for user: ${user.userId}`);
+            }
+          }
+          
+          if (staleCount > 0) {
+            logger.info(`[NotificationSocketHandler] Cleaned up ${staleCount} stale socket(s) for user: ${user.userId}`);
+          }
+          
+          // Log final count of valid sockets
+          const validSockets = await this.redis.smembers(`user:${user.userId}:sockets`);
+          logger.info(`[NotificationSocketHandler] User ${user.userId} now has ${validSockets.length} valid socket(s) after cleanup`);
+        } catch (cleanupError) {
+          // Don't fail connection if cleanup fails - log and continue
+          logger.error(
+            `[NotificationSocketHandler] Error during stale socket cleanup for user ${user.userId}: ${
+              cleanupError instanceof Error ? cleanupError.message : 'Unknown error'
+            }`
+          );
+        }
+      } catch (error) {
+        logger.error(
+          `Failed to track socket connection in Redis: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          { userId: user.userId, socketId: socket.id }
+        );
+        // Continue even if Redis tracking fails - connection can still work
+      }
 
       // Join user's notification room
-      void socket.join(`user:${user.userId}`);
+      const userRoom = `user:${user.userId}`;
+      await socket.join(userRoom);
+      logger.info(`[NotificationSocketHandler] User ${user.userId} joined user room: ${userRoom}, socket: ${socket.id}`);
 
       // Handle get unread count
       socket.on(NOTIFICATION_SOCKET_EVENTS.GET_UNREAD_COUNT, async () => {
@@ -146,10 +192,29 @@ export class NotificationSocketHandler {
    * Handles socket disconnect
    */
   private async handleDisconnect(userId: string, socketId: string): Promise<void> {
-    // Remove socket from user's socket set
-    await this.redis.srem(`user:${userId}:sockets`, socketId);
-    // Remove socket mapping
-    await this.redis.del(`socket:${socketId}`);
+    logger.info(`[NotificationSocketHandler] Socket disconnected: ${socketId} for user: ${userId}`);
+    
+    try {
+      // Remove socket from user's socket set
+      await this.redis.srem(`user:${userId}:sockets`, socketId);
+      logger.debug(`[NotificationSocketHandler] Removed socket ${socketId} from user:${userId}:sockets`);
+      
+      // Remove socket mapping
+      await this.redis.del(`socket:${socketId}`);
+      logger.debug(`[NotificationSocketHandler] Removed socket mapping from Redis: socket:${socketId}`);
+      
+      // Check remaining sockets for user
+      const remainingSockets = await this.redis.scard(`user:${userId}:sockets`);
+      logger.debug(`[NotificationSocketHandler] User ${userId} now has ${remainingSockets} active socket(s) remaining`);
+      
+      logger.info(`[NotificationSocketHandler] Socket disconnect cleanup completed for user: ${userId}, socket: ${socketId}`);
+    } catch (error) {
+      logger.error(
+        `[NotificationSocketHandler] Error during socket disconnect cleanup for user ${userId}, socket ${socketId}: ${
+          error instanceof Error ? error.message : 'Unknown error'
+        }`
+      );
+    }
   }
 
   /**

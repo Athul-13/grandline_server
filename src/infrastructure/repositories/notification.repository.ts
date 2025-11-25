@@ -106,5 +106,17 @@ export class NotificationRepositoryImpl
     );
     return NotificationRepositoryMapper.toEntities(docs);
   }
+
+  async markChatNotificationsAsRead(userId: string, chatId: string): Promise<void> {
+    await this.notificationModel.updateMany(
+      {
+        userId,
+        type: NotificationType.CHAT_MESSAGE,
+        isRead: false,
+        'data.chatId': chatId,
+      },
+      { $set: { isRead: true } }
+    );
+  }
 }
 

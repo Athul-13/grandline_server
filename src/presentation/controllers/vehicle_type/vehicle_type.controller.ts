@@ -6,7 +6,7 @@ import { IGetAllVehicleTypesUseCase } from '../../../application/use-cases/inter
 import { IUpdateVehicleTypeUseCase } from '../../../application/use-cases/interface/vehicle_type/update_vehicle_type_use_case.interface';
 import { IDeleteVehicleTypeUseCase } from '../../../application/use-cases/interface/vehicle_type/delete_vehicle_type_use_case.interface';
 import { CreateVehicleTypeRequest, UpdateVehicleTypeRequest } from '../../../application/dtos/vehicle.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';

@@ -16,4 +16,7 @@ export const SERVICE_TOKENS = {
   IRouteCalculationService: Symbol.for('IRouteCalculationService'),
   IPricingCalculationService: Symbol.for('IPricingCalculationService'),
   IVehicleRecommendationService: Symbol.for('IVehicleRecommendationService'),
+  // Socket event service
+  ISocketEventService: Symbol.for('ISocketEventService'),
 } as const;
+

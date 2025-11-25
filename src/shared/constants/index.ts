@@ -230,6 +230,7 @@ export const ERROR_MESSAGES = {
   EVENT_TYPE_ALREADY_EXISTS: 'Event type with this name already exists',
   ROUTE_CALCULATION_FAILED: 'Failed to calculate route',
   PRICING_CONFIG_NOT_FOUND: 'Pricing configuration not found',
+  NO_ADMIN_AVAILABLE: 'No admin available to assign to chat',
 } as const;
 
 /**
@@ -261,4 +262,6 @@ export const ERROR_CODES = {
   VEHICLE_NOT_FOUND: 'VEHICLE_NOT_FOUND',
   VEHICLE_TYPE_NOT_FOUND: 'VEHICLE_TYPE_NOT_FOUND',
   AMENITY_NOT_FOUND: 'AMENITY_NOT_FOUND',
+  NO_ADMIN_AVAILABLE: 'NO_ADMIN_AVAILABLE',
+  CHAT_NOT_FOUND: 'CHAT_NOT_FOUND',
 } as const;

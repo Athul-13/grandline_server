@@ -6,7 +6,7 @@ import { ICreatePricingConfigUseCase } from '../../../application/use-cases/inte
 import { IGetPricingConfigHistoryUseCase } from '../../../application/use-cases/interface/pricing_config/get_pricing_config_history_use_case.interface';
 import { IActivatePricingConfigUseCase } from '../../../application/use-cases/interface/pricing_config/activate_pricing_config_use_case.interface';
 import { CreatePricingConfigRequest } from '../../../application/dtos/pricing_config.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';

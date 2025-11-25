@@ -5,7 +5,7 @@ import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repo
 import { IVehicleRecommendationService } from '../../../../domain/services/vehicle_recommendation_service.interface';
 import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { VehicleStatus } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 

@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IUpdateAmenityUseCase } from '../../interface/amenity/update_amenity_use_case.interface';
 import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { UpdateAmenityRequest, UpdateAmenityResponse } from '../../../dtos/amenity.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AmenityMapper } from '../../../mapper/amenity.mapper';
 import { Amenity } from '../../../../domain/entities/amenity.entity';

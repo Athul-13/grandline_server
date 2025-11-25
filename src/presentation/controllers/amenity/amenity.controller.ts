@@ -7,7 +7,7 @@ import { IGetPaidAmenitiesUseCase } from '../../../application/use-cases/interfa
 import { IUpdateAmenityUseCase } from '../../../application/use-cases/interface/amenity/update_amenity_use_case.interface';
 import { IDeleteAmenityUseCase } from '../../../application/use-cases/interface/amenity/delete_amenity_use_case.interface';
 import { CreateAmenityRequest, UpdateAmenityRequest } from '../../../application/dtos/amenity.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';

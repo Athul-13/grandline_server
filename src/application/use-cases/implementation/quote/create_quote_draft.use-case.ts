@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { ICreateQuoteDraftUseCase } from '../../interface/quote/create_quote_draft_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { CreateQuoteDraftRequest, CreateQuoteDraftResponse } from '../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { Quote } from '../../../../domain/entities/quote.entity';
 import { QuoteStatus, ERROR_MESSAGES } from '../../../../shared/constants';
 import { randomUUID } from 'crypto';

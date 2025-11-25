@@ -1,5 +1,5 @@
 import { container } from 'tsyringe';
-import { SERVICE_TOKENS } from './tokens';
+import { SERVICE_TOKENS } from '../../application/di/tokens';
 import { IOTPService } from '../../domain/services/otp_service.interface';
 import { OTPServiceImpl } from '../service/otp.service';
 import { ITokenBlacklistService } from '../../domain/services/token_blacklist_service.interface';
@@ -19,6 +19,8 @@ import { PricingCalculationServiceImpl } from '../service/pricing_calculation.se
 import { IVehicleRecommendationService } from '../../domain/services/vehicle_recommendation_service.interface';
 import { VehicleRecommendationServiceImpl } from '../service/vehicle_recommendation.service';
 import { MapboxService } from '../service/mapbox.service';
+import { ISocketEventService } from '../../domain/services/socket_event_service.interface';
+import { SocketEventService } from '../service/socket_event.service';
 
 /**
  * Registers all service dependencies in the DI container
@@ -75,5 +77,12 @@ export function registerServices(): void {
   container.register<IVehicleRecommendationService>(
     SERVICE_TOKENS.IVehicleRecommendationService,
     { useClass: VehicleRecommendationServiceImpl }
+  );
+
+  // Socket event service - register as singleton so all resolutions return the same instance
+  // This ensures setIOServer(io) called in index.ts affects the same instance used everywhere
+  container.registerSingleton<ISocketEventService>(
+    SERVICE_TOKENS.ISocketEventService,
+    SocketEventService
   );
 }

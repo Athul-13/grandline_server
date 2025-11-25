@@ -5,7 +5,8 @@ import { registerRepositories } from './repositories.registry';
 import { registerConfigDependencies } from './config.registry';
 import { registerUseCases } from './use_cases.registry';
 import { registerControllers } from './controllers.registry';
-import { DEPENDENCY_TOKENS, SERVICE_TOKENS, REPOSITORY_TOKENS, CONFIG_TOKENS, USE_CASE_TOKENS, CONTROLLER_TOKENS } from './tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS, USE_CASE_TOKENS } from '../../application/di/tokens';
+import { DEPENDENCY_TOKENS, CONFIG_TOKENS, CONTROLLER_TOKENS } from './tokens';
 
 /**
  * Exports DI container and tokens for use in other files

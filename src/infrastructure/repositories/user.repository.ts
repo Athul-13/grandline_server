@@ -5,6 +5,7 @@ import { IUserModel, createUserModel } from '../database/mongodb/models/user.mod
 import { UserRepositoryMapper } from '../mappers/user_repository.mapper';
 import { MongoBaseRepository } from './base/mongo_base.repository';
 import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
+import { UserRole } from '../../shared/constants';
 
 /**
  * User repository implementation
@@ -66,6 +67,11 @@ export class UserRepositoryImpl
   async findByGoogleId(googleId: string): Promise<User | null> {
     const doc = await this.userModel.findOne({ googleId });
     return doc ? this.toEntity(doc) : null;
+  }
+
+  async findByRole(role: UserRole): Promise<User[]> {
+    const docs = await this.userModel.find({ role });
+    return UserRepositoryMapper.toEntities(docs);
   }
 
   async findById(userId: string): Promise<User | null> {

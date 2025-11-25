@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { ILogoutUserUseCase } from '../../interface/auth/logout_user_use_case.interface';
 import { LogoutUserRequest, LogoutUserResponse } from '../../../dtos/user.dto';
 import { IJWTService } from '../../../../domain/services/jwt_service.interface';
-import { SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';

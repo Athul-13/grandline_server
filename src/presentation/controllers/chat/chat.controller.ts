@@ -4,11 +4,13 @@ import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { ICreateChatUseCase } from '../../../application/use-cases/interface/chat/create_chat_use_case.interface';
 import { IGetUserChatsUseCase } from '../../../application/use-cases/interface/chat/get_user_chats_use_case.interface';
 import { IGetChatByContextUseCase } from '../../../application/use-cases/interface/chat/get_chat_by_context_use_case.interface';
-import { CreateChatRequest } from '../../../application/dtos/chat.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { CreateChatRequest, ChatResponse } from '../../../application/dtos/chat.dto';
+import { USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
+import { ISocketEventService } from '../../../domain/services/socket_event_service.interface';
+import { Chat } from '../../../domain/entities/chat.entity';
 
 /**
  * Chat controller
@@ -22,7 +24,9 @@ export class ChatController {
     @inject(USE_CASE_TOKENS.GetUserChatsUseCase)
     private readonly getUserChatsUseCase: IGetUserChatsUseCase,
     @inject(USE_CASE_TOKENS.GetChatByContextUseCase)
-    private readonly getChatByContextUseCase: IGetChatByContextUseCase
+    private readonly getChatByContextUseCase: IGetChatByContextUseCase,
+    @inject(SERVICE_TOKENS.ISocketEventService)
+    private readonly socketEventService: ISocketEventService
   ) {}
 
   /**
@@ -42,6 +46,13 @@ export class ChatController {
       const response = await this.createChatUseCase.execute(request, req.user.userId);
 
       logger.info(`Chat created successfully: ${response.chatId}`);
+
+      // Convert DTO to entity for domain service
+      const chatEntity = this.chatResponseToEntity(response);
+      
+      // Emit socket events for real-time notifications
+      void this.socketEventService.emitChatCreated(chatEntity, req.user.userId);
+
       sendSuccessResponse(res, HTTP_STATUS.CREATED, response);
     } catch (error) {
       logger.error(`Error creating chat: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -100,6 +111,22 @@ export class ChatController {
       logger.error(`Error getting chat by context: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
+  }
+
+  /**
+   * Converts ChatResponse DTO to Chat entity
+   * Used when passing data to domain services
+   */
+  private chatResponseToEntity(chatResponse: ChatResponse): Chat {
+    return new Chat(
+      chatResponse.chatId,
+      chatResponse.contextType,
+      chatResponse.contextId,
+      chatResponse.participantType,
+      chatResponse.participants,
+      chatResponse.createdAt,
+      chatResponse.updatedAt
+    );
   }
 }
 

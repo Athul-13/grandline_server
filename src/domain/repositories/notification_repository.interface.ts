@@ -48,5 +48,10 @@ export interface INotificationRepository extends IBaseRepository<Notification> {
     userId: string,
     type: NotificationType
   ): Promise<Notification[]>;
+
+  /**
+   * Marks all chat notifications as read for a user in a specific chat
+   */
+  markChatNotificationsAsRead(userId: string, chatId: string): Promise<void>;
 }
 

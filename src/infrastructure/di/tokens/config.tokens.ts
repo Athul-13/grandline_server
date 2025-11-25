@@ -13,5 +13,7 @@ export const CONFIG_TOKENS = {
   DatabaseConnector: Symbol.for('DatabaseConnector'),
   // Application setup
   App: Symbol.for('App'),
+  // Socket.io
+  SocketIOServer: Symbol.for('SocketIOServer'),
 } as const;
 

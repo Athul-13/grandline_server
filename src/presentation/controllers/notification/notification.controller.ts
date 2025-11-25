@@ -4,14 +4,14 @@ import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { ICreateNotificationUseCase } from '../../../application/use-cases/interface/notification/create_notification_use_case.interface';
 import { IGetUserNotificationsUseCase } from '../../../application/use-cases/interface/notification/get_user_notifications_use_case.interface';
 import { IMarkNotificationAsReadUseCase } from '../../../application/use-cases/interface/notification/mark_notification_as_read_use_case.interface';
-import { IMarkAllNotificationsAsReadUseCase } from '../../../application/use-cases/interface/notification/mark_notification_as_read_use_case.interface';
-import { IGetUnreadNotificationCountUseCase } from '../../../application/use-cases/interface/notification/mark_notification_as_read_use_case.interface';
+import { IMarkAllNotificationsAsReadUseCase } from '../../../application/use-cases/interface/notification/mark_all_notifications_as_read_use_case.interface';
+import { IGetUnreadNotificationCountUseCase } from '../../../application/use-cases/interface/notification/get_unread_notification_count_use_case.interface';
 import {
   CreateNotificationRequest,
   GetNotificationsRequest,
   MarkNotificationAsReadRequest,
 } from '../../../application/dtos/notification.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';

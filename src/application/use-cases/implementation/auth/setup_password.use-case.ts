@@ -4,7 +4,7 @@ import { SetupPasswordRequest, SetupPasswordResponse } from '../../../dtos/user.
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
 import { hashPassword } from '../../../../shared/utils/password.util';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
 

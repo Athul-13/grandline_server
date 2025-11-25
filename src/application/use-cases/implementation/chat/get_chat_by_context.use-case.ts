@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IGetChatByContextUseCase } from '../../interface/chat/get_chat_by_context_use_case.interface';
 import { IChatRepository } from '../../../../domain/repositories/chat_repository.interface';
 import { GetChatByContextResponse } from '../../../dtos/chat.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';

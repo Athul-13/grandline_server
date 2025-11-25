@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IRefreshTokenUseCase } from '../../../application/use-cases/interface/auth/refresh_token_use_case.interface';
 import { RefreshTokenRequest } from '../../../application/dtos/user.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, COOKIE_NAMES } from '../../../shared/constants';
 import { setAccessTokenCookie } from '../../../shared/utils/cookie.util';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';

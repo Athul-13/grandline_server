@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { ICreateNotificationUseCase } from '../../interface/notification/create_notification_use_case.interface';
 import { INotificationRepository } from '../../../../domain/repositories/notification_repository.interface';
 import { CreateNotificationRequest, NotificationResponse } from '../../../dtos/notification.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { Notification } from '../../../../domain/entities/notification.entity';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
 import { randomUUID } from 'crypto';

@@ -5,7 +5,7 @@ import { IUpdateUserProfileUseCase } from '../../../application/use-cases/interf
 import { IGenerateUploadUrlUseCase } from '../../../application/use-cases/interface/user/generate_upload_url_use_case.interface';
 import { IChangePasswordUseCase } from '../../../application/use-cases/interface/user/change_password_use_case.interface';
 import { UpdateUserProfileRequest, ChangePasswordRequest } from '../../../application/dtos/user.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';

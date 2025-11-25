@@ -3,7 +3,7 @@ import { IOTPService } from '../../../../domain/services/otp_service.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { VerifyOtpRequest, VerifyOtpResponse } from '../../../dtos/user.dto';
 import { UserMapper } from '../../../mapper/user.mapper';
-import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { IVerifyOtpUseCase } from '../../interface/auth/verify_otp_use_case.interface';

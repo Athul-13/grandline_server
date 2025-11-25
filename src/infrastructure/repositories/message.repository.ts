@@ -79,11 +79,13 @@ export class MessageRepositoryImpl
   }
 
   async markChatAsRead(chatId: string, userId: string): Promise<void> {
+    // Only mark messages as READ if they're already DELIVERED
+    // This ensures the flow: SENT → DELIVERED → READ (not SENT → READ)
     await this.messageModel.updateMany(
       {
         chatId,
         senderId: { $ne: userId },
-        deliveryStatus: { $ne: MessageDeliveryStatus.READ },
+        deliveryStatus: MessageDeliveryStatus.DELIVERED,
       },
       {
         $set: {
