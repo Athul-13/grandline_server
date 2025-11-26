@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IGenerateVehicleImageUploadUrlUseCase } from '../../interface/vehicle/generate_vehicle_image_upload_url_use_case.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { GenerateVehicleImageUploadUrlResponse } from '../../../dtos/vehicle.dto';
-import { SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS } from '../../../di/tokens';
 import { CLOUDINARY_CONFIG } from '../../../../shared/config';
 import { logger } from '../../../../shared/logger';
 

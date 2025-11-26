@@ -3,7 +3,7 @@ import { IGetAllVehicleTypesUseCase } from '../../interface/vehicle_type/get_all
 import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_type_repository.interface';
 import { IVehicleRepository } from '../../../../domain/repositories/vehicle_repository.interface';
 import { GetAllVehicleTypesResponse } from '../../../dtos/vehicle.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { logger } from '../../../../shared/logger';
 

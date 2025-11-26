@@ -1,5 +1,6 @@
 import { User } from "../entities/user.entity";
 import { IBaseRepository } from "./base_repository.interface";
+import { UserRole } from "../../shared/constants";
 
 /**
  * Repository interface for User entity operations
@@ -12,6 +13,8 @@ export interface IUserRepository extends IBaseRepository<User> {
     findByEmail(email: string): Promise<User | null>;
 
     findByGoogleId(googleId: string): Promise<User | null>;
+
+    findByRole(role: UserRole): Promise<User[]>;
 
     updateVerificationStatus(userId: string, isVerified: boolean): Promise<User>;
 

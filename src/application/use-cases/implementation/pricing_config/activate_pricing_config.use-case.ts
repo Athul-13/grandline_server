@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IActivatePricingConfigUseCase } from '../../interface/pricing_config/activate_pricing_config_use_case.interface';
 import { IPricingConfigRepository } from '../../../../domain/repositories/pricing_config_repository.interface';
 import { PricingConfigResponse } from '../../../dtos/pricing_config.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 

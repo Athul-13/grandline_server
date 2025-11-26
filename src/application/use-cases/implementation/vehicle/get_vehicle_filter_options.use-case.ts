@@ -9,7 +9,7 @@ import {
   NumberFilterOption,
   FilterOption,
 } from '../../../dtos/vehicle.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { VehicleStatus, VEHICLE_STATUS_LABELS } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 

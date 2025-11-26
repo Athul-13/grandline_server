@@ -3,7 +3,7 @@ import { inject, injectable } from 'tsyringe';
 import { IVerifyOtpUseCase } from '../../../application/use-cases/interface/auth/verify_otp_use_case.interface';
 import { IResendOtpUseCase } from '../../../application/use-cases/interface/auth/resend_otp_use_case.interface';
 import { VerifyOtpRequest, ResendOtpRequest } from '../../../application/dtos/user.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 

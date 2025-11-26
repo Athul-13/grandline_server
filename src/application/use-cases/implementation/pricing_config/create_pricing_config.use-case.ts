@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { ICreatePricingConfigUseCase } from '../../interface/pricing_config/create_pricing_config_use_case.interface';
 import { IPricingConfigRepository } from '../../../../domain/repositories/pricing_config_repository.interface';
 import { CreatePricingConfigRequest, PricingConfigResponse } from '../../../dtos/pricing_config.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { PricingConfig } from '../../../../domain/entities/pricing_config.entity';
 import { randomUUID } from 'crypto';
 import { AppError } from '../../../../shared/utils/app_error.util';

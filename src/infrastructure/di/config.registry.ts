@@ -15,6 +15,7 @@ import { MiddlewareConfig } from '../config/server/middleware.configurator';
  * Order matters: connections must be registered before connectors that use them
  */
 export function registerConfigDependencies(): void {
+  // Express & Middleware
   // Register Express application as singleton
   const expressApp: Application = express();
   container.registerInstance<Application>(CONFIG_TOKENS.ExpressApp, expressApp);
@@ -22,6 +23,7 @@ export function registerConfigDependencies(): void {
   // Register error handler as singleton
   container.registerInstance<ErrorRequestHandler>(CONFIG_TOKENS.ErrorHandler, errorHandler);
 
+  // Database connections
   // Register MongoDB connection as singleton
   container.registerSingleton(CONFIG_TOKENS.MongoDBConnection, MongoDBConnection);
 
@@ -42,6 +44,7 @@ export function registerConfigDependencies(): void {
     },
   });
 
+  // Application setup
   // Register App (will inject ExpressApp, DatabaseConnector, and MiddlewareConfigurator)
   container.register(CONFIG_TOKENS.App, App); 
 }

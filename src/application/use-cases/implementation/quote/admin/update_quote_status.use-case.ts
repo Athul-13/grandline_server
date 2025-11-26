@@ -4,7 +4,7 @@ import { IQuoteRepository } from '../../../../../domain/repositories/quote_repos
 import { IQuoteItineraryRepository } from '../../../../../domain/repositories/quote_itinerary_repository.interface';
 import { IPassengerRepository } from '../../../../../domain/repositories/passenger_repository.interface';
 import { UpdateQuoteStatusRequest, QuoteResponse } from '../../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../../di/tokens';
 import { QuoteMapper } from '../../../../mapper/quote.mapper';
 import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../../shared/constants';
 import { logger } from '../../../../../shared/logger';

@@ -3,7 +3,7 @@ import { ICreateCustomEventTypeUseCase } from '../../interface/event_type/create
 import { CreateCustomEventTypeRequest, EventTypeResponse } from '../../../dtos/event_type.dto';
 import { IEventTypeRepository } from '../../../../domain/repositories/event_type_repository.interface';
 import { EventType } from '../../../../domain/entities/event_type.entity';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';

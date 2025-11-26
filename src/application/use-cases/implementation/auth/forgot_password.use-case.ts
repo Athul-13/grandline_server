@@ -3,7 +3,7 @@ import { IForgotPasswordUseCase } from '../../interface/auth/forgot_password_use
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { ForgotPasswordRequest, ForgotPasswordResponse } from '../../../dtos/user.dto';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { EmailType, PasswordResetEmailData } from '../../../../shared/types/email.types';

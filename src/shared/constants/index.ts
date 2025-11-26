@@ -73,6 +73,35 @@ export enum StopType {
 }
 
 /**
+ * Chat participant type enumeration
+ * Defines the type of chat conversation based on participants
+ */
+export enum ParticipantType {
+  ADMIN_USER = 'admin_user',        // Chat between admin and user
+  ADMIN_DRIVER = 'admin_driver',    // Chat between admin and driver
+  DRIVER_USER = 'driver_user',      // Chat between driver and user
+}
+
+/**
+ * Message delivery status enumeration
+ * Tracks the delivery and read status of messages
+ */
+export enum MessageDeliveryStatus {
+  SENT = 'sent',                // Message saved to database
+  DELIVERED = 'delivered',      // Recipient is online (socket connected)
+  READ = 'read',                // Recipient actively viewing chat
+}
+
+/**
+ * Notification type enumeration
+ * Defines the type of notification in the system
+ */
+export enum NotificationType {
+  CHAT_MESSAGE = 'chat_message',   // New chat message notification
+  // Future notification types can be added here
+}
+
+/**
  * Vehicle status labels mapping
  * Maps status enum values to user-friendly display labels
  */
@@ -201,6 +230,7 @@ export const ERROR_MESSAGES = {
   EVENT_TYPE_ALREADY_EXISTS: 'Event type with this name already exists',
   ROUTE_CALCULATION_FAILED: 'Failed to calculate route',
   PRICING_CONFIG_NOT_FOUND: 'Pricing configuration not found',
+  NO_ADMIN_AVAILABLE: 'No admin available to assign to chat',
 } as const;
 
 /**
@@ -232,4 +262,6 @@ export const ERROR_CODES = {
   VEHICLE_NOT_FOUND: 'VEHICLE_NOT_FOUND',
   VEHICLE_TYPE_NOT_FOUND: 'VEHICLE_TYPE_NOT_FOUND',
   AMENITY_NOT_FOUND: 'AMENITY_NOT_FOUND',
+  NO_ADMIN_AVAILABLE: 'NO_ADMIN_AVAILABLE',
+  CHAT_NOT_FOUND: 'CHAT_NOT_FOUND',
 } as const;

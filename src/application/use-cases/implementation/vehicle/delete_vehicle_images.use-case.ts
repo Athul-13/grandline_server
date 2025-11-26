@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IDeleteVehicleImagesUseCase } from '../../interface/vehicle/delete_vehicle_images_use_case.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
-import { SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 
 /**

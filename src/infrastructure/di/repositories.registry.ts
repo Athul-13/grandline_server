@@ -1,5 +1,5 @@
 import { container } from 'tsyringe';
-import { REPOSITORY_TOKENS } from './tokens';
+import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
 import { UserRepositoryImpl } from '../repositories/user.repository';
 import { IVehicleTypeRepository } from '../../domain/repositories/vehicle_type_repository.interface';
@@ -18,17 +18,25 @@ import { IPricingConfigRepository } from '../../domain/repositories/pricing_conf
 import { PricingConfigRepositoryImpl } from '../repositories/pricing_config.repository';
 import { IEventTypeRepository } from '../../domain/repositories/event_type_repository.interface';
 import { EventTypeRepositoryImpl } from '../repositories/event_type.repository';
+import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
+import { ChatRepositoryImpl } from '../repositories/chat.repository';
+import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
+import { MessageRepositoryImpl } from '../repositories/message.repository';
+import { INotificationRepository } from '../../domain/repositories/notification_repository.interface';
+import { NotificationRepositoryImpl } from '../repositories/notification.repository';
 
 /**
  * Registers all repository dependencies in the DI container
  * Repositories are infrastructure implementations of domain repository interfaces
  */
 export function registerRepositories(): void {
+  // User & Driver repositories
   container.register<IUserRepository>(
     REPOSITORY_TOKENS.IUserRepository,
     { useClass: UserRepositoryImpl }
   );
 
+  // Vehicle repositories
   container.register<IVehicleTypeRepository>(
     REPOSITORY_TOKENS.IVehicleTypeRepository,
     { useClass: VehicleTypeRepositoryImpl }
@@ -39,11 +47,13 @@ export function registerRepositories(): void {
     { useClass: VehicleRepositoryImpl }
   );
 
+  // Amenity repository
   container.register<IAmenityRepository>(
     REPOSITORY_TOKENS.IAmenityRepository,
     { useClass: AmenityRepositoryImpl }
   );
 
+  // Quote repositories
   container.register<IQuoteRepository>(
     REPOSITORY_TOKENS.IQuoteRepository,
     { useClass: QuoteRepositoryImpl }
@@ -59,6 +69,7 @@ export function registerRepositories(): void {
     { useClass: PassengerRepositoryImpl }
   );
 
+  // Pricing & Event Type repositories
   container.register<IPricingConfigRepository>(
     REPOSITORY_TOKENS.IPricingConfigRepository,
     { useClass: PricingConfigRepositoryImpl }
@@ -67,5 +78,21 @@ export function registerRepositories(): void {
   container.register<IEventTypeRepository>(
     REPOSITORY_TOKENS.IEventTypeRepository,
     { useClass: EventTypeRepositoryImpl }
+  );
+
+  // Chat, Message & Notification repositories
+  container.register<IChatRepository>(
+    REPOSITORY_TOKENS.IChatRepository,
+    { useClass: ChatRepositoryImpl }
+  );
+
+  container.register<IMessageRepository>(
+    REPOSITORY_TOKENS.IMessageRepository,
+    { useClass: MessageRepositoryImpl }
+  );
+
+  container.register<INotificationRepository>(
+    REPOSITORY_TOKENS.INotificationRepository,
+    { useClass: NotificationRepositoryImpl }
   );
 }

@@ -1,0 +1,361 @@
+import { injectable } from 'tsyringe';
+import { Server } from 'socket.io';
+import { container } from 'tsyringe';
+import { ISocketEventService } from '../../domain/services/socket_event_service.interface';
+import { Message } from '../../domain/entities/message.entity';
+import { Chat } from '../../domain/entities/chat.entity';
+import { REPOSITORY_TOKENS } from '../../application/di/tokens';
+import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
+import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
+import { IUserRepository } from '../../domain/repositories/user_repository.interface';
+import { MessageDeliveryStatus, NotificationType } from '../../shared/constants';
+import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
+import { logger } from '../../shared/logger';
+import { ChatSocketHandler } from '../../presentation/socket_handlers/chat_socket.handler';
+import { NotificationSocketHandler } from '../../presentation/socket_handlers/notification_socket.handler';
+
+/**
+ * Socket event names for messages
+ */
+export const MESSAGE_SOCKET_EVENTS = {
+  MESSAGE_SENT: 'message-sent',
+  MESSAGE_DELIVERED: 'message-delivered',
+  MESSAGE_READ: 'message-read',
+} as const;
+
+/**
+ * Socket event names for chats
+ */
+export const CHAT_SOCKET_EVENTS = {
+  CHAT_CREATED: 'chat-created',
+} as const;
+
+/**
+ * Socket event service implementation
+ * Emits socket events for real-time notifications after REST API operations
+ */
+@injectable()
+export class SocketEventService implements ISocketEventService {
+  private io: Server | null = null;
+  private chatSocketHandler: ChatSocketHandler | null = null;
+  private notificationSocketHandler: NotificationSocketHandler | null = null;
+
+  constructor() {
+    // Service will be initialized with setIOServer, setChatSocketHandler, and setNotificationSocketHandler
+    // These are called during server initialization in index.ts
+  }
+
+  /**
+   * Sets the Socket.io server instance
+   * Called during server initialization
+   */
+  setIOServer(io: Server): void {
+    this.io = io;
+  }
+
+  /**
+   * Sets the ChatSocketHandler instance
+   * Used to check if users are online in chats
+   */
+  setChatSocketHandler(chatSocketHandler: ChatSocketHandler): void {
+    this.chatSocketHandler = chatSocketHandler;
+  }
+
+  /**
+   * Sets the NotificationSocketHandler instance
+   * Used to check if users are globally online
+   */
+  setNotificationSocketHandler(notificationSocketHandler: NotificationSocketHandler): void {
+    this.notificationSocketHandler = notificationSocketHandler;
+  }
+
+  /**
+   * Emits message-sent event to sender and recipient
+   * Checks if recipient is online and emits appropriate delivery status
+   */
+  async emitMessageSent(message: Message, senderId: string, chatId: string): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit message-sent event. ` +
+        `Method: emitMessageSent, MessageId: ${message.messageId}, SenderId: ${senderId}, ChatId: ${chatId}. ` +
+        `This should not happen if SocketEventService is properly initialized as singleton.`
+      );
+      return;
+    }
+
+    try {
+      logger.debug(`[SocketEventService] Emitting message-sent event for message: ${message.messageId}, sender: ${senderId}, chat: ${chatId}`);
+
+      const chatRepository = container.resolve<IChatRepository>(REPOSITORY_TOKENS.IChatRepository);
+      const chat = await chatRepository.findById(chatId);
+
+      if (!chat) {
+        logger.warn(`Chat not found: ${chatId}, cannot emit message-sent event`);
+        return;
+      }
+
+      // Find recipient
+      const recipient = chat.getOtherParticipant(senderId);
+      if (!recipient) {
+        logger.warn(`Recipient not found for chat: ${chatId}, cannot emit message-sent event`);
+        return;
+      }
+
+      // Get sender user for notification title
+      const userRepository = container.resolve<IUserRepository>(REPOSITORY_TOKENS.IUserRepository);
+      const sender = await userRepository.findById(senderId);
+      if (!sender) {
+        logger.warn(`Sender not found: ${senderId}, cannot create notification`);
+      }
+
+      // Emit to sender (confirmation) - both user room and chat room for real-time updates
+      const senderUserRoom = `user:${senderId}`;
+      const senderChatRoom = `chat:${chatId}`;
+      
+      // Convert entity to plain object for socket emission
+      const messageData = {
+        messageId: message.messageId,
+        chatId: message.chatId,
+        senderId: message.senderId,
+        content: message.content,
+        deliveryStatus: message.deliveryStatus,
+        createdAt: message.createdAt,
+        readAt: message.readAt,
+        readBy: message.readBy,
+      };
+      
+      this.io.to(senderUserRoom).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_SENT, messageData);
+      this.io.to(senderChatRoom).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_SENT, messageData);
+
+      // Check if recipient is globally online (connected to socket)
+      const isRecipientOnline =
+        this.notificationSocketHandler && (await this.notificationSocketHandler.isUserOnline(recipient.userId));
+
+      // Check if recipient has joined the chat room
+      const isRecipientInChat =
+        this.chatSocketHandler && (await this.chatSocketHandler.isUserOnlineInChat(recipient.userId, chatId));
+
+      const messageRepository = container.resolve<IMessageRepository>(REPOSITORY_TOKENS.IMessageRepository);
+
+      if (isRecipientOnline && isRecipientInChat) {
+        // Recipient is online AND has joined chat - mark as READ (double blue tick)
+        // First update to DELIVERED if it's still SENT, then mark as READ
+        if (message.deliveryStatus === MessageDeliveryStatus.SENT) {
+          await messageRepository.updateDeliveryStatus(message.messageId, MessageDeliveryStatus.DELIVERED);
+        }
+        // Mark as read (updates status to READ, readAt, and readBy)
+        await messageRepository.markAsRead(message.messageId, recipient.userId);
+
+        this.io.to(senderChatRoom).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_READ, {
+          chatId: message.chatId,
+          readBy: recipient.userId,
+        });
+      } else if (isRecipientOnline) {
+        // Recipient is globally online but NOT in chat - mark as DELIVERED (double gray tick)
+        await messageRepository.updateDeliveryStatus(message.messageId, MessageDeliveryStatus.DELIVERED);
+
+        // Emit to recipient's user room and chat room (they're online, will receive it)
+        const deliveredEvent = {
+          messageId: message.messageId,
+          chatId: message.chatId,
+        };
+        const recipientUserRoom = `user:${recipient.userId}`;
+        
+        this.io.to(recipientUserRoom).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_DELIVERED, deliveredEvent);
+        this.io.to(senderChatRoom).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_DELIVERED, deliveredEvent);
+
+        // Create notification since recipient is not actively viewing the chat
+        if (sender && this.notificationSocketHandler) {
+          try {
+            const messagePreview = message.content.length > 100 
+              ? message.content.substring(0, 100) + '...' 
+              : message.content;
+            
+            const notificationRequest: CreateNotificationRequest = {
+              userId: recipient.userId,
+              type: NotificationType.CHAT_MESSAGE,
+              title: `New message from ${sender.fullName}`,
+              message: messagePreview,
+              data: {
+                chatId: message.chatId,
+                messageId: message.messageId,
+                senderId: senderId,
+              },
+            };
+
+            await this.notificationSocketHandler.sendNotificationToUser(recipient.userId, notificationRequest);
+            logger.debug(`Notification created for user: ${recipient.userId}, chat: ${chatId}`);
+          } catch (notificationError) {
+            // Don't fail message sending if notification creation fails
+            logger.error(
+              `Error creating notification for message: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+            );
+          }
+        }
+      } else {
+        // Recipient is offline - message stays as SENT (single tick)
+        // No need to update database - message is already created with SENT status
+        // Emit to recipient's user room (they'll receive it when they come online)
+        // Also emit to chat room in case they're viewing but not globally online
+        const recipientUserRoom = `user:${recipient.userId}`;
+        
+        // Convert entity to plain object for socket emission
+        const messageData = {
+          messageId: message.messageId,
+          chatId: message.chatId,
+          senderId: message.senderId,
+          content: message.content,
+          deliveryStatus: message.deliveryStatus,
+          createdAt: message.createdAt,
+          readAt: message.readAt,
+          readBy: message.readBy,
+        };
+        
+        this.io.to(recipientUserRoom).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_SENT, messageData);
+        this.io.to(senderChatRoom).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_SENT, messageData);
+
+        // Create notification since recipient is offline
+        if (sender && this.notificationSocketHandler) {
+          try {
+            const messagePreview = message.content.length > 100 
+              ? message.content.substring(0, 100) + '...' 
+              : message.content;
+            
+            const notificationRequest: CreateNotificationRequest = {
+              userId: recipient.userId,
+              type: NotificationType.CHAT_MESSAGE,
+              title: `New message from ${sender.fullName}`,
+              message: messagePreview,
+              data: {
+                chatId: message.chatId,
+                messageId: message.messageId,
+                senderId: senderId,
+              },
+            };
+
+            await this.notificationSocketHandler.sendNotificationToUser(recipient.userId, notificationRequest);
+            logger.debug(`Notification created for offline user: ${recipient.userId}, chat: ${chatId}`);
+          } catch (notificationError) {
+            // Don't fail message sending if notification creation fails
+            logger.error(
+              `Error creating notification for offline user: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+            );
+          }
+        }
+      }
+    } catch (error) {
+      // Don't throw - socket emissions should not fail REST requests
+      logger.error(
+        `Error emitting message-sent event: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
+  /**
+   * Emits message-read event to all participants in a chat
+   */
+  emitMessageRead(chatId: string, readBy: string): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit message-read event. ` +
+        `Method: emitMessageRead, ChatId: ${chatId}, ReadBy: ${readBy}. ` +
+        `This should not happen if SocketEventService is properly initialized as singleton.`
+      );
+      return;
+    }
+
+    try {
+      // Emit to all participants in the chat room
+      this.io.to(`chat:${chatId}`).emit(MESSAGE_SOCKET_EVENTS.MESSAGE_READ, {
+        chatId,
+        readBy,
+      });
+
+      logger.debug(`Message-read event emitted for chat: ${chatId} by user: ${readBy}`);
+    } catch (error) {
+      // Don't throw - socket emissions should not fail REST requests
+      logger.error(`Error emitting message-read event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits chat-created event to creator and other participant
+   */
+  async emitChatCreated(chat: Chat, creatorId: string): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit chat-created event. ` +
+        `Method: emitChatCreated, ChatId: ${chat.chatId}, CreatorId: ${creatorId}. ` +
+        `This should not happen if SocketEventService is properly initialized as singleton.`
+      );
+      return;
+    }
+
+    try {
+      // Convert entity to plain object for socket emission
+      const chatData = {
+        chatId: chat.chatId,
+        contextType: chat.contextType,
+        contextId: chat.contextId,
+        participantType: chat.participantType,
+        participants: chat.participants.map((p) => ({
+          userId: p.userId,
+          participantType: p.participantType,
+        })),
+        createdAt: chat.createdAt,
+        updatedAt: chat.updatedAt,
+      };
+
+      // Emit to creator
+      this.io.to(`user:${creatorId}`).emit(CHAT_SOCKET_EVENTS.CHAT_CREATED, chatData);
+
+      // Find other participant
+      const otherParticipant = chat.participants.find((p) => p.userId !== creatorId);
+      if (otherParticipant) {
+        // Check if other participant is online
+        const isOtherParticipantOnline =
+          this.chatSocketHandler &&
+          (await this.chatSocketHandler.isUserOnlineInChat(otherParticipant.userId, chat.chatId));
+
+        if (isOtherParticipantOnline) {
+          // Emit to other participant
+          this.io.to(`user:${otherParticipant.userId}`).emit(CHAT_SOCKET_EVENTS.CHAT_CREATED, chatData);
+        }
+      }
+
+      logger.debug(`Chat-created event emitted for chat: ${chat.chatId} by user: ${creatorId}`);
+    } catch (error) {
+      // Don't throw - socket emissions should not fail REST requests
+      logger.error(`Error emitting chat-created event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits unread count updates to a user
+   */
+  emitUnreadCountUpdate(userId: string, chatId: string, unreadCount: number, totalUnreadCount: number): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit unread count update. ` +
+        `Method: emitUnreadCountUpdate, UserId: ${userId}, ChatId: ${chatId}. ` +
+        `This should not happen if SocketEventService is properly initialized as singleton.`
+      );
+      return;
+    }
+
+    try {
+      this.io.to(`user:${userId}`).emit('unread-count-updated', {
+        chatId,
+        unreadCount,
+        totalUnreadCount,
+      });
+
+      logger.debug(`Unread count update emitted for user: ${userId}, chat: ${chatId}`);
+    } catch (error) {
+      logger.error(
+        `Error emitting unread count update: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+}
+

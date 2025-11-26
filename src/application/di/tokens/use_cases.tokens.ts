@@ -3,6 +3,7 @@
  * Used for identifying use case implementations at runtime
  */
 export const USE_CASE_TOKENS = {
+  // Auth use cases
   RegisterUserUseCase: Symbol.for('RegisterUserUseCase'),
   VerifyOtpUseCase: Symbol.for('VerifyOtpUseCase'),
   ResendOtpUseCase: Symbol.for('ResendOtpUseCase'),
@@ -11,18 +12,21 @@ export const USE_CASE_TOKENS = {
   LogoutUserUseCase: Symbol.for('LogoutUserUseCase'),
   ForgotPasswordUseCase: Symbol.for('ForgotPasswordUseCase'),
   ResetPasswordUseCase: Symbol.for('ResetPasswordUseCase'),
-  GetUserProfileUseCase: Symbol.for('GetUserProfileUseCase'),
-  UpdateUserProfileUseCase: Symbol.for('UpdateUserProfileUseCase'),
-  GenerateUploadUrlUseCase: Symbol.for('GenerateUploadUrlUseCase'),
   GoogleAuthUseCase: Symbol.for('GoogleAuthUseCase'),
   SetupPasswordUseCase: Symbol.for('SetupPasswordUseCase'),
   LinkGoogleAccountUseCase: Symbol.for('LinkGoogleAccountUseCase'),
+  // User use cases
+  GetUserProfileUseCase: Symbol.for('GetUserProfileUseCase'),
+  UpdateUserProfileUseCase: Symbol.for('UpdateUserProfileUseCase'),
+  GenerateUploadUrlUseCase: Symbol.for('GenerateUploadUrlUseCase'),
   ChangePasswordUseCase: Symbol.for('ChangePasswordUseCase'),
+  // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),
   GetAllVehicleTypesUseCase: Symbol.for('GetAllVehicleTypesUseCase'),
   UpdateVehicleTypeUseCase: Symbol.for('UpdateVehicleTypeUseCase'),
   DeleteVehicleTypeUseCase: Symbol.for('DeleteVehicleTypeUseCase'),
+  // Vehicle use cases
   CreateVehicleUseCase: Symbol.for('CreateVehicleUseCase'),
   GetVehicleUseCase: Symbol.for('GetVehicleUseCase'),
   GetAllVehiclesUseCase: Symbol.for('GetAllVehiclesUseCase'),
@@ -33,29 +37,51 @@ export const USE_CASE_TOKENS = {
   GetVehicleFilterOptionsUseCase: Symbol.for('GetVehicleFilterOptionsUseCase'),
   GenerateVehicleImageUploadUrlUseCase: Symbol.for('GenerateVehicleImageUploadUrlUseCase'),
   DeleteVehicleImagesUseCase: Symbol.for('DeleteVehicleImagesUseCase'),
+  // Amenity use cases
   CreateAmenityUseCase: Symbol.for('CreateAmenityUseCase'),
   GetAmenityUseCase: Symbol.for('GetAmenityUseCase'),
   GetAllAmenitiesUseCase: Symbol.for('GetAllAmenitiesUseCase'),
   GetPaidAmenitiesUseCase: Symbol.for('GetPaidAmenitiesUseCase'),
   UpdateAmenityUseCase: Symbol.for('UpdateAmenityUseCase'),
   DeleteAmenityUseCase: Symbol.for('DeleteAmenityUseCase'),
+  // Quote use cases
   CreateQuoteDraftUseCase: Symbol.for('CreateQuoteDraftUseCase'),
   UpdateQuoteDraftUseCase: Symbol.for('UpdateQuoteDraftUseCase'),
   GetQuoteUseCase: Symbol.for('GetQuoteUseCase'),
   GetQuotesListUseCase: Symbol.for('GetQuotesListUseCase'),
   DeleteQuoteUseCase: Symbol.for('DeleteQuoteUseCase'),
   CalculateRoutesUseCase: Symbol.for('CalculateRoutesUseCase'),
-  GetEventTypesUseCase: Symbol.for('GetEventTypesUseCase'),
-  CreateCustomEventTypeUseCase: Symbol.for('CreateCustomEventTypeUseCase'),
   GetVehicleRecommendationsUseCase: Symbol.for('GetVehicleRecommendationsUseCase'),
   CalculateQuotePricingUseCase: Symbol.for('CalculateQuotePricingUseCase'),
   SubmitQuoteUseCase: Symbol.for('SubmitQuoteUseCase'),
+  // Event Type use cases
+  GetEventTypesUseCase: Symbol.for('GetEventTypesUseCase'),
+  CreateCustomEventTypeUseCase: Symbol.for('CreateCustomEventTypeUseCase'),
+  // Admin Quote use cases
   GetAdminQuotesListUseCase: Symbol.for('GetAdminQuotesListUseCase'),
   GetAdminQuoteUseCase: Symbol.for('GetAdminQuoteUseCase'),
   UpdateQuoteStatusUseCase: Symbol.for('UpdateQuoteStatusUseCase'),
+  // Pricing Config use cases
   GetPricingConfigUseCase: Symbol.for('GetPricingConfigUseCase'),
   CreatePricingConfigUseCase: Symbol.for('CreatePricingConfigUseCase'),
   GetPricingConfigHistoryUseCase: Symbol.for('GetPricingConfigHistoryUseCase'),
   ActivatePricingConfigUseCase: Symbol.for('ActivatePricingConfigUseCase'),
+  // Chat use cases
+  CreateChatUseCase: Symbol.for('CreateChatUseCase'),
+  GetUserChatsUseCase: Symbol.for('GetUserChatsUseCase'),
+  GetChatByContextUseCase: Symbol.for('GetChatByContextUseCase'),
+  // Message use cases
+  SendMessageUseCase: Symbol.for('SendMessageUseCase'),
+  GetChatMessagesUseCase: Symbol.for('GetChatMessagesUseCase'),
+  MarkMessageAsReadUseCase: Symbol.for('MarkMessageAsReadUseCase'),
+  GetUnreadMessageCountUseCase: Symbol.for('GetUnreadMessageCountUseCase'),
+  GetTotalUnreadMessageCountUseCase: Symbol.for('GetTotalUnreadMessageCountUseCase'),
+  // Notification use cases
+  CreateNotificationUseCase: Symbol.for('CreateNotificationUseCase'),
+  GetUserNotificationsUseCase: Symbol.for('GetUserNotificationsUseCase'),
+  MarkNotificationAsReadUseCase: Symbol.for('MarkNotificationAsReadUseCase'),
+  MarkAllNotificationsAsReadUseCase: Symbol.for('MarkAllNotificationsAsReadUseCase'),
+  GetUnreadNotificationCountUseCase: Symbol.for('GetUnreadNotificationCountUseCase'),
+  MarkChatNotificationsAsReadUseCase: Symbol.for('MarkChatNotificationsAsReadUseCase'),
 } as const;
 

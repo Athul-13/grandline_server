@@ -13,7 +13,7 @@ import { IGetVehicleFilterOptionsUseCase } from '../../../application/use-cases/
 import { IGenerateVehicleImageUploadUrlUseCase } from '../../../application/use-cases/interface/vehicle/generate_vehicle_image_upload_url_use_case.interface';
 import { IDeleteVehicleImagesUseCase } from '../../../application/use-cases/interface/vehicle/delete_vehicle_images_use_case.interface';
 import { CreateVehicleRequest, UpdateVehicleRequest, UpdateVehicleStatusRequest, DeleteVehicleImagesRequest } from '../../../application/dtos/vehicle.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';

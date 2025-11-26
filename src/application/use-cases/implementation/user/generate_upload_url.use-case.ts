@@ -3,7 +3,7 @@ import { IGenerateUploadUrlUseCase } from '../../interface/user/generate_upload_
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { SignedUploadUrlResponse } from '../../../dtos/user.dto';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { CLOUDINARY_CONFIG } from '../../../../shared/config';
 import { logger } from '../../../../shared/logger';

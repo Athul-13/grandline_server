@@ -5,7 +5,7 @@ import { IQuoteRepository } from '../../../../domain/repositories/quote_reposito
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ICalculateQuotePricingUseCase } from '../../interface/quote/calculate_quote_pricing_use_case.interface';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES, TripType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';

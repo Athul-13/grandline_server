@@ -5,7 +5,7 @@ import { IVehicleTypeRepository } from '../../../../domain/repositories/vehicle_
 import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { ICloudinaryService } from '../../../../domain/services/cloudinary_service.interface';
 import { UpdateVehicleRequest, UpdateVehicleResponse } from '../../../dtos/vehicle.dto';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';

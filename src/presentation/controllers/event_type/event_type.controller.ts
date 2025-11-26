@@ -4,7 +4,7 @@ import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { IGetEventTypesUseCase } from '../../../application/use-cases/interface/event_type/get_event_types_use_case.interface';
 import { ICreateCustomEventTypeUseCase } from '../../../application/use-cases/interface/event_type/create_custom_event_type_use_case.interface';
 import { CreateCustomEventTypeRequest } from '../../../application/dtos/event_type.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';

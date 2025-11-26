@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { IDeleteQuoteUseCase } from '../../interface/quote/delete_quote_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';

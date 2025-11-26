@@ -10,7 +10,7 @@ import { ISetupPasswordUseCase } from '../../../application/use-cases/interface/
 import { ILinkGoogleAccountUseCase } from '../../../application/use-cases/interface/auth/link_google_account_use_case.interface';
 import { RegisterUserRequest, LoginUserRequest, LogoutUserRequest, ForgotPasswordRequest, ResetPasswordRequest, GoogleAuthRequest, SetupPasswordRequest, LinkGoogleRequest } from '../../../application/dtos/user.dto';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES, COOKIE_NAMES, ERROR_MESSAGES } from '../../../shared/constants';
 import { setAccessTokenCookie, setRefreshTokenCookie, clearAllAuthCookies } from '../../../shared/utils/cookie.util';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';

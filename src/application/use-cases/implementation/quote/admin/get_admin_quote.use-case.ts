@@ -4,10 +4,11 @@ import { IQuoteRepository } from '../../../../../domain/repositories/quote_repos
 import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
 import { IQuoteItineraryRepository } from '../../../../../domain/repositories/quote_itinerary_repository.interface';
 import { IPassengerRepository } from '../../../../../domain/repositories/passenger_repository.interface';
+import { IChatRepository } from '../../../../../domain/repositories/chat_repository.interface';
 import { AdminQuoteResponse } from '../../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../../di/tokens';
 import { QuoteMapper } from '../../../../mapper/quote.mapper';
-import { ERROR_MESSAGES, ERROR_CODES } from '../../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, QuoteStatus } from '../../../../../shared/constants';
 import { logger } from '../../../../../shared/logger';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 
@@ -25,7 +26,9 @@ export class GetAdminQuoteUseCase implements IGetAdminQuoteUseCase {
     @inject(REPOSITORY_TOKENS.IQuoteItineraryRepository)
     private readonly itineraryRepository: IQuoteItineraryRepository,
     @inject(REPOSITORY_TOKENS.IPassengerRepository)
-    private readonly passengerRepository: IPassengerRepository
+    private readonly passengerRepository: IPassengerRepository,
+    @inject(REPOSITORY_TOKENS.IChatRepository)
+    private readonly chatRepository: IChatRepository
   ) {}
 
   async execute(quoteId: string): Promise<AdminQuoteResponse> {
@@ -56,9 +59,27 @@ export class GetAdminQuoteUseCase implements IGetAdminQuoteUseCase {
     // Map to response DTO
     const quoteResponse = QuoteMapper.toQuoteResponse(quote, itineraryStops, passengers);
 
-    // Add user information for admin response
+    // Check chat availability (available when status is SUBMITTED or later)
+    const chatAvailable =
+      quote.status === QuoteStatus.SUBMITTED ||
+      quote.status === QuoteStatus.NEGOTIATING ||
+      quote.status === QuoteStatus.ACCEPTED ||
+      quote.status === QuoteStatus.QUOTED;
+
+    // Check if chat exists for this quote
+    let chatId: string | undefined;
+    if (chatAvailable) {
+      const chat = await this.chatRepository.findByContext('quote', quoteId);
+      if (chat) {
+        chatId = chat.chatId;
+      }
+    }
+
+    // Add user information and chat info for admin response
     const adminQuoteResponse: AdminQuoteResponse = {
       ...quoteResponse,
+      chatAvailable,
+      chatId,
       user: {
         userId: user.userId,
         fullName: user.fullName,

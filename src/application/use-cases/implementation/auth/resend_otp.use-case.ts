@@ -3,7 +3,7 @@ import { IOTPService } from '../../../../domain/services/otp_service.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ResendOtpRequest, ResendOtpResponse } from '../../../dtos/user.dto';
 import { generateOTP } from '../../../../shared/utils/otp.util';
-import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES, OTP_CONFIG } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { IEmailService } from '../../../../domain/services/email_service.interface';

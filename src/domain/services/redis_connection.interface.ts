@@ -31,5 +31,36 @@ export interface IRedisConnection {
    * Pings Redis to check connectivity
    */
   ping(): Promise<boolean>;
+
+  // Set operations for presence management
+  /**
+   * Adds a member to a Redis Set
+   */
+  sadd(key: string, member: string): Promise<number>;
+
+  /**
+   * Removes a member from a Redis Set
+   */
+  srem(key: string, member: string): Promise<number>;
+
+  /**
+   * Gets all members of a Redis Set
+   */
+  smembers(key: string): Promise<string[]>;
+
+  /**
+   * Checks if a member exists in a Redis Set
+   */
+  sismember(key: string, member: string): Promise<number>;
+
+  /**
+   * Gets the number of members in a Redis Set
+   */
+  scard(key: string): Promise<number>;
+
+  /**
+   * Removes all members from a Redis Set
+   */
+  sremall(key: string): Promise<number>;
 }
 

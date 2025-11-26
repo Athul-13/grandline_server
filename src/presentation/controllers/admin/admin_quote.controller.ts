@@ -5,7 +5,7 @@ import { IGetAdminQuotesListUseCase } from '../../../application/use-cases/inter
 import { IGetAdminQuoteUseCase } from '../../../application/use-cases/interface/quote/admin/get_admin_quote_use_case.interface';
 import { IUpdateQuoteStatusUseCase } from '../../../application/use-cases/interface/quote/admin/update_quote_status_use_case.interface';
 import { UpdateQuoteStatusRequest } from '../../../application/dtos/quote.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, QuoteStatus } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';

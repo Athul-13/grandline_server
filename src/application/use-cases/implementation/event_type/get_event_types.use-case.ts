@@ -2,7 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { IGetEventTypesUseCase } from '../../interface/event_type/get_event_types_use_case.interface';
 import { EventTypeResponse } from '../../../dtos/event_type.dto';
 import { IEventTypeRepository } from '../../../../domain/repositories/event_type_repository.interface';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 
 /**

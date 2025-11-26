@@ -8,7 +8,7 @@ import { UserRole, UserStatus, ERROR_MESSAGES, ERROR_CODES, OTP_CONFIG } from '.
 import { hashPassword } from '../../../../shared/utils/password.util';
 import { generateOTP } from '../../../../shared/utils/otp.util';
 import { UserMapper } from '../../../mapper/user.mapper';
-import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../di/tokens';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
 import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
 import { logger } from '../../../../shared/logger';

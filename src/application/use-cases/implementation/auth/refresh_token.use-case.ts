@@ -3,7 +3,7 @@ import { IRefreshTokenUseCase } from '../../interface/auth/refresh_token_use_cas
 import { RefreshTokenRequest, RefreshTokenResponse } from '../../../dtos/user.dto';
 import { IJWTService } from '../../../../domain/services/jwt_service.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
-import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';

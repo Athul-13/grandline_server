@@ -4,7 +4,7 @@ import { LinkGoogleRequest, LinkGoogleResponse } from '../../../dtos/user.dto';
 import { IGoogleAuthService } from '../../../../domain/services/google_auth_service.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
-import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
 

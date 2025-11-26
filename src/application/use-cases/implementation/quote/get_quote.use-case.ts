@@ -3,10 +3,11 @@ import { IGetQuoteUseCase } from '../../interface/quote/get_quote_use_case.inter
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
 import { IPassengerRepository } from '../../../../domain/repositories/passenger_repository.interface';
+import { IChatRepository } from '../../../../domain/repositories/chat_repository.interface';
 import { QuoteResponse } from '../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { QuoteMapper } from '../../../mapper/quote.mapper';
-import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, QuoteStatus } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
 
@@ -22,7 +23,9 @@ export class GetQuoteUseCase implements IGetQuoteUseCase {
     @inject(REPOSITORY_TOKENS.IQuoteItineraryRepository)
     private readonly itineraryRepository: IQuoteItineraryRepository,
     @inject(REPOSITORY_TOKENS.IPassengerRepository)
-    private readonly passengerRepository: IPassengerRepository
+    private readonly passengerRepository: IPassengerRepository,
+    @inject(REPOSITORY_TOKENS.IChatRepository)
+    private readonly chatRepository: IChatRepository
   ) {}
 
   async execute(quoteId: string, userId: string): Promise<QuoteResponse> {
@@ -52,7 +55,26 @@ export class GetQuoteUseCase implements IGetQuoteUseCase {
     const itineraryStops = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
     const passengers = await this.passengerRepository.findByQuoteId(quoteId);
 
-    return QuoteMapper.toQuoteResponse(quote, itineraryStops, passengers);
+    // Check chat availability (available when status is SUBMITTED or later)
+    const chatAvailable = quote.status === QuoteStatus.SUBMITTED || 
+                         quote.status === QuoteStatus.NEGOTIATING || 
+                         quote.status === QuoteStatus.ACCEPTED || 
+                         quote.status === QuoteStatus.QUOTED;
+
+    // Check if chat exists for this quote
+    let chatId: string | undefined;
+    if (chatAvailable) {
+      const chat = await this.chatRepository.findByContext('quote', quoteId);
+      if (chat) {
+        chatId = chat.chatId;
+      }
+    }
+
+    const response = QuoteMapper.toQuoteResponse(quote, itineraryStops, passengers);
+    response.chatAvailable = chatAvailable;
+    response.chatId = chatId;
+
+    return response;
   }
 }
 

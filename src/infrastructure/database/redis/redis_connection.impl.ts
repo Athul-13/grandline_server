@@ -171,4 +171,51 @@ export class RedisConnection implements IRedisConnection {
   public getClient(): Redis {
     return this.redis;
   }
+
+  // Set operations for presence management
+  /**
+   * Adds a member to a Redis Set
+   */
+  public async sadd(key: string, member: string): Promise<number> {
+    return await this.redis.sadd(key, member);
+  }
+
+  /**
+   * Removes a member from a Redis Set
+   */
+  public async srem(key: string, member: string): Promise<number> {
+    return await this.redis.srem(key, member);
+  }
+
+  /**
+   * Gets all members of a Redis Set
+   */
+  public async smembers(key: string): Promise<string[]> {
+    return await this.redis.smembers(key);
+  }
+
+  /**
+   * Checks if a member exists in a Redis Set
+   */
+  public async sismember(key: string, member: string): Promise<number> {
+    return await this.redis.sismember(key, member);
+  }
+
+  /**
+   * Gets the number of members in a Redis Set
+   */
+  public async scard(key: string): Promise<number> {
+    return await this.redis.scard(key);
+  }
+
+  /**
+   * Removes all members from a Redis Set
+   */
+  public async sremall(key: string): Promise<number> {
+    const members = await this.redis.smembers(key);
+    if (members.length === 0) {
+      return 0;
+    }
+    return await this.redis.srem(key, ...members);
+  }
 }

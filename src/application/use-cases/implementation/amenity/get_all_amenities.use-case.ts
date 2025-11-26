@@ -3,7 +3,7 @@ import { IGetAllAmenitiesUseCase } from '../../interface/amenity/get_all_ameniti
 import { IAmenityRepository } from '../../../../domain/repositories/amenity_repository.interface';
 import { Amenity } from '../../../../domain/entities/amenity.entity';
 import { GetAllAmenitiesResponse } from '../../../dtos/amenity.dto';
-import { REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { AmenityMapper } from '../../../mapper/amenity.mapper';
 import { logger } from '../../../../shared/logger';
 

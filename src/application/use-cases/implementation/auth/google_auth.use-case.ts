@@ -8,7 +8,7 @@ import { IJWTService } from '../../../../domain/services/jwt_service.interface';
 import { User } from '../../../../domain/entities/user.entity';
 import { UserRole, UserStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
-import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../../infrastructure/di/tokens';
+import { SERVICE_TOKENS, REPOSITORY_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
 

@@ -16,7 +16,7 @@ import {
   CalculateRoutesRequest,
   GetRecommendationsRequest,
 } from '../../../application/dtos/quote.dto';
-import { USE_CASE_TOKENS } from '../../../infrastructure/di/tokens';
+import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, QuoteStatus } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
