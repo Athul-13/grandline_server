@@ -326,6 +326,7 @@ export interface QuoteListItemResponse {
   chatAvailable?: boolean;
   chatId?: string;
   createdAt: Date;
+  isDeleted?: boolean;
 }
 
 /**
