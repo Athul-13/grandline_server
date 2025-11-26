@@ -149,7 +149,7 @@ export class QuoteMapper {
       startLocation,
       endLocation,
       createdAt: quote.createdAt,
-      isDeleted: quote.isDeleted,
+      isDeleted: quote.isDeleted
     };
   }
 }
