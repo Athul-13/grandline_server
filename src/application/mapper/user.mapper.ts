@@ -1,5 +1,5 @@
 import { User } from "../../domain/entities/user.entity";
-import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse, ResendOtpResponse, LogoutUserResponse, ForgotPasswordResponse, ResetPasswordResponse, GetUserProfileResponse, UpdateUserProfileResponse } from "../dtos/user.dto";
+import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse, ResendOtpResponse, LogoutUserResponse, ForgotPasswordResponse, ResetPasswordResponse, GetUserProfileResponse, UpdateUserProfileResponse, GetUserByIdResponse } from "../dtos/user.dto";
 import { SUCCESS_MESSAGES } from "../../shared/constants";
 
 
@@ -89,6 +89,25 @@ export class UserMapper {
                 profilePicture: user.profilePicture,
                 role: user.role,
                 updatedAt: user.updatedAt,
+            },
+        };
+    }
+
+    static toGetUserByIdResponse(user: User): GetUserByIdResponse {
+        return {
+            user: {
+                userId: user.userId,
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                profilePicture: user.profilePicture,
+                role: user.role,
+                status: user.status,
+                isVerified: user.isVerified,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+                hasPassword: user.hasPassword(),
+                hasGoogleAuth: user.hasGoogleAuth(),
             },
         };
     }

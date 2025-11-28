@@ -364,3 +364,61 @@ export class ChangePasswordRequest {
 export interface ChangePasswordResponse {
   message: string;
 }
+
+/**
+ * Request DTO for getting user by ID (admin)
+ * userId is extracted from route params
+ */
+export interface GetUserByIdRequest {
+  userId: string;
+}
+
+/**
+ * Response DTO for getting user by ID (admin)
+ * Contains full user details for admin view
+ */
+export interface GetUserByIdResponse {
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber?: string;
+    profilePicture: string;
+    role: UserRole;
+    status: string;
+    isVerified: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    hasPassword: boolean;
+    hasGoogleAuth: boolean;
+  };
+}
+
+/**
+ * Request DTO for getting user by ID (admin)
+ * userId is extracted from route params
+ */
+export interface GetUserByIdRequest {
+  userId: string;
+}
+
+/**
+ * Response DTO for getting user by ID (admin)
+ * Contains full user details for admin view
+ */
+export interface GetUserByIdResponse {
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber?: string;
+    profilePicture: string;
+    role: UserRole;
+    status: string;
+    isVerified: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    hasPassword: boolean;
+    hasGoogleAuth: boolean;
+  };
+}
