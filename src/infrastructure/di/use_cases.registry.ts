@@ -16,6 +16,7 @@ import { SetupPasswordUseCase } from '../../application/use-cases/implementation
 import { LinkGoogleAccountUseCase } from '../../application/use-cases/implementation/auth/link_google_account.use-case';
 import { ChangePasswordUseCase } from '../../application/use-cases/implementation/user/change_password.use-case';
 import { GetUserByIdUseCase } from '../../application/use-cases/implementation/user/get_user_by_id.use-case';
+import { ListUsersUseCase } from '../../application/use-cases/implementation/user/list_users.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -93,6 +94,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GenerateUploadUrlUseCase, GenerateUploadUrlUseCase);
   container.register(USE_CASE_TOKENS.ChangePasswordUseCase, ChangePasswordUseCase);
   container.register(USE_CASE_TOKENS.GetUserByIdUseCase, GetUserByIdUseCase);
+  container.register(USE_CASE_TOKENS.ListUsersUseCase, ListUsersUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);

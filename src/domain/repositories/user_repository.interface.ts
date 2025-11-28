@@ -1,6 +1,6 @@
 import { User } from "../entities/user.entity";
 import { IBaseRepository } from "./base_repository.interface";
-import { UserRole } from "../../shared/constants";
+import { UserRole, UserStatus } from "../../shared/constants";
 
 /**
  * Repository interface for User entity operations
@@ -27,4 +27,14 @@ export interface IUserRepository extends IBaseRepository<User> {
     linkGoogleAccount(userId: string, googleId: string): Promise<User>;
 
     updateUserProfile(userId: string, updates: { fullName?: string; phoneNumber?: string; profilePicture?: string }): Promise<User>;
+
+    findRegularUsersWithFilters(filters: {
+        status?: UserStatus[];
+        isVerified?: boolean;
+        search?: string;
+        sortBy?: string;
+        sortOrder?: 'asc' | 'desc';
+        page?: number;
+        limit?: number;
+    }): Promise<{ users: User[]; total: number }>;
 }

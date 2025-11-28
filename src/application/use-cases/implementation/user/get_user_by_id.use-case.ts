@@ -3,7 +3,7 @@ import { IGetUserByIdUseCase } from '../../interface/user/get_user_by_id_use_cas
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { GetUserByIdResponse } from '../../../dtos/user.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
-import { ERROR_MESSAGES, ERROR_CODES, UserRole } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';

@@ -244,6 +244,49 @@ export interface GetUserProfileResponse {
 }
 
 /**
+ * Request DTO for listing users (admin)
+ * Query parameters for filtering, searching, and pagination
+ */
+export interface ListUsersRequest {
+  page?: number;
+  limit?: number;
+  status?: string[]; // Array of UserStatus values
+  isVerified?: boolean;
+  search?: string;
+  sortBy?: string; // 'email' | 'fullName' | 'createdAt'
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
+ * User list item for admin view
+ */
+export interface UserListItem {
+  userId: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  profilePicture: string;
+  status: string;
+  isVerified: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/**
+ * Response DTO for listing users (admin)
+ * Contains paginated user list with metadata
+ */
+export interface ListUsersResponse {
+  users: UserListItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+/**
  * Response DTO for updating user profile
  * Contains the result of the profile update process
  */
@@ -363,35 +406,6 @@ export class ChangePasswordRequest {
  */
 export interface ChangePasswordResponse {
   message: string;
-}
-
-/**
- * Request DTO for getting user by ID (admin)
- * userId is extracted from route params
- */
-export interface GetUserByIdRequest {
-  userId: string;
-}
-
-/**
- * Response DTO for getting user by ID (admin)
- * Contains full user details for admin view
- */
-export interface GetUserByIdResponse {
-  user: {
-    userId: string;
-    fullName: string;
-    email: string;
-    phoneNumber?: string;
-    profilePicture: string;
-    role: UserRole;
-    status: string;
-    isVerified: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-    hasPassword: boolean;
-    hasGoogleAuth: boolean;
-  };
 }
 
 /**

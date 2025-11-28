@@ -21,6 +21,7 @@ export const USE_CASE_TOKENS = {
   GenerateUploadUrlUseCase: Symbol.for('GenerateUploadUrlUseCase'),
   ChangePasswordUseCase: Symbol.for('ChangePasswordUseCase'),
   GetUserByIdUseCase: Symbol.for('GetUserByIdUseCase'),
+  ListUsersUseCase: Symbol.for('ListUsersUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),

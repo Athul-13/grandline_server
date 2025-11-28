@@ -5,7 +5,7 @@ import { IUserModel, createUserModel } from '../database/mongodb/models/user.mod
 import { UserRepositoryMapper } from '../mappers/user_repository.mapper';
 import { MongoBaseRepository } from './base/mongo_base.repository';
 import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
-import { UserRole } from '../../shared/constants';
+import { UserRole, UserStatus } from '../../shared/constants';
 
 /**
  * User repository implementation
@@ -168,5 +168,98 @@ export class UserRepositoryImpl
     }
 
     return this.toEntity(updatedDoc);
+  }
+
+  async findRegularUsersWithFilters(filters: {
+    status?: UserStatus[];
+    isVerified?: boolean;
+    search?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+    page?: number;
+    limit?: number;
+  }): Promise<{ users: User[]; total: number }> {
+    // Build MongoDB filter - exclude admins (only regular users)
+    const filter: Record<string, unknown> = {
+      role: UserRole.USER, // Only regular users
+    };
+
+    // Add status filter
+    if (filters.status && filters.status.length > 0) {
+      filter.status = { $in: filters.status };
+    }
+
+    // Add verification filter
+    if (filters.isVerified !== undefined) {
+      filter.isVerified = filters.isVerified;
+    }
+
+    // Add search filter (case-insensitive search across email, fullName, phoneNumber)
+    if (filters.search && filters.search.trim().length > 0) {
+      const searchRegex = { $regex: filters.search.trim(), $options: 'i' };
+      filter.$or = [
+        { email: searchRegex },
+        { fullName: searchRegex },
+        { phoneNumber: searchRegex },
+      ];
+    }
+
+    // Fetch all matching users (we'll paginate in memory for now)
+    const allDocs = await this.userModel.find(filter);
+    const allUsers = UserRepositoryMapper.toEntities(allDocs);
+
+    // Apply sorting
+    let sortedUsers = allUsers;
+    if (filters.sortBy) {
+      const sortOrder = filters.sortOrder === 'desc' ? -1 : 1;
+      sortedUsers = [...allUsers].sort((a, b) => {
+        let aValue: string | number;
+        let bValue: string | number;
+
+        switch (filters.sortBy) {
+          case 'email':
+            aValue = a.email.toLowerCase();
+            bValue = b.email.toLowerCase();
+            break;
+          case 'fullName':
+            aValue = a.fullName.toLowerCase();
+            bValue = b.fullName.toLowerCase();
+            break;
+          case 'createdAt':
+            aValue = a.createdAt.getTime();
+            bValue = b.createdAt.getTime();
+            break;
+          default:
+            // Default to createdAt
+            aValue = a.createdAt.getTime();
+            bValue = b.createdAt.getTime();
+        }
+
+        if (aValue < bValue) return -1 * sortOrder;
+        if (aValue > bValue) return 1 * sortOrder;
+        return 0;
+      });
+    } else {
+      // Default sort: newest first (createdAt desc)
+      sortedUsers = [...allUsers].sort((a, b) => {
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      });
+    }
+
+    const total = sortedUsers.length;
+
+    // Apply pagination
+    if (filters.page && filters.limit) {
+      const normalizedPage = Math.max(1, Math.floor(filters.page) || 1);
+      const normalizedLimit = Math.max(1, Math.min(100, Math.floor(filters.limit) || 20));
+      const startIndex = (normalizedPage - 1) * normalizedLimit;
+      const endIndex = startIndex + normalizedLimit;
+      sortedUsers = sortedUsers.slice(startIndex, endIndex);
+    }
+
+    return {
+      users: sortedUsers,
+      total,
+    };
   }
 }

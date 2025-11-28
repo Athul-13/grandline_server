@@ -16,6 +16,18 @@ export function createAdminUserRoutesWithDI(): Router {
   );
 
   /**
+   * @route   GET /api/v1/admin/users
+   * @desc    Get all users with pagination, filtering, and search (admin only, regular users only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminUserController.listUsers(req, res)
+  );
+
+  /**
    * @route   GET /api/v1/admin/users/:userId
    * @desc    Get user details by ID (admin only, regular users only)
    * @access  Private (Admin)
