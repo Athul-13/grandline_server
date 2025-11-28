@@ -47,4 +47,11 @@ export class User {
     hasGoogleAuth(): boolean {
         return !!this.googleId;
     }
+
+    /**
+     * Checks if the user is blocked
+     */
+    isBlocked(): boolean {
+        return this.status === UserStatus.BLOCKED;
+    }
 }
