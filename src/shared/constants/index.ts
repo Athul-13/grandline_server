@@ -13,8 +13,9 @@ export enum UserRole {
  */
 export enum UserStatus {
   ACTIVE = 'active',    
-  INACTIVE = 'inactive', 
-  BLOCKED = 'blocked',
+  INACTIVE = 'inactive', // User self-deleted (can re-register)
+  BLOCKED = 'blocked',   // Admin blocked (can login but restricted)
+  DELETED = 'deleted',   // Admin deactivated (cannot re-register)
 }
 
 /**

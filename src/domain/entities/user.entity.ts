@@ -18,13 +18,17 @@ export class User {
         public readonly phoneNumber?: string,
         private readonly password?: string,
         public readonly googleId?: string,
+        public readonly isDeleted: boolean = false,
     ) {}
 
     /**
      * Checks if the user can login
+     * INACTIVE and DELETED users cannot login
+     * BLOCKED users can login but with restrictions
+     * ACTIVE users can login normally
      */
     canLogin(): boolean {
-        return this.status === UserStatus.ACTIVE;
+        return this.status === UserStatus.ACTIVE || this.status === UserStatus.BLOCKED;
     }
 
     /**

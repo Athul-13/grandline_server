@@ -12,6 +12,8 @@ export interface IUserRepository extends IBaseRepository<User> {
 
     findByEmail(email: string): Promise<User | null>;
 
+    findByEmailIncludingDeleted(email: string): Promise<User | null>;
+
     findByGoogleId(googleId: string): Promise<User | null>;
 
     findByRole(role: UserRole): Promise<User[]>;
@@ -39,4 +41,19 @@ export interface IUserRepository extends IBaseRepository<User> {
     }): Promise<{ users: User[]; total: number }>;
 
     updateUserStatus(userId: string, status: UserStatus): Promise<User>;
+
+    updateUserRole(userId: string, role: UserRole): Promise<User>;
+
+    getUserStatistics(timeRange?: { startDate?: Date; endDate?: Date }): Promise<{
+        totalUsers: number;
+        activeUsers: number;
+        inactiveUsers: number;
+        blockedUsers: number;
+        verifiedUsers: number;
+        unverifiedUsers: number;
+        newUsers: number;
+        usersByStatus: Record<string, number>;
+    }>;
+
+    softDelete(userId: string): Promise<void>;
 }

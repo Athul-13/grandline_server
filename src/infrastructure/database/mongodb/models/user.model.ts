@@ -19,6 +19,7 @@ export interface IUserModel extends Document {
   status: UserStatus;
   profilePicture: string;
   isVerified: boolean;
+  isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;
 }

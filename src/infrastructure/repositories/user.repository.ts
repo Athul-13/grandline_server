@@ -60,12 +60,17 @@ export class UserRepositoryImpl
   }
 
   async findByEmail(email: string): Promise<User | null> {
+    const doc = await this.userModel.findOne({ email, isDeleted: { $ne: true } }, { select: '+password' });
+    return doc ? this.toEntity(doc) : null;
+  }
+
+  async findByEmailIncludingDeleted(email: string): Promise<User | null> {
     const doc = await this.userModel.findOne({ email }, { select: '+password' });
     return doc ? this.toEntity(doc) : null;
   }
 
   async findByGoogleId(googleId: string): Promise<User | null> {
-    const doc = await this.userModel.findOne({ googleId });
+    const doc = await this.userModel.findOne({ googleId, isDeleted: { $ne: true } });
     return doc ? this.toEntity(doc) : null;
   }
 
@@ -75,12 +80,12 @@ export class UserRepositoryImpl
   }
 
   async findById(userId: string): Promise<User | null> {
-    const doc = await this.userModel.findOne({ userId }, { select: '+password' });
+    const doc = await this.userModel.findOne({ userId, isDeleted: { $ne: true } }, { select: '+password' });
     return doc ? this.toEntity(doc) : null;
   }
 
   async findAll(): Promise<User[]> {
-    const docs = await this.userModel.find({});
+    const docs = await this.userModel.find({ isDeleted: { $ne: true } });
     return UserRepositoryMapper.toEntities(docs);
   }
 
@@ -179,9 +184,10 @@ export class UserRepositoryImpl
     page?: number;
     limit?: number;
   }): Promise<{ users: User[]; total: number }> {
-    // Build MongoDB filter - exclude admins (only regular users)
+    // Build MongoDB filter - exclude admins (only regular users) and deleted users
     const filter: Record<string, unknown> = {
       role: UserRole.USER, // Only regular users
+      isDeleted: { $ne: true }, // Exclude soft-deleted users (includes missing field for existing users)
     };
 
     // Add status filter
@@ -264,9 +270,16 @@ export class UserRepositoryImpl
   }
 
   async updateUserStatus(userId: string, status: UserStatus): Promise<User> {
+    // Set isDeleted based on status
+    // INACTIVE → isDeleted: true (user self-deleted, can re-register)
+    // DELETED → isDeleted: true (admin deactivated, cannot re-register)
+    // BLOCKED → isDeleted: false (admin blocked, can login but restricted)
+    // ACTIVE → isDeleted: false (normal active account)
+    const isDeleted = status === UserStatus.INACTIVE || status === UserStatus.DELETED;
+
     const result = await this.userModel.updateOne(
       { userId },
-      { $set: { status } }
+      { $set: { status, isDeleted, updatedAt: new Date() } }
     );
 
     if (result.matchedCount === 0) {
@@ -279,5 +292,96 @@ export class UserRepositoryImpl
     }
 
     return this.toEntity(updatedDoc);
+  }
+
+  async updateUserRole(userId: string, role: UserRole): Promise<User> {
+    const result = await this.userModel.updateOne(
+      { userId },
+      { $set: { role } }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+
+    const updatedDoc = await this.userModel.findOne({ userId });
+    if (!updatedDoc) {
+      throw new Error(`User with id ${userId} not found after update`);
+    }
+
+    return this.toEntity(updatedDoc);
+  }
+
+  async getUserStatistics(timeRange?: { startDate?: Date; endDate?: Date }): Promise<{
+    totalUsers: number;
+    activeUsers: number;
+    inactiveUsers: number;
+    blockedUsers: number;
+    verifiedUsers: number;
+    unverifiedUsers: number;
+    newUsers: number;
+    usersByStatus: Record<string, number>;
+  }> {
+    // Base filter: exclude admins and soft-deleted users
+    const baseFilter: Record<string, unknown> = {
+      role: UserRole.USER, // Exclude admins
+      isDeleted: { $ne: true }, // Exclude soft-deleted users (includes missing field for existing users)
+    };
+
+    // Add time range filter for new users if provided
+    const newUsersFilter: Record<string, unknown> = { ...baseFilter };
+    if (timeRange?.startDate || timeRange?.endDate) {
+      newUsersFilter.createdAt = {};
+      if (timeRange.startDate) {
+        newUsersFilter.createdAt = { ...newUsersFilter.createdAt as Record<string, unknown>, $gte: timeRange.startDate };
+      }
+      if (timeRange.endDate) {
+        newUsersFilter.createdAt = { ...newUsersFilter.createdAt as Record<string, unknown>, $lte: timeRange.endDate };
+      }
+    }
+
+    // Get all regular users (excluding admins)
+    const allUsers = await this.userModel.find(baseFilter);
+    
+    // Calculate statistics
+    const totalUsers = allUsers.length;
+    const activeUsers = allUsers.filter(u => u.status === UserStatus.ACTIVE).length;
+    const inactiveUsers = allUsers.filter(u => u.status === UserStatus.INACTIVE).length;
+    const blockedUsers = allUsers.filter(u => u.status === UserStatus.BLOCKED).length;
+    const verifiedUsers = allUsers.filter(u => u.isVerified === true).length;
+    const unverifiedUsers = allUsers.filter(u => u.isVerified === false).length;
+    
+    // Get new users in time range
+    const newUsersDocs = timeRange ? await this.userModel.find(newUsersFilter) : allUsers;
+    const newUsers = newUsersDocs.length;
+
+    // Users by status breakdown
+    const usersByStatus: Record<string, number> = {
+      [UserStatus.ACTIVE]: activeUsers,
+      [UserStatus.INACTIVE]: inactiveUsers,
+      [UserStatus.BLOCKED]: blockedUsers,
+    };
+
+    return {
+      totalUsers,
+      activeUsers,
+      inactiveUsers,
+      blockedUsers,
+      verifiedUsers,
+      unverifiedUsers,
+      newUsers,
+      usersByStatus,
+    };
+  }
+
+  async softDelete(userId: string): Promise<void> {
+    const result = await this.userModel.updateOne(
+      { userId },
+      { $set: { isDeleted: true, status: UserStatus.INACTIVE, updatedAt: new Date() } }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error(`User with id ${userId} not found`);
+    }
   }
 }

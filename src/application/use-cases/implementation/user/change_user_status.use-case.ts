@@ -10,7 +10,8 @@ import { AppError } from '../../../../shared/utils/app_error.util';
 
 /**
  * Use case for changing user status (admin)
- * Updates user status (ACTIVE, INACTIVE, BLOCKED)
+ * Updates user status (ACTIVE, BLOCKED, DELETED)
+ * Admin cannot set status to INACTIVE (only users can self-delete to INACTIVE)
  * Only allows changing status for regular users (not admins)
  */
 @injectable()
@@ -33,6 +34,14 @@ export class ChangeUserStatusUseCase implements IChangeUserStatusUseCase {
     // Validate status
     if (!request.status || !Object.values(UserStatus).includes(request.status)) {
       throw new AppError(ERROR_MESSAGES.INVALID_USER_STATUS, ERROR_CODES.INVALID_USER_STATUS, 400);
+    }
+
+    // Prevent admin from setting status to INACTIVE
+    // INACTIVE status can only be set by users when they self-delete their account
+    // Admin can only set: ACTIVE, BLOCKED, or DELETED
+    if (request.status === UserStatus.INACTIVE) {
+      logger.warn(`Admin attempt to set status to INACTIVE for user: ${userId}`);
+      throw new AppError('Admin cannot set user status to INACTIVE. Only users can self-delete their accounts.', ERROR_CODES.INVALID_USER_STATUS, 400);
     }
 
     // Find existing user

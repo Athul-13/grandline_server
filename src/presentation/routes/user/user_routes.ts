@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { UserController } from '../../controllers/user/user.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
-import { UpdateUserProfileRequest, ChangePasswordRequest } from '../../../application/dtos/user.dto';
+import { UpdateUserProfileRequest, ChangePasswordRequest, DeleteUserAccountRequest } from '../../../application/dtos/user.dto';
 
 /**
  * Route configuration interface
@@ -63,6 +63,18 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
     authenticate,
     validationMiddleware(ChangePasswordRequest),
     (req, res) => void userController.changePassword(req, res)
+  );
+
+  /**
+   * Delete User Account
+   * DELETE /api/v1/user/account
+   * Requires authentication and password confirmation
+   */
+  router.delete(
+    '/account',
+    authenticate,
+    validationMiddleware(DeleteUserAccountRequest),
+    (req, res) => void userController.deleteUserAccount(req, res)
   );
 
   return router;

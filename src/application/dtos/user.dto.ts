@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength, ValidateIf, IsEnum } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength, ValidateIf, IsEnum, IsDateString } from 'class-validator';
 import { UserRole, UserStatus } from '../../shared/constants';
 
 /**
@@ -316,6 +316,35 @@ export interface ChangeUserStatusResponse {
 }
 
 /**
+ * Request DTO for changing user role (admin)
+ * Validates role value
+ */
+export class ChangeUserRoleRequest {
+  @IsEnum(UserRole)
+  @IsNotEmpty()
+  role!: UserRole;
+}
+
+/**
+ * Response DTO for changing user role (admin)
+ * Contains the result of the role change process
+ */
+export interface ChangeUserRoleResponse {
+  message: string;
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber?: string;
+    profilePicture: string;
+    role: UserRole;
+    status: string;
+    isVerified: boolean;
+    updatedAt: Date;
+  };
+}
+
+/**
  * Response DTO for updating user profile
  * Contains the result of the profile update process
  */
@@ -464,4 +493,62 @@ export interface GetUserByIdResponse {
     hasPassword: boolean;
     hasGoogleAuth: boolean;
   };
+}
+
+/**
+ * Request DTO for getting user statistics (admin)
+ * Optional time range filter
+ */
+export class GetUserStatisticsRequest {
+  @IsOptional()
+  @IsEnum(['all_time', '7_days', '30_days', 'custom'])
+  timeRange?: 'all_time' | '7_days' | '30_days' | 'custom';
+
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+}
+
+/**
+ * Response DTO for user statistics (admin)
+ * Contains comprehensive user analytics
+ */
+export interface GetUserStatisticsResponse {
+  statistics: {
+    totalUsers: number;
+    activeUsers: number;
+    inactiveUsers: number;
+    blockedUsers: number;
+    verifiedUsers: number;
+    unverifiedUsers: number;
+    newUsers: number;
+    usersByStatus: Record<string, number>;
+    timeRange: {
+      type: 'all_time' | '7_days' | '30_days' | 'custom';
+      startDate?: Date;
+      endDate?: Date;
+    };
+  };
+}
+
+/**
+ * Request DTO for deleting user account (self-service)
+ * Requires password confirmation
+ */
+export class DeleteUserAccountRequest {
+  @IsString()
+  @IsNotEmpty()
+  password!: string;
+}
+
+/**
+ * Response DTO for deleting user account
+ * Confirms account deletion
+ */
+export interface DeleteUserAccountResponse {
+  message: string;
 }

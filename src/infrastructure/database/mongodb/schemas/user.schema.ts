@@ -67,6 +67,11 @@ export const UserSchema: Schema = new Schema(
       default: false,
       required: true,
     },
+    isDeleted: {
+      type: Boolean,
+      default: false,
+      required: true,
+    },
   },
   {
     timestamps: true,

@@ -3,7 +3,9 @@ import { inject, injectable } from 'tsyringe';
 import { IGetUserByIdUseCase } from '../../../application/use-cases/interface/user/get_user_by_id_use_case.interface';
 import { IListUsersUseCase } from '../../../application/use-cases/interface/user/list_users_use_case.interface';
 import { IChangeUserStatusUseCase } from '../../../application/use-cases/interface/user/change_user_status_use_case.interface';
-import { ListUsersRequest, ChangeUserStatusRequest } from '../../../application/dtos/user.dto';
+import { IChangeUserRoleUseCase } from '../../../application/use-cases/interface/user/change_user_role_use_case.interface';
+import { IGetUserStatisticsUseCase } from '../../../application/use-cases/interface/user/get_user_statistics_use_case.interface';
+import { ListUsersRequest, ChangeUserStatusRequest, ChangeUserRoleRequest, GetUserStatisticsRequest } from '../../../application/dtos/user.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -23,6 +25,10 @@ export class AdminUserController {
     private readonly listUsersUseCase: IListUsersUseCase,
     @inject(USE_CASE_TOKENS.ChangeUserStatusUseCase)
     private readonly changeUserStatusUseCase: IChangeUserStatusUseCase,
+    @inject(USE_CASE_TOKENS.ChangeUserRoleUseCase)
+    private readonly changeUserRoleUseCase: IChangeUserRoleUseCase,
+    @inject(USE_CASE_TOKENS.GetUserStatisticsUseCase)
+    private readonly getUserStatisticsUseCase: IGetUserStatisticsUseCase,
   ) {}
 
   /**
@@ -127,6 +133,61 @@ export class AdminUserController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.USER_STATUS_UPDATED);
     } catch (error) {
       logger.error(`Error changing user status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles changing user role
+   */
+  async changeUserRole(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Change user role attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const userId = req.params.userId;
+      if (!userId) {
+        logger.warn('Change user role attempt without userId parameter');
+        sendErrorResponse(res, new Error('User ID is required'));
+        return;
+      }
+
+      const request = req.body as ChangeUserRoleRequest;
+      logger.info(`Admin ${req.user.userId} changing role for user: ${userId} to ${request.role}`);
+      
+      const response = await this.changeUserRoleUseCase.execute(userId, request);
+      
+      logger.info(`User role changed successfully: ${userId} to ${request.role}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.USER_ROLE_UPDATED);
+    } catch (error) {
+      logger.error(`Error changing user role: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting user statistics
+   */
+  async getUserStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get user statistics attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request = req.query as unknown as GetUserStatisticsRequest;
+      logger.info(`Admin ${req.user.userId} requesting user statistics: ${request.timeRange || 'all_time'}`);
+      
+      const response = await this.getUserStatisticsUseCase.execute(request);
+      
+      logger.info('User statistics retrieved successfully');
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, 'User statistics retrieved successfully');
+    } catch (error) {
+      logger.error(`Error getting user statistics: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

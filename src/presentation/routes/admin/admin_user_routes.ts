@@ -4,7 +4,7 @@ import { AdminUserController } from '../../controllers/admin/admin_user.controll
 import { authenticate } from '../../middleware/auth.middleware';
 import { requireAdmin } from '../../middleware/authorize.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { ChangeUserStatusRequest } from '../../../application/dtos/user.dto';
+import { ChangeUserStatusRequest, ChangeUserRoleRequest, GetUserStatisticsRequest } from '../../../application/dtos/user.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -52,6 +52,32 @@ export function createAdminUserRoutesWithDI(): Router {
     requireAdmin,
     validationMiddleware(ChangeUserStatusRequest),
     (req, res) => void adminUserController.changeUserStatus(req, res)
+  );
+
+  /**
+   * @route   PATCH /api/v1/admin/users/:userId/role
+   * @desc    Change user role (admin only)
+   * @access  Private (Admin)
+   */
+  router.patch(
+    '/:userId/role',
+    authenticate,
+    requireAdmin,
+    validationMiddleware(ChangeUserRoleRequest),
+    (req, res) => void adminUserController.changeUserRole(req, res)
+  );
+
+  /**
+   * @route   GET /api/v1/admin/users/statistics
+   * @desc    Get user statistics (admin only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/statistics',
+    authenticate,
+    requireAdmin,
+    validationMiddleware(GetUserStatisticsRequest),
+    (req, res) => void adminUserController.getUserStatistics(req, res)
   );
 
   return router;
