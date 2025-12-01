@@ -15,6 +15,12 @@ import { GoogleAuthUseCase } from '../../application/use-cases/implementation/au
 import { SetupPasswordUseCase } from '../../application/use-cases/implementation/auth/setup_password.use-case';
 import { LinkGoogleAccountUseCase } from '../../application/use-cases/implementation/auth/link_google_account.use-case';
 import { ChangePasswordUseCase } from '../../application/use-cases/implementation/user/change_password.use-case';
+import { GetUserByIdUseCase } from '../../application/use-cases/implementation/user/get_user_by_id.use-case';
+import { ListUsersUseCase } from '../../application/use-cases/implementation/user/list_users.use-case';
+import { ChangeUserStatusUseCase } from '../../application/use-cases/implementation/user/change_user_status.use-case';
+import { ChangeUserRoleUseCase } from '../../application/use-cases/implementation/user/change_user_role.use-case';
+import { GetUserStatisticsUseCase } from '../../application/use-cases/implementation/user/get_user_statistics.use-case';
+import { DeleteUserAccountUseCase } from '../../application/use-cases/implementation/user/delete_user_account.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -91,6 +97,12 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.UpdateUserProfileUseCase, UpdateUserProfileUseCase);
   container.register(USE_CASE_TOKENS.GenerateUploadUrlUseCase, GenerateUploadUrlUseCase);
   container.register(USE_CASE_TOKENS.ChangePasswordUseCase, ChangePasswordUseCase);
+  container.register(USE_CASE_TOKENS.GetUserByIdUseCase, GetUserByIdUseCase);
+  container.register(USE_CASE_TOKENS.ListUsersUseCase, ListUsersUseCase);
+  container.register(USE_CASE_TOKENS.ChangeUserStatusUseCase, ChangeUserStatusUseCase);
+  container.register(USE_CASE_TOKENS.ChangeUserRoleUseCase, ChangeUserRoleUseCase);
+  container.register(USE_CASE_TOKENS.GetUserStatisticsUseCase, GetUserStatisticsUseCase);
+  container.register(USE_CASE_TOKENS.DeleteUserAccountUseCase, DeleteUserAccountUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);

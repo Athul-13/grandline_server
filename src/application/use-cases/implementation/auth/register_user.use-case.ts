@@ -44,30 +44,64 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
       throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_REQUEST, 400);
     }
 
+    // Check for existing active user
     const existing = await this.userRepository.findByEmail(request.email);
     if (existing) {
       throw new AppError(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS, ERROR_CODES.USER_DUPLICATE_EMAIL, 409);
     }
 
-    const userId = uuidv4();
-    const passwordHash = await hashPassword(request.password);
+    // Check for deleted user (to allow re-registration)
+    // Only INACTIVE users (self-deleted) can re-register
+    // DELETED users (admin deactivated) cannot re-register
+    const deletedUser = await this.userRepository.findByEmailIncludingDeleted(request.email);
+    let user: User;
 
-    const user = new User(
-      userId,
-      request.fullName,
-      request.email,
-      UserRole.USER,
-      UserStatus.ACTIVE,
-      '',
-      false,
-      new Date(),
-      new Date(),
-      request.phoneNumber,
-      passwordHash,
-      undefined
-    );
+    if (deletedUser && deletedUser.isDeleted && deletedUser.status === UserStatus.INACTIVE) {
+      // Reactivate self-deleted user account (INACTIVE status)
+      const userId = deletedUser.userId;
+      const passwordHash = await hashPassword(request.password);
 
-    await this.userRepository.createUser(user, passwordHash);
+      // Reactivate: set status to ACTIVE (which sets isDeleted to false)
+      user = await this.userRepository.updateUserStatus(userId, UserStatus.ACTIVE);
+
+      // Update password
+      await this.userRepository.updatePassword(userId, passwordHash);
+
+      // Update profile (fullName, phoneNumber)
+      await this.userRepository.updateUserProfile(userId, {
+        fullName: request.fullName,
+        phoneNumber: request.phoneNumber,
+      });
+
+      // Reset verification status (user needs to verify again)
+      await this.userRepository.updateVerificationStatus(userId, false);
+
+      logger.info(`Self-deleted user account reactivated: ${user.email} (${userId})`);
+    } else if (deletedUser && deletedUser.status === UserStatus.DELETED) {
+      // Admin-deactivated user (DELETED status) cannot re-register
+      throw new AppError('This account has been deactivated by an administrator. Please contact support.', ERROR_CODES.FORBIDDEN, 403);
+    } else {
+      // Create new user account
+      const userId = uuidv4();
+      const passwordHash = await hashPassword(request.password);
+
+      user = new User(
+        userId,
+        request.fullName,
+        request.email,
+        UserRole.USER,
+        UserStatus.ACTIVE,
+        '',
+        false,
+        new Date(),
+        new Date(),
+        request.phoneNumber,
+        passwordHash,
+        undefined
+      );
+
+      await this.userRepository.createUser(user, passwordHash);
+    }
 
     const otp = generateOTP();
     await this.otpService.setOTP(request.email, otp);
@@ -80,9 +114,15 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
     };
     await this.emailService.sendEmail(EmailType.OTP, emailData);
 
-    logger.info(`User registered successfully: ${user.email}`);
+    // Fetch updated user to return complete data
+    const finalUser = await this.userRepository.findById(user.userId);
+    if (!finalUser) {
+      throw new AppError(ERROR_MESSAGES.USER_NOT_FOUND, ERROR_CODES.USER_NOT_FOUND, 404);
+    }
 
-    return UserMapper.toRegisterUserResponse(user);
+    logger.info(`User registered successfully: ${finalUser.email}`);
+
+    return UserMapper.toRegisterUserResponse(finalUser);
   }
 }
 

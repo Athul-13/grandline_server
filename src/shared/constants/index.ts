@@ -13,7 +13,9 @@ export enum UserRole {
  */
 export enum UserStatus {
   ACTIVE = 'active',    
-  INACTIVE = 'inactive', 
+  INACTIVE = 'inactive', // User self-deleted (can re-register)
+  BLOCKED = 'blocked',   // Admin blocked (can login but restricted)
+  DELETED = 'deleted',   // Admin deactivated (cannot re-register)
 }
 
 /**
@@ -159,6 +161,9 @@ export const HTTP_STATUS = {
  */
 export const SUCCESS_MESSAGES = {
   USER_REGISTERED: 'User registered successfully. Please verify using OTP',
+  USER_STATUS_UPDATED: 'User status updated successfully',
+  USER_ROLE_UPDATED: 'User role updated successfully',
+  USER_DELETED: 'User deleted successfully',
   OTP_SENT: 'OTP has been sent',
   OTP_VERIFIED: 'OTP verified successfully',
   LOGIN_SUCCESS: 'Login successful',
@@ -231,6 +236,10 @@ export const ERROR_MESSAGES = {
   ROUTE_CALCULATION_FAILED: 'Failed to calculate route',
   PRICING_CONFIG_NOT_FOUND: 'Pricing configuration not found',
   NO_ADMIN_AVAILABLE: 'No admin available to assign to chat',
+  INVALID_USER_STATUS: 'Invalid user status',
+  CANNOT_BLOCK_ADMIN: 'Cannot block admin user',
+  CANNOT_DELETE_ADMIN: 'Cannot delete admin user',
+  INVALID_USER_ROLE: 'Invalid user role',
 } as const;
 
 /**
@@ -264,4 +273,6 @@ export const ERROR_CODES = {
   AMENITY_NOT_FOUND: 'AMENITY_NOT_FOUND',
   NO_ADMIN_AVAILABLE: 'NO_ADMIN_AVAILABLE',
   CHAT_NOT_FOUND: 'CHAT_NOT_FOUND',
+  INVALID_USER_STATUS: 'INVALID_USER_STATUS',
+  INVALID_USER_ROLE: 'INVALID_USER_ROLE',
 } as const;

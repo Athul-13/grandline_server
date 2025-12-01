@@ -20,7 +20,8 @@ export class UserRepositoryMapper {
       doc.updatedAt,
       doc.phoneNumber,
       doc.password,
-      doc.googleId
+      doc.googleId,
+      doc.isDeleted || false
     );
   }
 
