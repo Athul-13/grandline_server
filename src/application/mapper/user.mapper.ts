@@ -1,5 +1,5 @@
 import { User } from "../../domain/entities/user.entity";
-import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse, ResendOtpResponse, LogoutUserResponse, ForgotPasswordResponse, ResetPasswordResponse, GetUserProfileResponse, UpdateUserProfileResponse, GetUserByIdResponse } from "../dtos/user.dto";
+import { LoginUserResponse, RegisterUserResponse, VerifyOtpResponse, ResendOtpResponse, LogoutUserResponse, ForgotPasswordResponse, ResetPasswordResponse, GetUserProfileResponse, UpdateUserProfileResponse, GetUserByIdResponse, ChangeUserStatusResponse } from "../dtos/user.dto";
 import { SUCCESS_MESSAGES } from "../../shared/constants";
 
 
@@ -108,6 +108,23 @@ export class UserMapper {
                 updatedAt: user.updatedAt,
                 hasPassword: user.hasPassword(),
                 hasGoogleAuth: user.hasGoogleAuth(),
+            },
+        };
+    }
+
+    static toChangeUserStatusResponse(user: User): ChangeUserStatusResponse {
+        return {
+            message: SUCCESS_MESSAGES.USER_STATUS_UPDATED,
+            user: {
+                userId: user.userId,
+                fullName: user.fullName,
+                email: user.email,
+                phoneNumber: user.phoneNumber,
+                profilePicture: user.profilePicture,
+                role: user.role,
+                status: user.status,
+                isVerified: user.isVerified,
+                updatedAt: user.updatedAt,
             },
         };
     }

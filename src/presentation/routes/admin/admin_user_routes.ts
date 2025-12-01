@@ -3,6 +3,8 @@ import { container } from 'tsyringe';
 import { AdminUserController } from '../../controllers/admin/admin_user.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { requireAdmin } from '../../middleware/authorize.middleware';
+import { validationMiddleware } from '../../middleware/validation.middleware';
+import { ChangeUserStatusRequest } from '../../../application/dtos/user.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -37,6 +39,19 @@ export function createAdminUserRoutesWithDI(): Router {
     authenticate,
     requireAdmin,
     (req, res) => void adminUserController.getUserById(req, res)
+  );
+
+  /**
+   * @route   PATCH /api/v1/admin/users/:userId/status
+   * @desc    Change user status (admin only, regular users only)
+   * @access  Private (Admin)
+   */
+  router.patch(
+    '/:userId/status',
+    authenticate,
+    requireAdmin,
+    validationMiddleware(ChangeUserStatusRequest),
+    (req, res) => void adminUserController.changeUserStatus(req, res)
   );
 
   return router;

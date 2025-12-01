@@ -262,4 +262,22 @@ export class UserRepositoryImpl
       total,
     };
   }
+
+  async updateUserStatus(userId: string, status: UserStatus): Promise<User> {
+    const result = await this.userModel.updateOne(
+      { userId },
+      { $set: { status } }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error(`User with id ${userId} not found`);
+    }
+
+    const updatedDoc = await this.userModel.findOne({ userId });
+    if (!updatedDoc) {
+      throw new Error(`User with id ${userId} not found after update`);
+    }
+
+    return this.toEntity(updatedDoc);
+  }
 }

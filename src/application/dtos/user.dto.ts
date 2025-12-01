@@ -1,5 +1,5 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength, ValidateIf } from 'class-validator';
-import { UserRole } from '../../shared/constants';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, Matches, MinLength, ValidateIf, IsEnum } from 'class-validator';
+import { UserRole, UserStatus } from '../../shared/constants';
 
 /**
  * Request DTO for user registration
@@ -283,6 +283,35 @@ export interface ListUsersResponse {
     limit: number;
     total: number;
     totalPages: number;
+  };
+}
+
+/**
+ * Request DTO for changing user status (admin)
+ * Validates status value
+ */
+export class ChangeUserStatusRequest {
+  @IsEnum(UserStatus)
+  @IsNotEmpty()
+  status!: UserStatus;
+}
+
+/**
+ * Response DTO for changing user status (admin)
+ * Contains the result of the status change process
+ */
+export interface ChangeUserStatusResponse {
+  message: string;
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    phoneNumber?: string;
+    profilePicture: string;
+    role: UserRole;
+    status: string;
+    isVerified: boolean;
+    updatedAt: Date;
   };
 }
 

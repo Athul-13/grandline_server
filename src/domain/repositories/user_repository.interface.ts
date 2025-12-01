@@ -37,4 +37,6 @@ export interface IUserRepository extends IBaseRepository<User> {
         page?: number;
         limit?: number;
     }): Promise<{ users: User[]; total: number }>;
+
+    updateUserStatus(userId: string, status: UserStatus): Promise<User>;
 }

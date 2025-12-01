@@ -2,9 +2,10 @@ import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IGetUserByIdUseCase } from '../../../application/use-cases/interface/user/get_user_by_id_use_case.interface';
 import { IListUsersUseCase } from '../../../application/use-cases/interface/user/list_users_use_case.interface';
-import { ListUsersRequest } from '../../../application/dtos/user.dto';
+import { IChangeUserStatusUseCase } from '../../../application/use-cases/interface/user/change_user_status_use_case.interface';
+import { ListUsersRequest, ChangeUserStatusRequest } from '../../../application/dtos/user.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
-import { HTTP_STATUS } from '../../../shared/constants';
+import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
@@ -20,6 +21,8 @@ export class AdminUserController {
     private readonly getUserByIdUseCase: IGetUserByIdUseCase,
     @inject(USE_CASE_TOKENS.ListUsersUseCase)
     private readonly listUsersUseCase: IListUsersUseCase,
+    @inject(USE_CASE_TOKENS.ChangeUserStatusUseCase)
+    private readonly changeUserStatusUseCase: IChangeUserStatusUseCase,
   ) {}
 
   /**
@@ -93,6 +96,37 @@ export class AdminUserController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error listing users: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles changing user status
+   */
+  async changeUserStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Change user status attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const userId = req.params.userId;
+      if (!userId) {
+        logger.warn('Change user status attempt without userId parameter');
+        sendErrorResponse(res, new Error('User ID is required'));
+        return;
+      }
+
+      const request = req.body as ChangeUserStatusRequest;
+      logger.info(`Admin ${req.user.userId} changing status for user: ${userId} to ${request.status}`);
+      
+      const response = await this.changeUserStatusUseCase.execute(userId, request);
+      
+      logger.info(`User status changed successfully: ${userId} to ${request.status}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.USER_STATUS_UPDATED);
+    } catch (error) {
+      logger.error(`Error changing user status: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }
