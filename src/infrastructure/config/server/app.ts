@@ -14,6 +14,7 @@ import { createEventTypeRoutesWithDI } from '../../../presentation/routes/event_
 import { createAdminQuoteRoutesWithDI } from '../../../presentation/routes/admin/admin_quote_routes';
 import { createAdminPricingConfigRoutesWithDI } from '../../../presentation/routes/admin/admin_pricing_config_routes';
 import { createAdminUserRoutesWithDI } from '../../../presentation/routes/admin/admin_user_routes';
+import { createAdminDriverRoutesWithDI } from '../../../presentation/routes/admin/admin_driver_routes';
 import { createChatRoutesWithDI } from '../../../presentation/routes/chat/chat_routes';
 import { createMessageRoutesWithDI } from '../../../presentation/routes/message/message_routes';
 import { createNotificationRoutesWithDI } from '../../../presentation/routes/notification/notification_routes';
@@ -104,6 +105,9 @@ export class App {
 
     const adminUserRoutes = createAdminUserRoutesWithDI();
     this.app.use(`/api/v1/admin/users`, adminUserRoutes);
+
+    const adminDriverRoutes = createAdminDriverRoutesWithDI();
+    this.app.use(`/api/v1/admin/drivers`, adminDriverRoutes);
 
     const chatRoutes = createChatRoutesWithDI();
     this.app.use(`/api/v1/chats`, chatRoutes);

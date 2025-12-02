@@ -20,6 +20,7 @@ export const CONTROLLER_TOKENS = {
   EventTypeController: Symbol.for('EventTypeController'),
   AdminPricingConfigController: Symbol.for('AdminPricingConfigController'),
   AdminUserController: Symbol.for('AdminUserController'),
+  AdminDriverController: Symbol.for('AdminDriverController'),
   // Chat, Message & Notification controllers
   ChatController: Symbol.for('ChatController'),
   MessageController: Symbol.for('MessageController'),
