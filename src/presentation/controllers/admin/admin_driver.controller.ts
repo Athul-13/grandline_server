@@ -3,7 +3,8 @@ import { inject, injectable } from 'tsyringe';
 import { ICreateDriverUseCase } from '../../../application/use-cases/interface/driver/create_driver_use_case.interface';
 import { IListDriversUseCase } from '../../../application/use-cases/interface/driver/list_drivers_use_case.interface';
 import { IGetDriverByIdUseCase } from '../../../application/use-cases/interface/driver/get_driver_by_id_use_case.interface';
-import { CreateDriverRequest, ListDriversRequest } from '../../../application/dtos/driver.dto';
+import { IUpdateDriverUseCase } from '../../../application/use-cases/interface/driver/update_driver_use_case.interface';
+import { CreateDriverRequest, ListDriversRequest, UpdateDriverRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -23,6 +24,8 @@ export class AdminDriverController {
     private readonly listDriversUseCase: IListDriversUseCase,
     @inject(USE_CASE_TOKENS.GetDriverByIdUseCase)
     private readonly getDriverByIdUseCase: IGetDriverByIdUseCase,
+    @inject(USE_CASE_TOKENS.UpdateDriverUseCase)
+    private readonly updateDriverUseCase: IUpdateDriverUseCase,
   ) {}
 
   /**
@@ -120,6 +123,34 @@ export class AdminDriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error getting driver by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles updating driver details
+   */
+  async updateDriver(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Update driver attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.params.driverId;
+      if (!driverId) {
+        logger.warn('Update driver attempt without driverId parameter');
+        sendErrorResponse(res, new Error('Driver ID is required'));
+        return;
+      }
+
+      const request = req.body as UpdateDriverRequest;
+      logger.info(`Admin ${req.user.userId} updating driver: ${driverId}`);
+      const response = await this.updateDriverUseCase.execute(driverId, request);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_UPDATED);
+    } catch (error) {
+      logger.error(`Error updating driver: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

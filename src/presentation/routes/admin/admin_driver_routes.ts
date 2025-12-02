@@ -4,7 +4,7 @@ import { AdminDriverController } from '../../controllers/admin/admin_driver.cont
 import { authenticate } from '../../middleware/auth.middleware';
 import { requireAdmin } from '../../middleware/authorize.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { CreateDriverRequest } from '../../../application/dtos/driver.dto';
+import { CreateDriverRequest, UpdateDriverRequest } from '../../../application/dtos/driver.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -52,6 +52,19 @@ export function createAdminDriverRoutesWithDI(): Router {
     authenticate,
     requireAdmin,
     (req, res) => void adminDriverController.getDriverById(req, res)
+  );
+
+  /**
+   * @route   PATCH /api/v1/admin/drivers/:driverId
+   * @desc    Update driver details (admin only)
+   * @access  Private (Admin)
+   */
+  router.patch(
+    '/:driverId',
+    authenticate,
+    requireAdmin,
+    validationMiddleware(UpdateDriverRequest),
+    (req, res) => void adminDriverController.updateDriver(req, res)
   );
 
   return router;
