@@ -22,6 +22,7 @@ import { ChangeUserRoleUseCase } from '../../application/use-cases/implementatio
 import { GetUserStatisticsUseCase } from '../../application/use-cases/implementation/user/get_user_statistics.use-case';
 import { DeleteUserAccountUseCase } from '../../application/use-cases/implementation/user/delete_user_account.use-case';
 import { CreateDriverUseCase } from '../../application/use-cases/implementation/driver/create_driver.use-case';
+import { ListDriversUseCase } from '../../application/use-cases/implementation/driver/list_drivers.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -106,6 +107,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.DeleteUserAccountUseCase, DeleteUserAccountUseCase);
   // Driver use cases
   container.register(USE_CASE_TOKENS.CreateDriverUseCase, CreateDriverUseCase);
+  container.register(USE_CASE_TOKENS.ListDriversUseCase, ListDriversUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);
