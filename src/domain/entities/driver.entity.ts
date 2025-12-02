@@ -13,14 +13,16 @@ export class Driver {
     public readonly phoneNumber: string,
     private readonly password: string,
     public readonly licenseNumber: string,
+    public readonly licenseCardPhotoUrl: string,
     public readonly status: DriverStatus,
     public readonly salary: number,
+    public readonly isOnboarded: boolean,
     public readonly createdAt: Date,
     public readonly updatedAt: Date
   ) {}
 
   canLogin(): boolean {
-    return this.status !== DriverStatus.OFFLINE;
+    return this.status !== DriverStatus.BLOCKED;
   }
 
   isAvailable(): boolean {
@@ -32,7 +34,7 @@ export class Driver {
   }
 
   canAcceptRide(): boolean {
-    return this.status === DriverStatus.AVAILABLE;
+    return this.isOnboarded && this.status === DriverStatus.AVAILABLE;
   }
 
   isSuspended(): boolean {
@@ -41,5 +43,11 @@ export class Driver {
   
   isBlocked(): boolean {
     return this.status === DriverStatus.BLOCKED;
+  }
+
+  hasCompletedOnboarding(): boolean {
+    return this.profilePictureUrl !== '' && 
+           this.licenseCardPhotoUrl !== '' && 
+           this.isOnboarded;
   }
 }

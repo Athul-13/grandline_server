@@ -30,6 +30,19 @@ export function createAdminUserRoutesWithDI(): Router {
   );
 
   /**
+   * @route   GET /api/v1/admin/users/statistics
+   * @desc    Get user statistics (admin only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/statistics',
+    authenticate,
+    requireAdmin,
+    validationMiddleware(GetUserStatisticsRequest),
+    (req, res) => void adminUserController.getUserStatistics(req, res)
+  );
+
+  /**
    * @route   GET /api/v1/admin/users/:userId
    * @desc    Get user details by ID (admin only, regular users only)
    * @access  Private (Admin)
@@ -65,19 +78,6 @@ export function createAdminUserRoutesWithDI(): Router {
     requireAdmin,
     validationMiddleware(ChangeUserRoleRequest),
     (req, res) => void adminUserController.changeUserRole(req, res)
-  );
-
-  /**
-   * @route   GET /api/v1/admin/users/statistics
-   * @desc    Get user statistics (admin only)
-   * @access  Private (Admin)
-   */
-  router.get(
-    '/statistics',
-    authenticate,
-    requireAdmin,
-    validationMiddleware(GetUserStatisticsRequest),
-    (req, res) => void adminUserController.getUserStatistics(req, res)
   );
 
   return router;
