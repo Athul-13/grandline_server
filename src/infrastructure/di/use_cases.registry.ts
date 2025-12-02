@@ -21,6 +21,19 @@ import { ChangeUserStatusUseCase } from '../../application/use-cases/implementat
 import { ChangeUserRoleUseCase } from '../../application/use-cases/implementation/user/change_user_role.use-case';
 import { GetUserStatisticsUseCase } from '../../application/use-cases/implementation/user/get_user_statistics.use-case';
 import { DeleteUserAccountUseCase } from '../../application/use-cases/implementation/user/delete_user_account.use-case';
+import { CreateDriverUseCase } from '../../application/use-cases/implementation/driver/create_driver.use-case';
+import { ListDriversUseCase } from '../../application/use-cases/implementation/driver/list_drivers.use-case';
+import { GetDriverByIdUseCase } from '../../application/use-cases/implementation/driver/get_driver_by_id.use-case';
+import { UpdateDriverUseCase } from '../../application/use-cases/implementation/driver/update_driver.use-case';
+import { UpdateDriverStatusUseCase } from '../../application/use-cases/implementation/driver/update_driver_status.use-case';
+import { DeleteDriverUseCase } from '../../application/use-cases/implementation/driver/delete_driver.use-case';
+import { LoginDriverUseCase } from '../../application/use-cases/implementation/driver/login_driver.use-case';
+import { ChangeDriverPasswordUseCase } from '../../application/use-cases/implementation/driver/change_driver_password.use-case';
+import { UpdateProfilePictureUseCase } from '../../application/use-cases/implementation/driver/update_profile_picture.use-case';
+import { UpdateLicenseCardPhotoUseCase } from '../../application/use-cases/implementation/driver/update_license_card_photo.use-case';
+import { UpdateOnboardingPasswordUseCase } from '../../application/use-cases/implementation/driver/update_onboarding_password.use-case';
+import { GetDriverProfileUseCase } from '../../application/use-cases/implementation/driver/get_driver_profile.use-case';
+import { GetDriverStatisticsUseCase } from '../../application/use-cases/implementation/driver/get_driver_statistics.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -103,6 +116,20 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.ChangeUserRoleUseCase, ChangeUserRoleUseCase);
   container.register(USE_CASE_TOKENS.GetUserStatisticsUseCase, GetUserStatisticsUseCase);
   container.register(USE_CASE_TOKENS.DeleteUserAccountUseCase, DeleteUserAccountUseCase);
+  // Driver use cases
+  container.register(USE_CASE_TOKENS.CreateDriverUseCase, CreateDriverUseCase);
+  container.register(USE_CASE_TOKENS.ListDriversUseCase, ListDriversUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverByIdUseCase, GetDriverByIdUseCase);
+  container.register(USE_CASE_TOKENS.UpdateDriverUseCase, UpdateDriverUseCase);
+  container.register(USE_CASE_TOKENS.UpdateDriverStatusUseCase, UpdateDriverStatusUseCase);
+  container.register(USE_CASE_TOKENS.DeleteDriverUseCase, DeleteDriverUseCase);
+  container.register(USE_CASE_TOKENS.LoginDriverUseCase, LoginDriverUseCase);
+  container.register(USE_CASE_TOKENS.ChangeDriverPasswordUseCase, ChangeDriverPasswordUseCase);
+  container.register(USE_CASE_TOKENS.UpdateProfilePictureUseCase, UpdateProfilePictureUseCase);
+  container.register(USE_CASE_TOKENS.UpdateLicenseCardPhotoUseCase, UpdateLicenseCardPhotoUseCase);
+  container.register(USE_CASE_TOKENS.UpdateOnboardingPasswordUseCase, UpdateOnboardingPasswordUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverProfileUseCase, GetDriverProfileUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverStatisticsUseCase, GetDriverStatisticsUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);
