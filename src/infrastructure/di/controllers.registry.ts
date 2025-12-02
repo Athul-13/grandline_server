@@ -13,6 +13,7 @@ import { AdminQuoteController } from '../../presentation/controllers/admin/admin
 import { AdminPricingConfigController } from '../../presentation/controllers/admin/admin_pricing_config.controller';
 import { AdminUserController } from '../../presentation/controllers/admin/admin_user.controller';
 import { AdminDriverController } from '../../presentation/controllers/admin/admin_driver.controller';
+import { DriverController } from '../../presentation/controllers/driver/driver.controller';
 import { ChatController } from '../../presentation/controllers/chat/chat.controller';
 import { MessageController } from '../../presentation/controllers/message/message.controller';
 import { NotificationController } from '../../presentation/controllers/notification/notification.controller';
@@ -40,6 +41,7 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.AdminPricingConfigController, AdminPricingConfigController);
   container.register(CONTROLLER_TOKENS.AdminUserController, AdminUserController);
   container.register(CONTROLLER_TOKENS.AdminDriverController, AdminDriverController);
+  container.register(CONTROLLER_TOKENS.DriverController, DriverController);
   // Chat, Message & Notification controllers
   container.register(CONTROLLER_TOKENS.ChatController, ChatController);
   container.register(CONTROLLER_TOKENS.MessageController, MessageController);
