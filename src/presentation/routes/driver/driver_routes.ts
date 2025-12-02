@@ -74,6 +74,17 @@ export function createDriverRoutesWithDI(): Router {
     (req, res) => void driverController.updateOnboardingPassword(req, res)
   );
 
+  /**
+   * Get Driver Profile
+   * GET /api/v1/driver/profile
+   * Requires authentication
+   */
+  router.get(
+    '/profile',
+    authenticate,
+    (req, res) => void driverController.getDriverProfile(req, res)
+  );
+
   return router;
 }
 

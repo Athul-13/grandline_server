@@ -5,6 +5,7 @@ import { IChangeDriverPasswordUseCase } from '../../../application/use-cases/int
 import { IUpdateProfilePictureUseCase } from '../../../application/use-cases/interface/driver/update_profile_picture_use_case.interface';
 import { IUpdateLicenseCardPhotoUseCase } from '../../../application/use-cases/interface/driver/update_license_card_photo_use_case.interface';
 import { IUpdateOnboardingPasswordUseCase } from '../../../application/use-cases/interface/driver/update_onboarding_password_use_case.interface';
+import { IGetDriverProfileUseCase } from '../../../application/use-cases/interface/driver/get_driver_profile_use_case.interface';
 import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -29,6 +30,8 @@ export class DriverController {
     private readonly updateLicenseCardPhotoUseCase: IUpdateLicenseCardPhotoUseCase,
     @inject(USE_CASE_TOKENS.UpdateOnboardingPasswordUseCase)
     private readonly updateOnboardingPasswordUseCase: IUpdateOnboardingPasswordUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverProfileUseCase)
+    private readonly getDriverProfileUseCase: IGetDriverProfileUseCase,
   ) {}
 
   /**
@@ -174,6 +177,35 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_ONBOARDING_PASSWORD_UPDATED);
     } catch (error) {
       logger.error(`Error updating onboarding password: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting driver profile
+   */
+  async getDriverProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get profile attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Get profile attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      logger.info(`Profile fetch request for driver: ${driverId}`);
+      const response = await this.getDriverProfileUseCase.execute(driverId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error fetching driver profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }
