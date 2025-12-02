@@ -43,6 +43,19 @@ export function createAdminDriverRoutesWithDI(): Router {
   );
 
   /**
+   * @route   GET /api/v1/admin/drivers/statistics
+   * @desc    Get driver statistics (admin only)
+   * @access  Private (Admin)
+   * IMPORTANT: This must come BEFORE /:driverId route to avoid route conflicts
+   */
+  router.get(
+    '/statistics',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminDriverController.getDriverStatistics(req, res)
+  );
+
+  /**
    * @route   GET /api/v1/admin/drivers/:driverId
    * @desc    Get driver details by ID (admin only)
    * @access  Private (Admin)

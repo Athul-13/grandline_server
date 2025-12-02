@@ -39,6 +39,7 @@ export const USE_CASE_TOKENS = {
   UpdateLicenseCardPhotoUseCase: Symbol.for('UpdateLicenseCardPhotoUseCase'),
   UpdateOnboardingPasswordUseCase: Symbol.for('UpdateOnboardingPasswordUseCase'),
   GetDriverProfileUseCase: Symbol.for('GetDriverProfileUseCase'),
+  GetDriverStatisticsUseCase: Symbol.for('GetDriverStatisticsUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),

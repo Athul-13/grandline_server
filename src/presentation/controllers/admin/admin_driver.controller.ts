@@ -6,7 +6,8 @@ import { IGetDriverByIdUseCase } from '../../../application/use-cases/interface/
 import { IUpdateDriverUseCase } from '../../../application/use-cases/interface/driver/update_driver_use_case.interface';
 import { IUpdateDriverStatusUseCase } from '../../../application/use-cases/interface/driver/update_driver_status_use_case.interface';
 import { IDeleteDriverUseCase } from '../../../application/use-cases/interface/driver/delete_driver_use_case.interface';
-import { CreateDriverRequest, ListDriversRequest, UpdateDriverRequest, UpdateDriverStatusRequest } from '../../../application/dtos/driver.dto';
+import { IGetDriverStatisticsUseCase } from '../../../application/use-cases/interface/driver/get_driver_statistics_use_case.interface';
+import { CreateDriverRequest, ListDriversRequest, UpdateDriverRequest, UpdateDriverStatusRequest, GetDriverStatisticsRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -32,6 +33,8 @@ export class AdminDriverController {
     private readonly updateDriverStatusUseCase: IUpdateDriverStatusUseCase,
     @inject(USE_CASE_TOKENS.DeleteDriverUseCase)
     private readonly deleteDriverUseCase: IDeleteDriverUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverStatisticsUseCase)
+    private readonly getDriverStatisticsUseCase: IGetDriverStatisticsUseCase,
   ) {}
 
   /**
@@ -212,6 +215,37 @@ export class AdminDriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, response.message);
     } catch (error) {
       logger.error(`Error deleting driver: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting driver statistics
+   */
+  async getDriverStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver statistics attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract query parameters
+      const timeRange = req.query.timeRange as 'all_time' | '7_days' | '30_days' | 'custom' | undefined;
+      const startDate = req.query.startDate as string | undefined;
+      const endDate = req.query.endDate as string | undefined;
+
+      const request: GetDriverStatisticsRequest = {
+        timeRange: timeRange || 'all_time',
+        startDate,
+        endDate,
+      };
+
+      logger.info(`Admin ${req.user.userId} fetching driver statistics: ${JSON.stringify(request)}`);
+      const response = await this.getDriverStatisticsUseCase.execute(request);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error getting driver statistics: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }
