@@ -5,6 +5,7 @@ import { IListDriversUseCase } from '../../../application/use-cases/interface/dr
 import { IGetDriverByIdUseCase } from '../../../application/use-cases/interface/driver/get_driver_by_id_use_case.interface';
 import { IUpdateDriverUseCase } from '../../../application/use-cases/interface/driver/update_driver_use_case.interface';
 import { IUpdateDriverStatusUseCase } from '../../../application/use-cases/interface/driver/update_driver_status_use_case.interface';
+import { IDeleteDriverUseCase } from '../../../application/use-cases/interface/driver/delete_driver_use_case.interface';
 import { CreateDriverRequest, ListDriversRequest, UpdateDriverRequest, UpdateDriverStatusRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -29,6 +30,8 @@ export class AdminDriverController {
     private readonly updateDriverUseCase: IUpdateDriverUseCase,
     @inject(USE_CASE_TOKENS.UpdateDriverStatusUseCase)
     private readonly updateDriverStatusUseCase: IUpdateDriverStatusUseCase,
+    @inject(USE_CASE_TOKENS.DeleteDriverUseCase)
+    private readonly deleteDriverUseCase: IDeleteDriverUseCase,
   ) {}
 
   /**
@@ -182,6 +185,33 @@ export class AdminDriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_STATUS_UPDATED);
     } catch (error) {
       logger.error(`Error updating driver status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles deleting a driver (soft delete)
+   */
+  async deleteDriver(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Delete driver attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.params.driverId;
+      if (!driverId) {
+        logger.warn('Delete driver attempt without driverId parameter');
+        sendErrorResponse(res, new Error('Driver ID is required'));
+        return;
+      }
+
+      logger.info(`Admin ${req.user.userId} deleting driver: ${driverId}`);
+      const response = await this.deleteDriverUseCase.execute(driverId);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, response.message);
+    } catch (error) {
+      logger.error(`Error deleting driver: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

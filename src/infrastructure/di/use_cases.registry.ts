@@ -26,6 +26,7 @@ import { ListDriversUseCase } from '../../application/use-cases/implementation/d
 import { GetDriverByIdUseCase } from '../../application/use-cases/implementation/driver/get_driver_by_id.use-case';
 import { UpdateDriverUseCase } from '../../application/use-cases/implementation/driver/update_driver.use-case';
 import { UpdateDriverStatusUseCase } from '../../application/use-cases/implementation/driver/update_driver_status.use-case';
+import { DeleteDriverUseCase } from '../../application/use-cases/implementation/driver/delete_driver.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -114,6 +115,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetDriverByIdUseCase, GetDriverByIdUseCase);
   container.register(USE_CASE_TOKENS.UpdateDriverUseCase, UpdateDriverUseCase);
   container.register(USE_CASE_TOKENS.UpdateDriverStatusUseCase, UpdateDriverStatusUseCase);
+  container.register(USE_CASE_TOKENS.DeleteDriverUseCase, DeleteDriverUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);

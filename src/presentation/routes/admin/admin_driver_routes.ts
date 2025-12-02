@@ -80,6 +80,18 @@ export function createAdminDriverRoutesWithDI(): Router {
     (req, res) => void adminDriverController.updateDriverStatus(req, res)
   );
 
+  /**
+   * @route   DELETE /api/v1/admin/drivers/:driverId
+   * @desc    Delete driver (soft delete) (admin only)
+   * @access  Private (Admin)
+   */
+  router.delete(
+    '/:driverId',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminDriverController.deleteDriver(req, res)
+  );
+
   return router;
 }
 
