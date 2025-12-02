@@ -4,7 +4,8 @@ import { ILoginDriverUseCase } from '../../../application/use-cases/interface/dr
 import { IChangeDriverPasswordUseCase } from '../../../application/use-cases/interface/driver/change_driver_password_use_case.interface';
 import { IUpdateProfilePictureUseCase } from '../../../application/use-cases/interface/driver/update_profile_picture_use_case.interface';
 import { IUpdateLicenseCardPhotoUseCase } from '../../../application/use-cases/interface/driver/update_license_card_photo_use_case.interface';
-import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest } from '../../../application/dtos/driver.dto';
+import { IUpdateOnboardingPasswordUseCase } from '../../../application/use-cases/interface/driver/update_onboarding_password_use_case.interface';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -26,6 +27,8 @@ export class DriverController {
     private readonly updateProfilePictureUseCase: IUpdateProfilePictureUseCase,
     @inject(USE_CASE_TOKENS.UpdateLicenseCardPhotoUseCase)
     private readonly updateLicenseCardPhotoUseCase: IUpdateLicenseCardPhotoUseCase,
+    @inject(USE_CASE_TOKENS.UpdateOnboardingPasswordUseCase)
+    private readonly updateOnboardingPasswordUseCase: IUpdateOnboardingPasswordUseCase,
   ) {}
 
   /**
@@ -139,6 +142,38 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_LICENSE_CARD_UPDATED);
     } catch (error) {
       logger.error(`Error updating license card photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles updating driver password during onboarding (optional)
+   */
+  async updateOnboardingPassword(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Update onboarding password attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Update onboarding password attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request = req.body as UpdateOnboardingPasswordRequest;
+      logger.info(`Onboarding password update request for driver: ${driverId}`);
+
+      const response = await this.updateOnboardingPasswordUseCase.execute(driverId, request);
+
+      logger.info(`Onboarding password updated successfully for driver: ${driverId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_ONBOARDING_PASSWORD_UPDATED);
+    } catch (error) {
+      logger.error(`Error updating onboarding password: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }
