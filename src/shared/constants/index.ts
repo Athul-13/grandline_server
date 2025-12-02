@@ -191,6 +191,16 @@ export const SUCCESS_MESSAGES = {
   QUOTE_DELETED: 'Quote deleted successfully',
   ROUTES_CALCULATED: 'Routes calculated successfully',
   EVENT_TYPE_CREATED: 'Event type created successfully',
+  DRIVER_CREATED: 'Driver created successfully',
+  DRIVER_UPDATED: 'Driver updated successfully',
+  DRIVER_STATUS_UPDATED: 'Driver status updated successfully',
+  DRIVER_SALARY_UPDATED: 'Driver salary updated successfully',
+  DRIVER_DELETED: 'Driver deleted successfully',
+  DRIVER_PROFILE_PICTURE_UPDATED: 'Profile picture updated successfully',
+  DRIVER_LICENSE_CARD_UPDATED: 'License card photo updated successfully',
+  DRIVER_ONBOARDING_PASSWORD_UPDATED: 'Password updated successfully',
+  DRIVER_PASSWORD_CHANGED: 'Password changed successfully',
+  DRIVER_LOGIN_SUCCESS: 'Login successful',
 } as const;
 
 export const ERROR_MESSAGES = {
@@ -240,6 +250,11 @@ export const ERROR_MESSAGES = {
   CANNOT_BLOCK_ADMIN: 'Cannot block admin user',
   CANNOT_DELETE_ADMIN: 'Cannot delete admin user',
   INVALID_USER_ROLE: 'Invalid user role',
+  DRIVER_NOT_FOUND: 'Driver not found',
+  DRIVER_EMAIL_ALREADY_EXISTS: 'Driver with this email already exists',
+  DRIVER_LICENSE_NUMBER_EXISTS: 'Driver with this license number already exists',
+  DRIVER_INVALID_STATUS: 'Invalid driver status',
+  DRIVER_CANNOT_ACCEPT_RIDE: 'Driver cannot accept rides. Driver must be onboarded and available',
 } as const;
 
 /**
@@ -275,4 +290,9 @@ export const ERROR_CODES = {
   CHAT_NOT_FOUND: 'CHAT_NOT_FOUND',
   INVALID_USER_STATUS: 'INVALID_USER_STATUS',
   INVALID_USER_ROLE: 'INVALID_USER_ROLE',
+  DRIVER_NOT_FOUND: 'DRIVER_NOT_FOUND',
+  DRIVER_DUPLICATE_EMAIL: 'DRIVER_DUPLICATE_EMAIL',
+  DRIVER_DUPLICATE_LICENSE: 'DRIVER_DUPLICATE_LICENSE',
+  INVALID_DRIVER_STATUS: 'INVALID_DRIVER_STATUS',
+  INVALID_DRIVER_ID: 'INVALID_DRIVER_ID',
 } as const;
