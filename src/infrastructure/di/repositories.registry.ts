@@ -2,6 +2,8 @@ import { container } from 'tsyringe';
 import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
 import { UserRepositoryImpl } from '../repositories/user.repository';
+import { IDriverRepository } from '../../domain/repositories/driver_repository.interface';
+import { DriverRepositoryImpl } from '../repositories/driver.repository';
 import { IVehicleTypeRepository } from '../../domain/repositories/vehicle_type_repository.interface';
 import { VehicleTypeRepositoryImpl } from '../repositories/vehicle_type.repository';
 import { IVehicleRepository } from '../../domain/repositories/vehicle_repository.interface';
@@ -34,6 +36,11 @@ export function registerRepositories(): void {
   container.register<IUserRepository>(
     REPOSITORY_TOKENS.IUserRepository,
     { useClass: UserRepositoryImpl }
+  );
+
+  container.register<IDriverRepository>(
+    REPOSITORY_TOKENS.IDriverRepository,
+    { useClass: DriverRepositoryImpl }
   );
 
   // Vehicle repositories
