@@ -4,7 +4,8 @@ import { ICreateDriverUseCase } from '../../../application/use-cases/interface/d
 import { IListDriversUseCase } from '../../../application/use-cases/interface/driver/list_drivers_use_case.interface';
 import { IGetDriverByIdUseCase } from '../../../application/use-cases/interface/driver/get_driver_by_id_use_case.interface';
 import { IUpdateDriverUseCase } from '../../../application/use-cases/interface/driver/update_driver_use_case.interface';
-import { CreateDriverRequest, ListDriversRequest, UpdateDriverRequest } from '../../../application/dtos/driver.dto';
+import { IUpdateDriverStatusUseCase } from '../../../application/use-cases/interface/driver/update_driver_status_use_case.interface';
+import { CreateDriverRequest, ListDriversRequest, UpdateDriverRequest, UpdateDriverStatusRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -26,6 +27,8 @@ export class AdminDriverController {
     private readonly getDriverByIdUseCase: IGetDriverByIdUseCase,
     @inject(USE_CASE_TOKENS.UpdateDriverUseCase)
     private readonly updateDriverUseCase: IUpdateDriverUseCase,
+    @inject(USE_CASE_TOKENS.UpdateDriverStatusUseCase)
+    private readonly updateDriverStatusUseCase: IUpdateDriverStatusUseCase,
   ) {}
 
   /**
@@ -151,6 +154,34 @@ export class AdminDriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_UPDATED);
     } catch (error) {
       logger.error(`Error updating driver: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles updating driver status
+   */
+  async updateDriverStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Update driver status attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.params.driverId;
+      if (!driverId) {
+        logger.warn('Update driver status attempt without driverId parameter');
+        sendErrorResponse(res, new Error('Driver ID is required'));
+        return;
+      }
+
+      const request = req.body as UpdateDriverStatusRequest;
+      logger.info(`Admin ${req.user.userId} updating driver status: ${driverId} to ${request.status}`);
+      const response = await this.updateDriverStatusUseCase.execute(driverId, request);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_STATUS_UPDATED);
+    } catch (error) {
+      logger.error(`Error updating driver status: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

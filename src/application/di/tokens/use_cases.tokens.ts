@@ -31,6 +31,7 @@ export const USE_CASE_TOKENS = {
   ListDriversUseCase: Symbol.for('ListDriversUseCase'),
   GetDriverByIdUseCase: Symbol.for('GetDriverByIdUseCase'),
   UpdateDriverUseCase: Symbol.for('UpdateDriverUseCase'),
+  UpdateDriverStatusUseCase: Symbol.for('UpdateDriverStatusUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),
