@@ -42,6 +42,18 @@ export function createAdminDriverRoutesWithDI(): Router {
     (req, res) => void adminDriverController.listDrivers(req, res)
   );
 
+  /**
+   * @route   GET /api/v1/admin/drivers/:driverId
+   * @desc    Get driver details by ID (admin only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/:driverId',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminDriverController.getDriverById(req, res)
+  );
+
   return router;
 }
 

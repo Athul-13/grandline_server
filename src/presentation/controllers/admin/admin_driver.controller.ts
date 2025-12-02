@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { ICreateDriverUseCase } from '../../../application/use-cases/interface/driver/create_driver_use_case.interface';
 import { IListDriversUseCase } from '../../../application/use-cases/interface/driver/list_drivers_use_case.interface';
+import { IGetDriverByIdUseCase } from '../../../application/use-cases/interface/driver/get_driver_by_id_use_case.interface';
 import { CreateDriverRequest, ListDriversRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -20,6 +21,8 @@ export class AdminDriverController {
     private readonly createDriverUseCase: ICreateDriverUseCase,
     @inject(USE_CASE_TOKENS.ListDriversUseCase)
     private readonly listDriversUseCase: IListDriversUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverByIdUseCase)
+    private readonly getDriverByIdUseCase: IGetDriverByIdUseCase,
   ) {}
 
   /**
@@ -90,6 +93,33 @@ export class AdminDriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error listing drivers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting driver details by ID
+   */
+  async getDriverById(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver by ID attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.params.driverId;
+      if (!driverId) {
+        logger.warn('Get driver by ID attempt without driverId parameter');
+        sendErrorResponse(res, new Error('Driver ID is required'));
+        return;
+      }
+
+      logger.info(`Admin ${req.user.userId} viewing driver: ${driverId}`);
+      const response = await this.getDriverByIdUseCase.execute(driverId);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error getting driver by ID: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }
