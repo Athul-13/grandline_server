@@ -2,7 +2,9 @@ import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { ILoginDriverUseCase } from '../../../application/use-cases/interface/driver/login_driver_use_case.interface';
 import { IChangeDriverPasswordUseCase } from '../../../application/use-cases/interface/driver/change_driver_password_use_case.interface';
-import { LoginDriverRequest, ChangeDriverPasswordRequest } from '../../../application/dtos/driver.dto';
+import { IUpdateProfilePictureUseCase } from '../../../application/use-cases/interface/driver/update_profile_picture_use_case.interface';
+import { IUpdateLicenseCardPhotoUseCase } from '../../../application/use-cases/interface/driver/update_license_card_photo_use_case.interface';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -20,6 +22,10 @@ export class DriverController {
     private readonly loginDriverUseCase: ILoginDriverUseCase,
     @inject(USE_CASE_TOKENS.ChangeDriverPasswordUseCase)
     private readonly changeDriverPasswordUseCase: IChangeDriverPasswordUseCase,
+    @inject(USE_CASE_TOKENS.UpdateProfilePictureUseCase)
+    private readonly updateProfilePictureUseCase: IUpdateProfilePictureUseCase,
+    @inject(USE_CASE_TOKENS.UpdateLicenseCardPhotoUseCase)
+    private readonly updateLicenseCardPhotoUseCase: IUpdateLicenseCardPhotoUseCase,
   ) {}
 
   /**
@@ -69,6 +75,70 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_PASSWORD_CHANGED);
     } catch (error) {
       logger.error(`Error changing driver password: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles updating driver profile picture (onboarding)
+   */
+  async updateProfilePicture(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Update profile picture attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Update profile picture attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request = req.body as UpdateProfilePictureRequest;
+      logger.info(`Profile picture update request for driver: ${driverId}`);
+
+      const response = await this.updateProfilePictureUseCase.execute(driverId, request);
+
+      logger.info(`Profile picture updated successfully for driver: ${driverId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_PROFILE_PICTURE_UPDATED);
+    } catch (error) {
+      logger.error(`Error updating profile picture: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles updating driver license card photo (onboarding)
+   */
+  async updateLicenseCardPhoto(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Update license card photo attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Update license card photo attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request = req.body as UpdateLicenseCardPhotoRequest;
+      logger.info(`License card photo update request for driver: ${driverId}`);
+
+      const response = await this.updateLicenseCardPhotoUseCase.execute(driverId, request);
+
+      logger.info(`License card photo updated successfully for driver: ${driverId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, SUCCESS_MESSAGES.DRIVER_LICENSE_CARD_UPDATED);
+    } catch (error) {
+      logger.error(`Error updating license card photo: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

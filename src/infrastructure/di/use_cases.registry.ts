@@ -29,6 +29,8 @@ import { UpdateDriverStatusUseCase } from '../../application/use-cases/implement
 import { DeleteDriverUseCase } from '../../application/use-cases/implementation/driver/delete_driver.use-case';
 import { LoginDriverUseCase } from '../../application/use-cases/implementation/driver/login_driver.use-case';
 import { ChangeDriverPasswordUseCase } from '../../application/use-cases/implementation/driver/change_driver_password.use-case';
+import { UpdateProfilePictureUseCase } from '../../application/use-cases/implementation/driver/update_profile_picture.use-case';
+import { UpdateLicenseCardPhotoUseCase } from '../../application/use-cases/implementation/driver/update_license_card_photo.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -120,6 +122,8 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.DeleteDriverUseCase, DeleteDriverUseCase);
   container.register(USE_CASE_TOKENS.LoginDriverUseCase, LoginDriverUseCase);
   container.register(USE_CASE_TOKENS.ChangeDriverPasswordUseCase, ChangeDriverPasswordUseCase);
+  container.register(USE_CASE_TOKENS.UpdateProfilePictureUseCase, UpdateProfilePictureUseCase);
+  container.register(USE_CASE_TOKENS.UpdateLicenseCardPhotoUseCase, UpdateLicenseCardPhotoUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);

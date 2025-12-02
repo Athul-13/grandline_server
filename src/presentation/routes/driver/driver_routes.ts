@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { DriverController } from '../../controllers/driver/driver.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { LoginDriverRequest, ChangeDriverPasswordRequest } from '../../../application/dtos/driver.dto';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest } from '../../../application/dtos/driver.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -36,6 +36,30 @@ export function createDriverRoutesWithDI(): Router {
     authenticate,
     validationMiddleware(ChangeDriverPasswordRequest),
     (req, res) => void driverController.changeDriverPassword(req, res)
+  );
+
+  /**
+   * Update Profile Picture (Onboarding)
+   * PUT /api/v1/driver/profile-picture
+   * Requires authentication
+   */
+  router.put(
+    '/profile-picture',
+    authenticate,
+    validationMiddleware(UpdateProfilePictureRequest),
+    (req, res) => void driverController.updateProfilePicture(req, res)
+  );
+
+  /**
+   * Update License Card Photo (Onboarding)
+   * PUT /api/v1/driver/license-card
+   * Requires authentication
+   */
+  router.put(
+    '/license-card',
+    authenticate,
+    validationMiddleware(UpdateLicenseCardPhotoRequest),
+    (req, res) => void driverController.updateLicenseCardPhoto(req, res)
   );
 
   return router;
