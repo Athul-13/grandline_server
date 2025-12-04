@@ -14,7 +14,8 @@ import { EmailType, QuoteEmailData } from '../../../../shared/types/email.types'
 
 /**
  * Use case for submitting a quote
- * Changes quote status from draft to submitted and calculates final pricing
+ * Changes quote status to submitted and calculates final pricing
+ * Allows resubmission of already submitted quotes (e.g., after vehicle changes)
  */
 @injectable()
 export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
@@ -53,8 +54,8 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
         throw new AppError(ERROR_MESSAGES.QUOTE_NOT_FOUND, ERROR_CODES.QUOTE_NOT_FOUND, 404);
       }
 
-      // Verify quote is a draft
-      if (quote.status !== QuoteStatus.DRAFT) {
+      // Verify quote is a draft OR submitted (allow resubmission)
+      if (quote.status !== QuoteStatus.DRAFT && quote.status !== QuoteStatus.SUBMITTED) {
         throw new AppError(
           ERROR_MESSAGES.QUOTE_ALREADY_SUBMITTED,
           ERROR_CODES.QUOTE_INVALID_STATUS,
@@ -109,8 +110,6 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
             tripType: updatedQuote.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way',
             totalPrice: pricing.total,
             quoteDate: updatedQuote.updatedAt,
-            // TODO: Add frontend URL to view quote link
-            // viewQuoteLink: `${process.env.FRONTEND_URL}/quotes/${updatedQuote.quoteId}`,
           };
 
           await this.emailService.sendEmail(EmailType.QUOTE, emailData);
