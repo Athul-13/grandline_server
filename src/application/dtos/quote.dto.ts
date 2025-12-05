@@ -268,6 +268,7 @@ export interface VehicleRecommendationResponse {
 export interface PricingBreakdownResponse {
   fuelPriceAtTime?: number;
   averageDriverRateAtTime?: number;
+  actualDriverRate?: number;
   taxPercentageAtTime?: number;
   baseFare: number;
   distanceFare: number;

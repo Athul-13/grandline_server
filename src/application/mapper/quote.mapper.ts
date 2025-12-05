@@ -61,6 +61,7 @@ export class QuoteMapper {
         ? {
             fuelPriceAtTime: quote.pricing.fuelPriceAtTime,
             averageDriverRateAtTime: quote.pricing.averageDriverRateAtTime,
+            actualDriverRate: quote.actualDriverRate,
             taxPercentageAtTime: quote.pricing.taxPercentageAtTime,
             baseFare: quote.pricing.baseFare ?? 0,
             distanceFare: quote.pricing.distanceFare ?? 0,
