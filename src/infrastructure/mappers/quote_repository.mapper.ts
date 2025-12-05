@@ -26,6 +26,7 @@ export class QuoteRepositoryMapper {
       doc.assignedDriverId,
       doc.actualDriverRate,
       doc.pricingLastUpdatedAt,
+      doc.quotedAt,
       doc.isDeleted
     );
   }

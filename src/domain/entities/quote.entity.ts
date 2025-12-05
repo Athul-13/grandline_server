@@ -66,6 +66,7 @@ export class Quote {
     public readonly assignedDriverId?: string,
     public readonly actualDriverRate?: number,
     public readonly pricingLastUpdatedAt?: Date,
+    public readonly quotedAt?: Date,
     public readonly isDeleted: boolean = false
   ) {}
 
@@ -130,6 +131,31 @@ export class Quote {
    */
   isComplete(): boolean {
     return this.currentStep === 5;
+  }
+
+  /**
+   * Checks if the quote has been quoted (driver assigned)
+   */
+  isQuoted(): boolean {
+    return this.status === QuoteStatus.QUOTED;
+  }
+
+  /**
+   * Checks if the quote payment window has expired (24 hours)
+   */
+  isPaymentWindowExpired(): boolean {
+    if (!this.quotedAt) {
+      return false;
+    }
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    return this.quotedAt < twentyFourHoursAgo;
+  }
+
+  /**
+   * Checks if the quote is within payment window (24 hours)
+   */
+  isWithinPaymentWindow(): boolean {
+    return this.isQuoted() && !this.isPaymentWindowExpired();
   }
 }
 

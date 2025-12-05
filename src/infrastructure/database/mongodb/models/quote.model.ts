@@ -67,6 +67,7 @@ export interface IQuoteModel extends Document {
   assignedDriverId?: string;
   actualDriverRate?: number;
   pricingLastUpdatedAt?: Date;
+  quotedAt?: Date;
   isDeleted: boolean;
   createdAt: Date;
   updatedAt: Date;

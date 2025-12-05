@@ -46,6 +46,7 @@ export class QuoteRepositoryImpl
       assignedDriverId: entity.assignedDriverId,
       actualDriverRate: entity.actualDriverRate,
       pricingLastUpdatedAt: entity.pricingLastUpdatedAt,
+      quotedAt: entity.quotedAt,
       isDeleted: entity.isDeleted,
     };
   }
@@ -242,6 +243,7 @@ export class QuoteRepositoryImpl
   /**
    * Finds driver IDs that are booked during the specified date range
    * Uses MongoDB aggregation pipeline for efficient querying
+   * Excludes expired QUOTED quotes (more than 24 hours old)
    */
   async findBookedDriverIdsInDateRange(
     startDate: Date,
@@ -256,10 +258,22 @@ export class QuoteRepositoryImpl
       QuoteStatus.NEGOTIATING,
     ];
 
+    // Calculate 24 hours ago for QUOTED status expiration check
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
     const matchStage: Record<string, unknown> = {
       status: { $in: blockingStatuses },
       isDeleted: false,
       assignedDriverId: { $exists: true, $ne: null },
+      // For QUOTED status, only block if within 24-hour payment window
+      // For other statuses, always block
+      $or: [
+        { status: { $ne: QuoteStatus.QUOTED } },
+        {
+          status: QuoteStatus.QUOTED,
+          quotedAt: { $gte: twentyFourHoursAgo },
+        },
+      ],
     };
 
     // Exclude specific quote if provided
