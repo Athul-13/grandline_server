@@ -133,4 +133,8 @@ QuoteSchema.index({ isDeleted: 1 });
 QuoteSchema.index({ createdAt: -1 });
 QuoteSchema.index({ userId: 1, status: 1 });
 QuoteSchema.index({ userId: 1, isDeleted: 1 });
+// Add indexes for availability queries (for date-based availability checking)
+QuoteSchema.index({ status: 1, isDeleted: 1, 'selectedVehicles.vehicleId': 1 });
+QuoteSchema.index({ status: 1, isDeleted: 1, assignedDriverId: 1 });
+QuoteSchema.index({ status: 1, createdAt: 1 }); // For DRAFT reservation queries
 

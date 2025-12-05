@@ -50,5 +50,38 @@ export interface IQuoteRepository extends IBaseRepository<Quote> {
     statuses?: QuoteStatus[],
     userIds?: string[]
   ): Promise<Quote[]>;
+
+  /**
+   * Finds vehicle IDs that are booked during the specified date range
+   * Uses MongoDB aggregation to efficiently find overlapping bookings
+   * @returns Set of vehicle IDs that are booked during the date range
+   */
+  findBookedVehicleIdsInDateRange(
+    startDate: Date,
+    endDate: Date,
+    excludeQuoteId?: string
+  ): Promise<Set<string>>;
+
+  /**
+   * Finds driver IDs that are booked during the specified date range
+   * Uses MongoDB aggregation to efficiently find overlapping bookings
+   * @returns Set of driver IDs that are booked during the date range
+   */
+  findBookedDriverIdsInDateRange(
+    startDate: Date,
+    endDate: Date,
+    excludeQuoteId?: string
+  ): Promise<Set<string>>;
+
+  /**
+   * Finds vehicle IDs that are temporarily reserved in DRAFT quotes
+   * Only includes DRAFT quotes created within the last 30 minutes
+   * @returns Set of vehicle IDs that are reserved in recent DRAFT quotes
+   */
+  findReservedVehicleIdsInDateRange(
+    startDate: Date,
+    endDate: Date,
+    excludeQuoteId?: string
+  ): Promise<Set<string>>;
 }
 

@@ -77,4 +77,8 @@ QuoteItinerarySchema.index({ itineraryId: 1 });
 QuoteItinerarySchema.index({ quoteId: 1 });
 QuoteItinerarySchema.index({ quoteId: 1, tripType: 1 });
 QuoteItinerarySchema.index({ quoteId: 1, stopOrder: 1 });
+// Add indexes for date range queries (for availability checking)
+QuoteItinerarySchema.index({ arrivalTime: 1 });
+QuoteItinerarySchema.index({ departureTime: 1 });
+QuoteItinerarySchema.index({ quoteId: 1, arrivalTime: 1 });
 
