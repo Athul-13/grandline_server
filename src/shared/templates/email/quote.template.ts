@@ -4,9 +4,9 @@ import { QuoteEmailData } from '../../types/email.types';
  * Formats currency amount
  */
 function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.NumberFormat('en-IN', {
     style: 'currency',
-    currency: 'USD',
+    currency: 'INR',
   }).format(amount);
 }
 
@@ -32,6 +32,7 @@ export function renderQuoteHTML(data: QuoteEmailData): string {
   const tripName = data.tripName || 'Your Trip';
   const tripTypeLabel = data.tripType === 'one_way' ? 'One Way' : 'Round Trip';
   const viewLink = data.viewQuoteLink || '#';
+  const paymentLink = data.paymentLink || '#';
 
   return `
 <!DOCTYPE html>
@@ -39,7 +40,7 @@ export function renderQuoteHTML(data: QuoteEmailData): string {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quote Confirmation - GRANDLINE</title>
+  <title>Your Quotation - GRANDLINE</title>
 </head>
 <body style="font-family: 'Work Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 0; padding: 0; background-color: #F4F1DE;">
   <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #F4F1DE; padding: 20px;">
@@ -49,7 +50,7 @@ export function renderQuoteHTML(data: QuoteEmailData): string {
           <!-- Header -->
           <tr>
             <td style="background: linear-gradient(135deg, #C5630C 0%, #b5590b 100%); padding: 40px 30px; text-align: center;">
-              <h1 style="color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 600;">Quote Confirmation</h1>
+              <h1 style="color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 600;">Your Quotation</h1>
               <p style="color: #FFFFFF; margin: 10px 0 0 0; font-size: 16px; opacity: 0.95;">GRANDLINE</p>
             </td>
           </tr>
@@ -62,7 +63,7 @@ export function renderQuoteHTML(data: QuoteEmailData): string {
               </p>
               
               <p style="font-size: 16px; color: #1a1a1a; margin: 0 0 30px 0; line-height: 1.8;">
-                Thank you for choosing GRANDLINE! Your quote has been successfully submitted and is now under review. We'll get back to you shortly with the next steps.
+                Your quotation has been prepared with the assigned driver. Please find the detailed quotation attached as a PDF. You can review the pricing and proceed with payment when ready.
               </p>
               
               <!-- Quote Details Card -->
@@ -97,16 +98,20 @@ export function renderQuoteHTML(data: QuoteEmailData): string {
                 </h2>
               </div>
               
-              <!-- View Quote Button -->
+              <!-- Action Buttons -->
               <div style="text-align: center; margin: 35px 0;">
+                <a href="${paymentLink}" 
+                   style="display: inline-block; background-color: #C5630C; color: #FFFFFF; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; margin: 0 10px 10px 0;">
+                  Pay Now
+                </a>
                 <a href="${viewLink}" 
-                   style="display: inline-block; background-color: #C5630C; color: #FFFFFF; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
+                   style="display: inline-block; background-color: #FFFFFF; color: #C5630C; padding: 16px 40px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; border: 2px solid #C5630C; margin: 0 10px 10px 0;">
                   View Quote Details
                 </a>
               </div>
               
               <p style="font-size: 14px; color: #6b7280; margin: 30px 0 0 0; line-height: 1.8;">
-                Our team will review your quote and contact you soon. If you have any questions, please don't hesitate to reach out to us.
+                A detailed quotation PDF has been attached to this email. If you have any questions or would like to discuss the pricing, please feel free to contact us through the chat feature on your quote details page.
               </p>
             </td>
           </tr>
@@ -140,11 +145,11 @@ export function renderQuoteText(data: QuoteEmailData): string {
   const tripTypeLabel = data.tripType === 'one_way' ? 'One Way' : 'Round Trip';
 
   return `
-Quote Confirmation - GRANDLINE
+Your Quotation - GRANDLINE
 
 ${greeting}
 
-Thank you for choosing GRANDLINE! Your quote has been successfully submitted and is now under review. We'll get back to you shortly with the next steps.
+Your quotation has been prepared with the assigned driver. Please find the detailed quotation attached as a PDF. You can review the pricing and proceed with payment when ready.
 
 QUOTE DETAILS
 -------------
@@ -155,9 +160,10 @@ Quote Date: ${formatDate(data.quoteDate)}
 
 Total Price: ${formatCurrency(data.totalPrice)}
 
+${data.paymentLink ? `Pay Now: ${data.paymentLink}` : ''}
 ${data.viewQuoteLink ? `View Quote: ${data.viewQuoteLink}` : ''}
 
-Our team will review your quote and contact you soon. If you have any questions, please don't hesitate to reach out to us.
+A detailed quotation PDF has been attached to this email. If you have any questions or would like to discuss the pricing, please feel free to contact us through the chat feature on your quote details page.
 
 This is an automated message from GRANDLINE. Please do not reply to this email.
 

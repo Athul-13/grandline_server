@@ -43,5 +43,6 @@ export interface QuoteEmailData {
   totalPrice: number;
   quoteDate: Date;
   viewQuoteLink?: string;
+  paymentLink?: string;
 }
 
