@@ -69,6 +69,8 @@ import { SubmitQuoteUseCase } from '../../application/use-cases/implementation/q
 import { GetAdminQuotesListUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quotes_list.use-case';
 import { GetAdminQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quote.use-case';
 import { UpdateQuoteStatusUseCase } from '../../application/use-cases/implementation/quote/admin/update_quote_status.use-case';
+import { AssignDriverToQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/assign_driver_to_quote.use-case';
+import { RecalculateQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/recalculate_quote.use-case';
 import { GetPricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config.use-case';
 import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/create_pricing_config.use-case';
 import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config_history.use-case';
@@ -171,6 +173,8 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetAdminQuotesListUseCase, GetAdminQuotesListUseCase);
   container.register(USE_CASE_TOKENS.GetAdminQuoteUseCase, GetAdminQuoteUseCase);
   container.register(USE_CASE_TOKENS.UpdateQuoteStatusUseCase, UpdateQuoteStatusUseCase);
+  container.register(USE_CASE_TOKENS.AssignDriverToQuoteUseCase, AssignDriverToQuoteUseCase);
+  container.register(USE_CASE_TOKENS.RecalculateQuoteUseCase, RecalculateQuoteUseCase);
   // Pricing Config use cases
   container.register(USE_CASE_TOKENS.GetPricingConfigUseCase, GetPricingConfigUseCase);
   container.register(USE_CASE_TOKENS.CreatePricingConfigUseCase, CreatePricingConfigUseCase);

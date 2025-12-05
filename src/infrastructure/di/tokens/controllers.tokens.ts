@@ -14,6 +14,7 @@ export const CONTROLLER_TOKENS = {
   VehicleController: Symbol.for('VehicleController'),
   // Quote controllers
   QuoteController: Symbol.for('QuoteController'),
+  PaymentController: Symbol.for('PaymentController'),
   AdminQuoteController: Symbol.for('AdminQuoteController'),
   // Other controllers
   AmenityController: Symbol.for('AmenityController'),

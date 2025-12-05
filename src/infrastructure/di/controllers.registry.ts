@@ -8,6 +8,7 @@ import { VehicleTypeController } from '../../presentation/controllers/vehicle_ty
 import { VehicleController } from '../../presentation/controllers/vehicle/vehicle.controller';
 import { AmenityController } from '../../presentation/controllers/amenity/amenity.controller';
 import { QuoteController } from '../../presentation/controllers/quote/quote.controller';
+import { PaymentController } from '../../presentation/controllers/quote/payment.controller';
 import { EventTypeController } from '../../presentation/controllers/event_type/event_type.controller';
 import { AdminQuoteController } from '../../presentation/controllers/admin/admin_quote.controller';
 import { AdminPricingConfigController } from '../../presentation/controllers/admin/admin_pricing_config.controller';
@@ -34,6 +35,7 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.VehicleController, VehicleController);
   // Quote controllers
   container.register(CONTROLLER_TOKENS.QuoteController, QuoteController);
+  container.register(CONTROLLER_TOKENS.PaymentController, PaymentController);
   container.register(CONTROLLER_TOKENS.AdminQuoteController, AdminQuoteController);
   // Other controllers
   container.register(CONTROLLER_TOKENS.AmenityController, AmenityController);

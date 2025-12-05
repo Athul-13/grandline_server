@@ -4,7 +4,7 @@ import { AdminQuoteController } from '../../controllers/admin/admin_quote.contro
 import { authenticate } from '../../middleware/auth.middleware';
 import { requireAdmin } from '../../middleware/authorize.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { UpdateQuoteStatusRequest } from '../../../application/dtos/quote.dto';
+import { UpdateQuoteStatusRequest, AssignDriverToQuoteRequest } from '../../../application/dtos/quote.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -52,6 +52,31 @@ export function createAdminQuoteRoutesWithDI(): Router {
     requireAdmin,
     validationMiddleware(UpdateQuoteStatusRequest),
     (req, res) => void adminQuoteController.updateQuoteStatus(req, res)
+  );
+
+  /**
+   * @route   POST /api/v1/admin/quotes/:id/assign-driver
+   * @desc    Assign driver to quote (admin only)
+   * @access  Private (Admin)
+   */
+  router.post(
+    '/:id/assign-driver',
+    authenticate,
+    requireAdmin,
+    validationMiddleware(AssignDriverToQuoteRequest),
+    (req, res) => void adminQuoteController.assignDriver(req, res)
+  );
+
+  /**
+   * @route   POST /api/v1/admin/quotes/:id/recalculate
+   * @desc    Recalculate quote pricing (admin only)
+   * @access  Private (Admin)
+   */
+  router.post(
+    '/:id/recalculate',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminQuoteController.recalculateQuote(req, res)
   );
 
   return router;
