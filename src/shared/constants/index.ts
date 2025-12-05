@@ -255,6 +255,9 @@ export const ERROR_MESSAGES = {
   DRIVER_LICENSE_NUMBER_EXISTS: 'Driver with this license number already exists',
   DRIVER_INVALID_STATUS: 'Invalid driver status',
   DRIVER_CANNOT_ACCEPT_RIDE: 'Driver cannot accept rides. Driver must be onboarded and available',
+  QUOTE_PAYMENT_WINDOW_EXPIRED: 'Quote payment window has expired. Please request a new quote.',
+  DRIVER_NOT_AVAILABLE: 'Driver is not available for the selected dates',
+  VEHICLES_NOT_AVAILABLE: 'Selected vehicles are no longer available. Please select new vehicles.',
 } as const;
 
 /**
@@ -295,4 +298,7 @@ export const ERROR_CODES = {
   DRIVER_DUPLICATE_LICENSE: 'DRIVER_DUPLICATE_LICENSE',
   INVALID_DRIVER_STATUS: 'INVALID_DRIVER_STATUS',
   INVALID_DRIVER_ID: 'INVALID_DRIVER_ID',
+  QUOTE_EXPIRED: 'QUOTE_EXPIRED',
+  DRIVER_NOT_AVAILABLE: 'DRIVER_NOT_AVAILABLE',
+  VEHICLES_NOT_AVAILABLE: 'VEHICLES_NOT_AVAILABLE',
 } as const;

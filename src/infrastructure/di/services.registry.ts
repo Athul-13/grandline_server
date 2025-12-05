@@ -18,6 +18,8 @@ import { IPricingCalculationService } from '../../domain/services/pricing_calcul
 import { PricingCalculationServiceImpl } from '../service/pricing_calculation.service';
 import { IVehicleRecommendationService } from '../../domain/services/vehicle_recommendation_service.interface';
 import { VehicleRecommendationServiceImpl } from '../service/vehicle_recommendation.service';
+import { IPDFGenerationService } from '../../domain/services/pdf_generation_service.interface';
+import { PDFGenerationServiceImpl } from '../service/pdf_generation.service';
 import { MapboxService } from '../service/mapbox.service';
 import { ISocketEventService } from '../../domain/services/socket_event_service.interface';
 import { SocketEventService } from '../service/socket_event.service';
@@ -77,6 +79,11 @@ export function registerServices(): void {
   container.register<IVehicleRecommendationService>(
     SERVICE_TOKENS.IVehicleRecommendationService,
     { useClass: VehicleRecommendationServiceImpl }
+  );
+
+  container.register<IPDFGenerationService>(
+    SERVICE_TOKENS.IPDFGenerationService,
+    { useClass: PDFGenerationServiceImpl }
   );
 
   // Socket event service - register as singleton so all resolutions return the same instance

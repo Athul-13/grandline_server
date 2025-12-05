@@ -361,6 +361,17 @@ export interface SubmitQuoteResponse {
 }
 
 /**
+ * Recalculate quote response DTO
+ * POST /api/v1/admin/quotes/:id/recalculate
+ */
+export interface RecalculateQuoteResponse {
+  success: boolean;
+  message: string;
+  requiresVehicleReselection?: boolean;
+  quote?: QuoteResponse;
+}
+
+/**
  * User information for admin quote responses
  */
 export interface AdminUserInfo {
@@ -410,5 +421,14 @@ export class UpdateQuoteStatusRequest {
   })
   @IsNotEmpty()
   status!: QuoteStatus;
+}
+
+/**
+ * Request DTO for assigning driver to quote
+ */
+export class AssignDriverToQuoteRequest {
+  @IsString()
+  @IsNotEmpty()
+  driverId!: string;
 }
 
