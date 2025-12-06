@@ -77,50 +77,52 @@ export class SocketConfig {
       throw new Error('Socket.io server not initialized');
     }
 
-    io.use(async (socket: Socket, next: (err?: Error) => void) => {
-      try {
-        const jwtService = container.resolve<IJWTService>(SERVICE_TOKENS.IJWTService);
-        let token: string | undefined;
-
-        // Try to get token from cookies (primary method)
-        const cookieHeader = socket.handshake.headers.cookie;
-        if (typeof cookieHeader === 'string' && cookieHeader) {
-          const cookies = this.parseCookies(cookieHeader);
-          token = cookies[COOKIE_NAMES.ACCESS_TOKEN];
-        }
-
-        // Fallback to query parameter or auth object
-        if (!token) {
-          const queryToken = socket.handshake.query.token;
-          const authToken = socket.handshake.auth?.token;
-          token =
-            (typeof queryToken === 'string' ? queryToken : undefined) ||
-            (typeof authToken === 'string' ? authToken : undefined);
-        }
-
-        // No token found
-        if (!token) {
-          next(new Error('Authentication token not provided'));
-          return;
-        }
-
-        // Verify token
+    io.use((socket: Socket, next: (err?: Error) => void) => {
+      void (async () => {
         try {
-          const payload = await jwtService.verifyAccessToken(token);
-          const authSocket = socket as AuthenticatedSocket;
-          if (!authSocket.data) {
-            authSocket.data = {};
+          const jwtService = container.resolve<IJWTService>(SERVICE_TOKENS.IJWTService);
+          let token: string | undefined;
+
+          // Try to get token from cookies (primary method)
+          const cookieHeader = socket.handshake.headers.cookie;
+          if (typeof cookieHeader === 'string' && cookieHeader) {
+            const cookies = this.parseCookies(cookieHeader);
+            token = cookies[COOKIE_NAMES.ACCESS_TOKEN];
           }
-          authSocket.data.user = payload;
-          next();
+
+          // Fallback to query parameter or auth object
+          if (!token) {
+            const queryToken = socket.handshake.query.token;
+            const authToken = socket.handshake.auth?.token;
+            token =
+              (typeof queryToken === 'string' ? queryToken : undefined) ||
+              (typeof authToken === 'string' ? authToken : undefined);
+          }
+
+          // No token found
+          if (!token) {
+            next(new Error('Authentication token not provided'));
+            return;
+          }
+
+          // Verify token
+          try {
+            const payload = await jwtService.verifyAccessToken(token);
+            const authSocket = socket as AuthenticatedSocket;
+            if (!authSocket.data) {
+              authSocket.data = {};
+            }
+            authSocket.data.user = payload;
+            next();
+          } catch (error) {
+            const message = error instanceof Error ? error.message : 'Invalid token';
+            next(new Error(message));
+          }
         } catch (error) {
-          const message = error instanceof Error ? error.message : 'Invalid token';
+          const message = error instanceof Error ? error.message : 'Authentication failed';
           next(new Error(message));
         }
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Authentication failed';
-        next(new Error(message));
-      }
+      })();
     });
   }
 

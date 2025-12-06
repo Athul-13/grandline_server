@@ -24,8 +24,7 @@ export function createQueueWithURI<T = unknown>(queueName: string, options?: Que
     ...options,
   };
 
-  // Use type assertion to ensure proper typing with Bull's Queue constructor
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  const queue = new BullQueue<T>(queueName, REDIS_CONFIG.URI, queueOptions) as BullQueue.Queue<T>;
+  // Create queue instance
+  const queue = new BullQueue<T>(queueName, REDIS_CONFIG.URI, queueOptions);
   return queue;
 }

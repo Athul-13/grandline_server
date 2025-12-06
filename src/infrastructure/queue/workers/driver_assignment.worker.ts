@@ -24,8 +24,7 @@ export class DriverAssignmentWorker {
    */
   initialize(): void {
     // Process all jobs - check jobType in handler
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    driverAssignmentQueue.process(async (job: Job<DriverAssignmentJobData>) => {
+    void driverAssignmentQueue.process(async (job: Job<DriverAssignmentJobData>) => {
       if (job.data.jobType === 'assign-driver') {
         return this.processAssignDriverJob(job);
       } else if (job.data.jobType === 'process-pending-quotes') {

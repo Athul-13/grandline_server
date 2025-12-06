@@ -16,7 +16,6 @@ export class QueueServiceImpl implements IQueueService {
         quoteId,
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       await driverAssignmentQueue.add(jobData, {
         attempts: 3,
         backoff: {
@@ -45,7 +44,6 @@ export class QueueServiceImpl implements IQueueService {
       // If a job with this ID already exists, it won't be added again
       const jobId = 'process-pending-quotes';
 
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       await driverAssignmentQueue.add(jobData, {
         jobId,
         removeOnComplete: true, // Remove completed jobs immediately

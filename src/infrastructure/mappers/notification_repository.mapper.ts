@@ -15,7 +15,7 @@ export class NotificationRepositoryMapper {
       doc.message,
       doc.isRead,
       doc.createdAt,
-      doc.data as Record<string, unknown> | undefined
+      doc.data
     );
   }
 

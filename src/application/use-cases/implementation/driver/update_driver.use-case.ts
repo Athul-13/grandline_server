@@ -48,14 +48,15 @@ export class UpdateDriverUseCase implements IUpdateDriverUseCase {
 
     // Check for license number uniqueness if license number is being updated
     if (request.licenseNumber && request.licenseNumber.trim() !== existingDriver.licenseNumber) {
+      const licenseNumber = request.licenseNumber.trim();
       const driversWithLicense = await this.driverRepository.findDriversWithFilters({
-        search: request.licenseNumber.trim(),
+        search: licenseNumber,
       });
       const driverWithLicense = driversWithLicense.drivers.find(
-        d => d.licenseNumber.toLowerCase() === request.licenseNumber.trim().toLowerCase() && d.driverId !== driverId
+        d => d.licenseNumber.toLowerCase() === licenseNumber.toLowerCase() && d.driverId !== driverId
       );
       if (driverWithLicense) {
-        logger.warn(`Attempt to update driver with duplicate license number: ${request.licenseNumber}`);
+        logger.warn(`Attempt to update driver with duplicate license number: ${licenseNumber}`);
         throw new AppError(ERROR_MESSAGES.DRIVER_LICENSE_NUMBER_EXISTS, ERROR_CODES.DRIVER_DUPLICATE_LICENSE, 409);
       }
     }

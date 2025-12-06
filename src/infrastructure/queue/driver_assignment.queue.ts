@@ -19,7 +19,6 @@ export type DriverAssignmentJobData = AssignDriverJobData | ProcessPendingQuotes
  * Driver Assignment Queue
  * Handles automatic driver assignment jobs
  */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 export const driverAssignmentQueue = createQueueWithURI<DriverAssignmentJobData>('driver-assignment', {
   defaultJobOptions: {
     removeOnComplete: {
@@ -39,32 +38,26 @@ export const driverAssignmentQueue = createQueueWithURI<DriverAssignmentJobData>
 });
 
 // Set up queue event listeners for monitoring
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 driverAssignmentQueue.on('error', (error: Error) => {
   console.error('Driver assignment queue error:', error);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 driverAssignmentQueue.on('waiting', (jobId: string | number) => {
   console.log(`Driver assignment job ${jobId} is waiting`);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 driverAssignmentQueue.on('active', (job: Job<DriverAssignmentJobData>) => {
   console.log(`Processing driver assignment job ${job.id} - Type: ${job.data.jobType}`);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 driverAssignmentQueue.on('completed', (job: Job<DriverAssignmentJobData>) => {
   console.log(`Driver assignment job ${job.id} completed - Type: ${job.data.jobType}`);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 driverAssignmentQueue.on('failed', (job: Job<DriverAssignmentJobData> | undefined, err: Error) => {
   console.error(`Driver assignment job ${job?.id} failed - Type: ${job?.data.jobType}`, err);
 });
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
 driverAssignmentQueue.on('stalled', (job: Job<DriverAssignmentJobData>) => {
   console.warn(`Driver assignment job ${job.id} stalled - Type: ${job.data.jobType}`);
 });

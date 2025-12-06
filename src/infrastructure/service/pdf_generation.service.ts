@@ -1,5 +1,5 @@
 import { injectable } from 'tsyringe';
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const PDFDocument = require('pdfkit') as typeof import('pdfkit');
 import { IPDFGenerationService, IQuotePDFData } from '../../domain/services/pdf_generation_service.interface';
 import { TripType } from '../../shared/constants';
@@ -234,7 +234,7 @@ export class PDFGenerationServiceImpl implements IPDFGenerationService {
         doc.end();
       } catch (error) {
         logger.error(`Error generating PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        reject(error);
+        reject(error instanceof Error ? error : new Error('Unknown error generating PDF'));
       }
     });
   }

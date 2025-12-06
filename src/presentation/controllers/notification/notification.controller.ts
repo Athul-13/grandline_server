@@ -12,7 +12,7 @@ import {
   MarkNotificationAsReadRequest,
 } from '../../../application/dtos/notification.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
-import { HTTP_STATUS } from '../../../shared/constants';
+import { HTTP_STATUS, NotificationType } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
 
@@ -73,7 +73,7 @@ export class NotificationController {
         page,
         limit,
         unreadOnly,
-        type: type as any,
+        type: type as NotificationType | undefined,
       };
 
       logger.info(`Get notifications request for user: ${req.user.userId}`);
