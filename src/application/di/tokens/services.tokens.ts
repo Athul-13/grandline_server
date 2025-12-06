@@ -19,5 +19,8 @@ export const SERVICE_TOKENS = {
   IPDFGenerationService: Symbol.for('IPDFGenerationService'),
   // Socket event service
   ISocketEventService: Symbol.for('ISocketEventService'),
+  // Queue and auto-assignment services
+  IAutoDriverAssignmentService: Symbol.for('IAutoDriverAssignmentService'),
+  IQueueService: Symbol.for('IQueueService'),
 } as const;
 

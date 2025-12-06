@@ -12,6 +12,7 @@ import { ICalculateQuotePricingUseCase } from '../../interface/quote/calculate_q
 import { IPricingCalculationService } from '../../../../domain/services/pricing_calculation_service.interface';
 import { IPDFGenerationService } from '../../../../domain/services/pdf_generation_service.interface';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
+import { IQueueService } from '../../../../domain/services/queue_service.interface';
 import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES, TripType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
@@ -51,7 +52,9 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
     @inject(SERVICE_TOKENS.IPDFGenerationService)
     private readonly pdfGenerationService: IPDFGenerationService,
     @inject(SERVICE_TOKENS.IEmailService)
-    private readonly emailService: IEmailService
+    private readonly emailService: IEmailService,
+    @inject(SERVICE_TOKENS.IQueueService)
+    private readonly queueService: IQueueService
   ) {}
 
   async execute(quoteId: string, userId: string): Promise<SubmitQuoteResponse> {
@@ -282,6 +285,7 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
       }
 
       // If driver not assigned, update quote with pricing and SUBMITTED status
+      // No email is sent when driver is not assigned - email will be sent when driver is assigned via queue
       if (!driverAssigned) {
         await this.quoteRepository.updateById(quoteId, {
           status: QuoteStatus.SUBMITTED,
@@ -301,31 +305,15 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
           },
         } as Partial<Quote>);
 
-        // Send confirmation email (don't fail if email fails)
+        // Add job to queue for automatic driver assignment
         try {
-          const user = await this.userRepository.findById(userId);
-          if (user && user.email) {
-            const updatedQuote = await this.quoteRepository.findById(quoteId);
-            if (updatedQuote) {
-              const emailData: QuoteEmailData = {
-                email: user.email,
-                fullName: user.fullName,
-                quoteId: updatedQuote.quoteId,
-                tripName: updatedQuote.tripName,
-                tripType: updatedQuote.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way',
-                totalPrice: pricing.total,
-                quoteDate: updatedQuote.updatedAt,
-              };
-
-              await this.emailService.sendEmail(EmailType.QUOTE, emailData);
-              logger.info(`Quote confirmation email sent to ${user.email} for quote: ${quoteId}`);
-            }
-          }
-        } catch (emailError) {
-          // Log email error but don't fail the quote submission
+          await this.queueService.addDriverAssignmentJob(quoteId);
+          logger.info(`Quote ${quoteId} submitted but no driver assigned. Added to queue for automatic assignment.`);
+        } catch (queueError) {
           logger.error(
-            `Failed to send quote confirmation email for quote ${quoteId}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
+            `Failed to add driver assignment job for quote ${quoteId}: ${queueError instanceof Error ? queueError.message : 'Unknown error'}`
           );
+          // Don't fail quote submission if queue job addition fails
         }
       }
 

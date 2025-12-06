@@ -1,7 +1,8 @@
 import { injectable, inject } from 'tsyringe';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
+import { IQueueService } from '../../../../domain/services/queue_service.interface';
 import { UpdateProfilePictureRequest, UpdateProfilePictureResponse } from '../../../dtos/driver.dto';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { DriverMapper } from '../../../mapper/driver.mapper';
 import { logger } from '../../../../shared/logger';
@@ -19,6 +20,8 @@ export class UpdateProfilePictureUseCase implements IUpdateProfilePictureUseCase
   constructor(
     @inject(REPOSITORY_TOKENS.IDriverRepository)
     private readonly driverRepository: IDriverRepository,
+    @inject(SERVICE_TOKENS.IQueueService)
+    private readonly queueService: IQueueService
   ) {}
 
   async execute(driverId: string, request: UpdateProfilePictureRequest): Promise<UpdateProfilePictureResponse> {
@@ -59,6 +62,9 @@ export class UpdateProfilePictureUseCase implements IUpdateProfilePictureUseCase
         );
       }
 
+    // Check if driver was already onboarded before update
+    const wasOnboarded = driver.isOnboarded;
+
     // Update profile picture
     // Repository will auto-set isOnboarded if both photos are uploaded
     const updatedDriver = await this.driverRepository.updateDriverProfile(driverId, {
@@ -66,6 +72,19 @@ export class UpdateProfilePictureUseCase implements IUpdateProfilePictureUseCase
     });
 
     logger.info(`Profile picture updated for driver: ${driver.email} (${driverId}), isOnboarded: ${updatedDriver.isOnboarded}`);
+
+    // If driver just completed onboarding, trigger pending quotes job
+    if (!wasOnboarded && updatedDriver.isOnboarded) {
+      try {
+        await this.queueService.addProcessPendingQuotesJob();
+        logger.info(`Driver ${driverId} completed onboarding via profile picture, triggered pending quotes job`);
+      } catch (error) {
+        logger.warn(
+          `Failed to trigger pending quotes job after driver ${driverId} onboarding: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+        // Don't fail profile picture update if queue job fails
+      }
+    }
 
     return DriverMapper.toUpdateProfilePictureResponse(updatedDriver);
   }

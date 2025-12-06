@@ -1,6 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 import { IRecalculateQuoteUseCase } from '../../../interface/quote/admin/recalculate_quote_use_case.interface';
-import { RecalculateQuoteResponse, QuoteResponse } from '../../../../dtos/quote.dto';
+import { RecalculateQuoteResponse } from '../../../../dtos/quote.dto';
 import { IQuoteRepository } from '../../../../../domain/repositories/quote_repository.interface';
 import { IDriverRepository } from '../../../../../domain/repositories/driver_repository.interface';
 import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';

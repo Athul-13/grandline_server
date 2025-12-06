@@ -1,9 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 import { IUpdateDriverStatusUseCase } from '../../interface/driver/update_driver_status_use_case.interface';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
+import { IQueueService } from '../../../../domain/services/queue_service.interface';
 import { UpdateDriverStatusRequest, UpdateDriverStatusResponse } from '../../../dtos/driver.dto';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
-import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES, DriverStatus } from '../../../../shared/constants';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
+import { ERROR_MESSAGES, ERROR_CODES, DriverStatus } from '../../../../shared/constants';
 import { DriverMapper } from '../../../mapper/driver.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
@@ -17,6 +18,8 @@ export class UpdateDriverStatusUseCase implements IUpdateDriverStatusUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IDriverRepository)
     private readonly driverRepository: IDriverRepository,
+    @inject(SERVICE_TOKENS.IQueueService)
+    private readonly queueService: IQueueService
   ) {}
 
   async execute(driverId: string, request: UpdateDriverStatusRequest): Promise<UpdateDriverStatusResponse> {
@@ -41,12 +44,25 @@ export class UpdateDriverStatusUseCase implements IUpdateDriverStatusUseCase {
       throw new AppError(ERROR_MESSAGES.DRIVER_NOT_FOUND, ERROR_CODES.DRIVER_NOT_FOUND, 404);
     }
 
-    // Update driver status
-    const updatedDriver = await this.driverRepository.updateDriverStatus(driverId, request.status);
+      // Update driver status
+      const updatedDriver = await this.driverRepository.updateDriverStatus(driverId, request.status);
 
-    logger.info(`Driver status updated successfully: ${updatedDriver.email} (${driverId}) - Status: ${request.status}`);
+      logger.info(`Driver status updated successfully: ${updatedDriver.email} (${driverId}) - Status: ${request.status}`);
 
-    return DriverMapper.toUpdateDriverStatusResponse(updatedDriver);
+      // If driver status changed to AVAILABLE and driver is onboarded, trigger pending quotes job
+      if (request.status === DriverStatus.AVAILABLE && updatedDriver.isOnboarded) {
+        try {
+          await this.queueService.addProcessPendingQuotesJob();
+          logger.info(`Driver ${driverId} became available and onboarded, triggered pending quotes job`);
+        } catch (error) {
+          logger.warn(
+            `Failed to trigger pending quotes job after driver ${driverId} status change: ${error instanceof Error ? error.message : 'Unknown error'}`
+          );
+          // Don't fail status update if queue job fails
+        }
+      }
+
+      return DriverMapper.toUpdateDriverStatusResponse(updatedDriver);
   }
 }
 

@@ -3,7 +3,7 @@ import { IUpdateDriverUseCase } from '../../interface/driver/update_driver_use_c
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { UpdateDriverRequest, UpdateDriverResponse } from '../../../dtos/driver.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
-import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { DriverMapper } from '../../../mapper/driver.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
