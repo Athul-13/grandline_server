@@ -32,7 +32,7 @@ module.exports = tseslint.config(
     },
   },
   {
-    ignores: ['dist/**', 'node_modules/**', '*.js', '*.log'],
+    ignores: ['dist/**', 'node_modules/**', '*.js', '*.log', 'vitest.config.ts'],
   },
   {
     files: ['src/presentation/routes/**/*.ts'],
@@ -66,6 +66,19 @@ module.exports = tseslint.config(
       '@typescript-eslint/no-unsafe-argument': 'off',
       '@typescript-eslint/no-unsafe-enum-comparison': 'off',
       '@typescript-eslint/restrict-template-expressions': 'off',
+    },
+  },
+  {
+    files: ['**/*.test.ts', '**/test/**/*.ts'],
+    rules: {
+      // Vitest mocks and test utilities use dynamic types that ESLint's type checker
+      // cannot fully validate, but are safe and correct at runtime
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/no-unsafe-type-assertion': 'off',
+      '@typescript-eslint/no-unsafe-argument': 'off',
     },
   }
 );

@@ -7,3 +7,5 @@ logs/
 *.tsbuildinfo
 package-lock.json
 .cursorrules
+coverage/
+.vitest/
