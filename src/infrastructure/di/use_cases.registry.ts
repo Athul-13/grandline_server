@@ -89,6 +89,8 @@ import { MarkNotificationAsReadUseCase } from '../../application/use-cases/imple
 import { MarkAllNotificationsAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_all_notifications_as_read.use-case';
 import { GetUnreadNotificationCountUseCase } from '../../application/use-cases/implementation/notification/get_unread_notification_count.use-case';
 import { MarkChatNotificationsAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_chat_notifications_as_read.use-case';
+import { CreatePaymentIntentUseCase } from '../../application/use-cases/implementation/quote/create_payment_intent.use-case';
+import { HandlePaymentWebhookUseCase } from '../../application/use-cases/implementation/quote/handle_payment_webhook.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -197,5 +199,8 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.MarkAllNotificationsAsReadUseCase, MarkAllNotificationsAsReadUseCase);
   container.register(USE_CASE_TOKENS.GetUnreadNotificationCountUseCase, GetUnreadNotificationCountUseCase);
   container.register(USE_CASE_TOKENS.MarkChatNotificationsAsReadUseCase, MarkChatNotificationsAsReadUseCase);
+  // Payment use cases
+  container.register(USE_CASE_TOKENS.CreatePaymentIntentUseCase, CreatePaymentIntentUseCase);
+  container.register(USE_CASE_TOKENS.HandlePaymentWebhookUseCase, HandlePaymentWebhookUseCase);
 }
 

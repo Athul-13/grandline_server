@@ -101,3 +101,13 @@ export const MAPBOX_CONFIG = {
   ACCESS_TOKEN: process.env.MAPBOX_ACCESS_TOKEN || '',
   API_BASE_URL: 'https://api.mapbox.com/directions/v5',
 } as const;
+
+/**
+ * Stripe configuration constants
+ * Manages Stripe payment processing settings
+ */
+export const STRIPE_CONFIG = {
+  SECRET_KEY: process.env.STRIPE_SECRET_KEY || '',
+  PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || '',
+  WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || '',
+} as const;

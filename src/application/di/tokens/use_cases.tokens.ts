@@ -105,5 +105,8 @@ export const USE_CASE_TOKENS = {
   MarkAllNotificationsAsReadUseCase: Symbol.for('MarkAllNotificationsAsReadUseCase'),
   GetUnreadNotificationCountUseCase: Symbol.for('GetUnreadNotificationCountUseCase'),
   MarkChatNotificationsAsReadUseCase: Symbol.for('MarkChatNotificationsAsReadUseCase'),
+  // Payment use cases
+  CreatePaymentIntentUseCase: Symbol.for('CreatePaymentIntentUseCase'),
+  HandlePaymentWebhookUseCase: Symbol.for('HandlePaymentWebhookUseCase'),
 } as const;
 

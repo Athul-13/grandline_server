@@ -1,0 +1,113 @@
+import { inject, injectable } from 'tsyringe';
+import { IHandlePaymentWebhookUseCase } from '../../interface/quote/handle_payment_webhook_use_case.interface';
+import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
+import { IPaymentRepository } from '../../../../domain/repositories/payment_repository.interface';
+import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { QuoteStatus } from '../../../../shared/constants';
+import { logger } from '../../../../shared/logger';
+import { PaymentStatus } from '../../../../domain/entities/payment.entity';
+import Stripe from 'stripe';
+
+/**
+ * Use case for handling payment webhooks
+ * Processes Stripe webhook events and updates payment and quote status
+ */
+@injectable()
+export class HandlePaymentWebhookUseCase implements IHandlePaymentWebhookUseCase {
+  constructor(
+    @inject(REPOSITORY_TOKENS.IQuoteRepository)
+    private readonly quoteRepository: IQuoteRepository,
+    @inject(REPOSITORY_TOKENS.IPaymentRepository as never)
+    private readonly paymentRepository: IPaymentRepository
+  ) {}
+
+  async execute(event: { type: string; data: { object: unknown } }): Promise<void> {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent;
+
+    logger.info(`Processing webhook event: ${event.type} for payment intent: ${paymentIntent.id}`);
+
+    try {
+      // Find payment by payment intent ID
+      const payment = await this.paymentRepository.findByPaymentIntentId(paymentIntent.id);
+
+      if (!payment) {
+        logger.warn(`Payment not found for payment intent: ${paymentIntent.id}`);
+        return;
+      }
+
+      // Handle different event types
+      switch (event.type) {
+        case 'payment_intent.succeeded':
+          await this.handlePaymentSucceeded(payment, paymentIntent);
+          break;
+
+        case 'payment_intent.payment_failed':
+          await this.handlePaymentFailed(payment, paymentIntent);
+          break;
+
+        case 'payment_intent.canceled':
+          await this.handlePaymentCanceled(payment, paymentIntent);
+          break;
+
+        default:
+          logger.info(`Unhandled webhook event type: ${event.type}`);
+      }
+    } catch (error) {
+      logger.error(
+        `Error processing webhook: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      throw error;
+    }
+  }
+
+  private async handlePaymentSucceeded(
+    payment: import('../../../../domain/entities/payment.entity').Payment,
+    paymentIntent: Stripe.PaymentIntent
+  ): Promise<void> {
+    logger.info(`Payment succeeded for payment intent: ${paymentIntent.id}`);
+
+    // Update payment status
+    await this.paymentRepository.updateById(payment.paymentId, {
+      status: PaymentStatus.SUCCEEDED,
+      transactionId: paymentIntent.latest_charge as string | undefined,
+      paidAt: new Date(),
+    } as Partial<import('../../../../domain/entities/payment.entity').Payment>);
+
+    // Update quote status to PAID
+    await this.quoteRepository.updateById(payment.quoteId, {
+      status: QuoteStatus.PAID,
+    } as Partial<import('../../../../domain/entities/quote.entity').Quote>);
+
+    logger.info(
+      `Updated payment ${payment.paymentId} and quote ${payment.quoteId} to PAID status`
+    );
+  }
+
+  private async handlePaymentFailed(
+    payment: import('../../../../domain/entities/payment.entity').Payment,
+    paymentIntent: Stripe.PaymentIntent
+  ): Promise<void> {
+    logger.warn(`Payment failed for payment intent: ${paymentIntent.id}`);
+
+    // Update payment status
+    await this.paymentRepository.updateById(payment.paymentId, {
+      status: PaymentStatus.FAILED,
+    } as Partial<import('../../../../domain/entities/payment.entity').Payment>);
+
+    logger.info(`Updated payment ${payment.paymentId} to FAILED status`);
+  }
+
+  private async handlePaymentCanceled(
+    payment: import('../../../../domain/entities/payment.entity').Payment,
+    paymentIntent: Stripe.PaymentIntent
+  ): Promise<void> {
+    logger.info(`Payment canceled for payment intent: ${paymentIntent.id}`);
+
+    // Update payment status to failed (canceled is treated as failed)
+    await this.paymentRepository.updateById(payment.paymentId, {
+      status: PaymentStatus.FAILED,
+    } as Partial<import('../../../../domain/entities/payment.entity').Payment>);
+
+    logger.info(`Updated payment ${payment.paymentId} to FAILED status (canceled)`);
+  }
+}

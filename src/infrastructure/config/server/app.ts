@@ -19,6 +19,8 @@ import { createDriverRoutesWithDI } from '../../../presentation/routes/driver/dr
 import { createChatRoutesWithDI } from '../../../presentation/routes/chat/chat_routes';
 import { createMessageRoutesWithDI } from '../../../presentation/routes/message/message_routes';
 import { createNotificationRoutesWithDI } from '../../../presentation/routes/notification/notification_routes';
+import { createWebhookRoutesWithDI } from '../../../presentation/routes/webhook/webhook_routes';
+import express from 'express';
 
 /**
  * Express application wrapper class
@@ -75,8 +77,18 @@ export class App {
   /**
    * Registers API routes
    * Controllers are resolved here (after DI registration)
+   * Note: Webhook routes must be registered FIRST to ensure raw body parsing works correctly
    */
   public registerRoutes(): void {
+    // Webhook routes - must be registered FIRST with raw body parser for Stripe signature verification
+    // The middleware configurator excludes webhook paths from JSON parsing, preserving raw body
+    const webhookRoutes = createWebhookRoutesWithDI();
+    this.app.use(
+      '/api/v1/webhooks',
+      express.raw({ type: 'application/json' }),
+      webhookRoutes
+    );
+
     const authRoutes = createAuthRoutesWithDI();
     this.app.use(`/api/v1/auth`, authRoutes);
 

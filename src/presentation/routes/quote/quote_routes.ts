@@ -123,6 +123,17 @@ router.get(
   (req, res) => void paymentController.getPaymentPage(req, res)
 );
 
+/**
+ * @route   POST /api/v1/quotes/:id/payment/create-intent
+ * @desc    Create a payment intent for a quote
+ * @access  Private
+ */
+router.post(
+  '/:id/payment/create-intent',
+  authenticate,
+  (req, res) => void paymentController.createPaymentIntent(req, res)
+);
+
   return router;
 }
 

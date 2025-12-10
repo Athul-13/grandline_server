@@ -26,6 +26,8 @@ import { IMessageRepository } from '../../domain/repositories/message_repository
 import { MessageRepositoryImpl } from '../repositories/message.repository';
 import { INotificationRepository } from '../../domain/repositories/notification_repository.interface';
 import { NotificationRepositoryImpl } from '../repositories/notification.repository';
+import { IPaymentRepository } from '../../domain/repositories/payment_repository.interface';
+import { PaymentRepositoryImpl } from '../repositories/payment.repository';
 
 /**
  * Registers all repository dependencies in the DI container
@@ -101,5 +103,11 @@ export function registerRepositories(): void {
   container.register<INotificationRepository>(
     REPOSITORY_TOKENS.INotificationRepository,
     { useClass: NotificationRepositoryImpl }
+  );
+
+  // Payment repository
+  container.register<IPaymentRepository>(
+    REPOSITORY_TOKENS.IPaymentRepository,
+    { useClass: PaymentRepositoryImpl }
   );
 }
