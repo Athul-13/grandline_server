@@ -2,6 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IGetAdminReservationUseCase } from '../../../interface/admin/reservation/get_admin_reservation_use_case.interface';
 import { IReservationRepository } from '../../../../../domain/repositories/reservation_repository.interface';
 import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
+import { IDriverRepository } from '../../../../../domain/repositories/driver_repository.interface';
 import { IReservationItineraryRepository } from '../../../../../domain/repositories/reservation_itinerary_repository.interface';
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
 import { IReservationChargeRepository } from '../../../../../domain/repositories/reservation_charge_repository.interface';
@@ -24,6 +25,8 @@ export class GetAdminReservationUseCase implements IGetAdminReservationUseCase {
     private readonly reservationRepository: IReservationRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,
+    @inject(REPOSITORY_TOKENS.IDriverRepository)
+    private readonly driverRepository: IDriverRepository,
     @inject(REPOSITORY_TOKENS.IReservationItineraryRepository)
     private readonly itineraryRepository: IReservationItineraryRepository,
     @inject(REPOSITORY_TOKENS.IReservationModificationRepository)
@@ -56,13 +59,79 @@ export class GetAdminReservationUseCase implements IGetAdminReservationUseCase {
     }
 
     // Fetch related data
-    const [modifications, charges] = await Promise.all([
+    const [modifications, charges, passengers] = await Promise.all([
       this.modificationRepository.findByReservationId(reservationId),
       this.chargeRepository.findByReservationId(reservationId),
+      this.passengerRepository.findByReservationId(reservationId),
     ]);
 
-    // Map to response DTO
-    const reservationResponse = ReservationMapper.toReservationResponse(reservation);
+    // Fetch driver details if assigned
+    let driverDetails = null;
+    if (reservation.assignedDriverId) {
+      try {
+        const driver = await this.driverRepository.findById(reservation.assignedDriverId);
+        if (driver) {
+          driverDetails = {
+            driverId: driver.driverId,
+            fullName: driver.fullName,
+            email: driver.email,
+            phoneNumber: driver.phoneNumber,
+            licenseNumber: driver.licenseNumber,
+            profilePictureUrl: driver.profilePictureUrl,
+          };
+        }
+      } catch (driverError) {
+        logger.error(
+          `Failed to fetch driver details for reservation ${reservationId}: ${driverError instanceof Error ? driverError.message : 'Unknown error'}`
+        );
+      }
+    }
+
+    // Fetch itinerary
+    let itineraryStops: Array<{
+      itineraryId: string;
+      tripType: 'outbound' | 'return';
+      stopOrder: number;
+      locationName: string;
+      latitude: number;
+      longitude: number;
+      arrivalTime: Date;
+      departureTime?: Date;
+      stopType: string;
+      isDriverStaying: boolean;
+      stayingDuration?: number;
+    }> = [];
+    try {
+      const stops = await this.itineraryRepository.findByReservationIdOrdered(reservationId);
+      itineraryStops = stops.map((stop) => ({
+        itineraryId: stop.itineraryId,
+        tripType: stop.tripType,
+        stopOrder: stop.stopOrder,
+        locationName: stop.locationName,
+        latitude: stop.latitude,
+        longitude: stop.longitude,
+        arrivalTime: stop.arrivalTime,
+        departureTime: stop.departureTime,
+        stopType: stop.stopType,
+        isDriverStaying: stop.isDriverStaying,
+        stayingDuration: stop.stayingDuration,
+      }));
+    } catch (itineraryError) {
+      logger.error(
+        `Failed to fetch itinerary for reservation ${reservationId}: ${itineraryError instanceof Error ? itineraryError.message : 'Unknown error'}`
+      );
+    }
+
+    // Map to response DTO (with driver and itinerary if available)
+    const reservationResponse = ReservationMapper.toReservationResponse(reservation, driverDetails, itineraryStops);
+    
+    // Map passengers
+    const passengerResponses = passengers.map((passenger) => ({
+      passengerId: passenger.passengerId,
+      fullName: passenger.fullName,
+      phoneNumber: passenger.phoneNumber,
+      age: passenger.age,
+    }));
 
     // Map modifications
     const modificationResponses: ReservationModificationResponse[] = modifications.map((mod) => ({
@@ -106,6 +175,7 @@ export class GetAdminReservationUseCase implements IGetAdminReservationUseCase {
         email: user.email,
         phoneNumber: user.phoneNumber,
       },
+      passengers: passengerResponses,
       modifications: modificationResponses,
       charges: chargeResponses,
       totalCharges,
