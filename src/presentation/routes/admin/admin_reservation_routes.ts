@@ -9,6 +9,7 @@ import {
   AddPassengersToReservationRequest,
   ChangeReservationDriverRequest,
   AdjustReservationVehiclesRequest,
+  UpdateReservationItineraryRequest,
   ProcessReservationRefundRequest,
   CancelReservationRequest,
   AddReservationChargeRequest,
@@ -99,6 +100,19 @@ export function createAdminReservationRoutesWithDI(): Router {
     requireAdmin,
     validationMiddleware(AdjustReservationVehiclesRequest),
     (req, res) => void adminReservationController.adjustVehicles(req, res)
+  );
+
+  /**
+   * @route   PUT /api/v1/admin/reservations/:id/itinerary
+   * @desc    Update itinerary for reservation (admin only)
+   * @access  Private (Admin)
+   */
+  router.put(
+    '/:id/itinerary',
+    authenticate,
+    requireAdmin,
+    validationMiddleware(UpdateReservationItineraryRequest),
+    (req, res) => void adminReservationController.updateItinerary(req, res)
   );
 
   /**

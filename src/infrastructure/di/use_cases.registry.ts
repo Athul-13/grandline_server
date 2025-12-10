@@ -100,6 +100,7 @@ import { UpdateReservationStatusUseCase } from '../../application/use-cases/impl
 import { AddPassengersToReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/add_passengers_to_reservation.use-case';
 import { ChangeReservationDriverUseCase } from '../../application/use-cases/implementation/admin/reservation/change_reservation_driver.use-case';
 import { AdjustReservationVehiclesUseCase } from '../../application/use-cases/implementation/admin/reservation/adjust_reservation_vehicles.use-case';
+import { UpdateReservationItineraryUseCase } from '../../application/use-cases/implementation/admin/reservation/update_reservation_itinerary.use-case';
 import { ProcessReservationRefundUseCase } from '../../application/use-cases/implementation/admin/reservation/process_reservation_refund.use-case';
 import { CancelReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/cancel_reservation.use-case';
 import { AddReservationChargeUseCase } from '../../application/use-cases/implementation/admin/reservation/add_reservation_charge.use-case';
@@ -225,6 +226,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.AddPassengersToReservationUseCase, AddPassengersToReservationUseCase);
   container.register(USE_CASE_TOKENS.ChangeReservationDriverUseCase, ChangeReservationDriverUseCase);
   container.register(USE_CASE_TOKENS.AdjustReservationVehiclesUseCase, AdjustReservationVehiclesUseCase);
+  container.register(USE_CASE_TOKENS.UpdateReservationItineraryUseCase, UpdateReservationItineraryUseCase);
   container.register(USE_CASE_TOKENS.ProcessReservationRefundUseCase, ProcessReservationRefundUseCase);
   container.register(USE_CASE_TOKENS.CancelReservationUseCase, CancelReservationUseCase);
   container.register(USE_CASE_TOKENS.AddReservationChargeUseCase, AddReservationChargeUseCase);

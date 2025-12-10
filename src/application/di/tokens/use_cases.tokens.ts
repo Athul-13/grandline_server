@@ -119,6 +119,7 @@ export const USE_CASE_TOKENS = {
   AddPassengersToReservationUseCase: Symbol.for('AddPassengersToReservationUseCase'),
   ChangeReservationDriverUseCase: Symbol.for('ChangeReservationDriverUseCase'),
   AdjustReservationVehiclesUseCase: Symbol.for('AdjustReservationVehiclesUseCase'),
+  UpdateReservationItineraryUseCase: Symbol.for('UpdateReservationItineraryUseCase'),
   ProcessReservationRefundUseCase: Symbol.for('ProcessReservationRefundUseCase'),
   CancelReservationUseCase: Symbol.for('CancelReservationUseCase'),
   AddReservationChargeUseCase: Symbol.for('AddReservationChargeUseCase'),

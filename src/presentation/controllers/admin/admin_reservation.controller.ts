@@ -7,6 +7,7 @@ import { IUpdateReservationStatusUseCase } from '../../../application/use-cases/
 import { IAddPassengersToReservationUseCase } from '../../../application/use-cases/interface/admin/reservation/add_passengers_to_reservation_use_case.interface';
 import { IChangeReservationDriverUseCase } from '../../../application/use-cases/interface/admin/reservation/change_reservation_driver_use_case.interface';
 import { IAdjustReservationVehiclesUseCase } from '../../../application/use-cases/interface/admin/reservation/adjust_reservation_vehicles_use_case.interface';
+import { IUpdateReservationItineraryUseCase } from '../../../application/use-cases/interface/admin/reservation/update_reservation_itinerary_use_case.interface';
 import { IProcessReservationRefundUseCase } from '../../../application/use-cases/interface/admin/reservation/process_reservation_refund_use_case.interface';
 import { ICancelReservationUseCase } from '../../../application/use-cases/interface/admin/reservation/cancel_reservation_use_case.interface';
 import { IAddReservationChargeUseCase } from '../../../application/use-cases/interface/admin/reservation/add_reservation_charge_use_case.interface';
@@ -15,6 +16,7 @@ import {
   AddPassengersToReservationRequest,
   ChangeReservationDriverRequest,
   AdjustReservationVehiclesRequest,
+  UpdateReservationItineraryRequest,
   ProcessReservationRefundRequest,
   CancelReservationRequest,
   AddReservationChargeRequest,
@@ -43,6 +45,8 @@ export class AdminReservationController {
     private readonly changeReservationDriverUseCase: IChangeReservationDriverUseCase,
     @inject(USE_CASE_TOKENS.AdjustReservationVehiclesUseCase)
     private readonly adjustReservationVehiclesUseCase: IAdjustReservationVehiclesUseCase,
+    @inject(USE_CASE_TOKENS.UpdateReservationItineraryUseCase)
+    private readonly updateReservationItineraryUseCase: IUpdateReservationItineraryUseCase,
     @inject(USE_CASE_TOKENS.ProcessReservationRefundUseCase)
     private readonly processReservationRefundUseCase: IProcessReservationRefundUseCase,
     @inject(USE_CASE_TOKENS.CancelReservationUseCase)
@@ -217,6 +221,32 @@ export class AdminReservationController {
     } catch (error) {
       logger.error(
         `Error adjusting reservation vehicles: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles updating reservation itinerary
+   */
+  async updateItinerary(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const request = req.body as UpdateReservationItineraryRequest;
+      const adminUserId = req.user?.userId || '';
+
+      logger.info(`Admin updating itinerary for reservation: ${id}, stop count: ${request.stops.length}`);
+
+      const reservation = await this.updateReservationItineraryUseCase.execute(
+        id,
+        request.stops,
+        adminUserId
+      );
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, { reservation });
+    } catch (error) {
+      logger.error(
+        `Error updating reservation itinerary: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       sendErrorResponse(res, error);
     }

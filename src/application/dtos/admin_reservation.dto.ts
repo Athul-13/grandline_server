@@ -5,6 +5,8 @@ import {
   IsNumber,
   IsEnum,
   IsArray,
+  IsBoolean,
+  IsDate,
   Min,
   ValidateNested,
   ArrayMinSize,
@@ -110,6 +112,64 @@ export class CancelReservationRequest {
   @IsString()
   @IsNotEmpty()
   reason!: string;
+}
+
+/**
+ * Request DTO for updating reservation itinerary
+ */
+export class UpdateReservationItineraryRequest {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ItineraryStopUpdateData)
+  stops!: ItineraryStopUpdateData[];
+}
+
+/**
+ * Itinerary stop update data
+ */
+export class ItineraryStopUpdateData {
+  @IsOptional()
+  @IsString()
+  itineraryId?: string;
+
+  @IsEnum(['outbound', 'return'])
+  @IsNotEmpty()
+  tripType!: 'outbound' | 'return';
+
+  @IsNumber()
+  @Min(0)
+  stopOrder!: number;
+
+  @IsString()
+  @IsNotEmpty()
+  locationName!: string;
+
+  @IsNumber()
+  latitude!: number;
+
+  @IsNumber()
+  longitude!: number;
+
+  @IsDate()
+  @Type(() => Date)
+  arrivalTime!: Date;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  departureTime?: Date;
+
+  @IsString()
+  @IsNotEmpty()
+  stopType!: string;
+
+  @IsBoolean()
+  isDriverStaying!: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  stayingDuration?: number;
 }
 
 /**
