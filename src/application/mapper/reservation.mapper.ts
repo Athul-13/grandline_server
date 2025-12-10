@@ -31,6 +31,12 @@ export class ReservationMapper {
       stopType: string;
       isDriverStaying: boolean;
       stayingDuration?: number;
+    }>,
+    passengers?: Array<{
+      passengerId: string;
+      fullName: string;
+      phoneNumber: string;
+      age: number;
     }>
   ): ReservationResponse {
     return {
@@ -65,20 +71,17 @@ export class ReservationMapper {
       updatedAt: reservation.updatedAt,
       driver: driverDetails || undefined,
       itinerary: itineraryStops || undefined,
+      passengers: passengers || undefined,
     };
   }
 
   static toReservationListItemResponse(
     reservation: Reservation
   ): ReservationListItemResponse {
-    // Extract start and end locations from route data
-    // Note: For Phase 1, we'll extract from routeData if available
-    // In Phase 2, we'll get this from reservation_itinerary collection
+    // Start and end locations are now populated from reservation_itinerary collection
+    // in the use case layer, so we leave them undefined here
     let startLocation: string | undefined;
     let endLocation: string | undefined;
-
-    // For now, we'll leave these empty as itinerary will be in separate collection
-    // They can be populated in Phase 2 when we fetch from reservation_itinerary
 
     return {
       reservationId: reservation.reservationId,

@@ -112,9 +112,12 @@ export enum MessageDeliveryStatus {
  */
 export enum NotificationType {
   CHAT_MESSAGE = 'chat_message',   // New chat message notification
+  RESERVATION_CONFIRMED = 'reservation_confirmed',   // Reservation confirmed (created after payment)
+  RESERVATION_MODIFIED = 'reservation_modified',   // Reservation has been modified
   RESERVATION_DRIVER_CHANGED = 'reservation_driver_changed',   // Driver changed for reservation
   RESERVATION_PASSENGERS_ADDED = 'reservation_passengers_added',   // Passengers added to reservation
   RESERVATION_VEHICLES_ADJUSTED = 'reservation_vehicles_adjusted',   // Vehicles adjusted for reservation
+  ITINERARY_UPDATED = 'itinerary_updated',   // Itinerary updated for reservation
   RESERVATION_STATUS_CHANGED = 'reservation_status_changed',   // Reservation status changed
   RESERVATION_CHARGE_ADDED = 'reservation_charge_added',   // Additional charge added to reservation
   RESERVATION_CANCELLED = 'reservation_cancelled',   // Reservation cancelled

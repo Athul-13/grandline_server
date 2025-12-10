@@ -3,6 +3,7 @@ import { IGetReservationUseCase } from '../../interface/reservation/get_reservat
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { IReservationItineraryRepository } from '../../../../domain/repositories/reservation_itinerary_repository.interface';
+import { IPassengerRepository } from '../../../../domain/repositories/passenger_repository.interface';
 import { ReservationResponse } from '../../../dtos/reservation.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ReservationMapper } from '../../../mapper/reservation.mapper';
@@ -22,7 +23,9 @@ export class GetReservationUseCase implements IGetReservationUseCase {
     @inject(REPOSITORY_TOKENS.IDriverRepository)
     private readonly driverRepository: IDriverRepository,
     @inject(REPOSITORY_TOKENS.IReservationItineraryRepository)
-    private readonly itineraryRepository: IReservationItineraryRepository
+    private readonly itineraryRepository: IReservationItineraryRepository,
+    @inject(REPOSITORY_TOKENS.IPassengerRepository)
+    private readonly passengerRepository: IPassengerRepository
   ) {}
 
   async execute(reservationId: string, userId: string): Promise<ReservationResponse> {
@@ -114,8 +117,30 @@ export class GetReservationUseCase implements IGetReservationUseCase {
       // Don't fail reservation fetch if itinerary fetch fails
     }
 
-    // Map to response DTO with driver and itinerary
-    return ReservationMapper.toReservationResponse(reservation, driverDetails, itineraryStops);
+    // Fetch passengers
+    let passengers: Array<{
+      passengerId: string;
+      fullName: string;
+      phoneNumber: string;
+      age: number;
+    }> = [];
+    try {
+      const passengerEntities = await this.passengerRepository.findByReservationId(reservationId);
+      passengers = passengerEntities.map((passenger) => ({
+        passengerId: passenger.passengerId,
+        fullName: passenger.fullName,
+        phoneNumber: passenger.phoneNumber,
+        age: passenger.age,
+      }));
+    } catch (passengerError) {
+      logger.error(
+        `Failed to fetch passengers for reservation ${reservationId}: ${passengerError instanceof Error ? passengerError.message : 'Unknown error'}`
+      );
+      // Don't fail reservation fetch if passenger fetch fails
+    }
+
+    // Map to response DTO with driver, itinerary, and passengers
+    return ReservationMapper.toReservationResponse(reservation, driverDetails, itineraryStops, passengers);
   }
 }
 

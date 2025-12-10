@@ -9,10 +9,11 @@ import { IReservationItineraryRepository } from '../../../../domain/repositories
 import { IPassengerRepository } from '../../../../domain/repositories/passenger_repository.interface';
 import { IPDFGenerationService } from '../../../../domain/services/pdf_generation_service.interface';
 import { IEmailService } from '../../../../domain/services/email_service.interface';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
+import { ICreateNotificationUseCase } from '../../interface/notification/create_notification_use_case.interface';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS, USE_CASE_TOKENS } from '../../../di/tokens';
 import { Reservation } from '../../../../domain/entities/reservation.entity';
 import { ReservationItinerary } from '../../../../domain/entities/reservation_itinerary.entity';
-import { ReservationStatus, TripType, ERROR_MESSAGES } from '../../../../shared/constants';
+import { ReservationStatus, TripType, ERROR_MESSAGES, NotificationType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { randomUUID } from 'crypto';
@@ -43,7 +44,9 @@ export class CreateReservationUseCase implements ICreateReservationUseCase {
     @inject(SERVICE_TOKENS.IPDFGenerationService)
     private readonly pdfGenerationService: IPDFGenerationService,
     @inject(SERVICE_TOKENS.IEmailService)
-    private readonly emailService: IEmailService
+    private readonly emailService: IEmailService,
+    @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
+    private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
 
   async execute(quoteId: string, paymentId: string): Promise<Reservation> {
@@ -233,6 +236,29 @@ export class CreateReservationUseCase implements ICreateReservationUseCase {
       const createdReservation = await this.reservationRepository.findById(reservationId);
       if (!createdReservation) {
         throw new AppError('Failed to create reservation', 'RESERVATION_CREATION_ERROR', 500);
+      }
+
+      // Send notification to user about reservation confirmation
+      try {
+        await this.createNotificationUseCase.execute({
+          userId: quote.userId,
+          type: NotificationType.RESERVATION_CONFIRMED,
+          title: 'Reservation Confirmed',
+          message: `Your reservation for "${quote.tripName || 'Trip'}" has been confirmed. Invoice has been sent to your email.`,
+          data: {
+            reservationId,
+            quoteId,
+            paymentId,
+            tripName: quote.tripName,
+            tripType: quote.tripType,
+          },
+        });
+        logger.info(`Notification sent for reservation confirmation: ${reservationId}`);
+      } catch (notificationError) {
+        logger.error(
+          `Failed to send notification for reservation confirmation: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+        );
+        // Don't fail reservation creation if notification fails
       }
 
       logger.info(`Reservation created successfully: ${reservationId}`);

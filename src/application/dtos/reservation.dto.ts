@@ -64,6 +64,12 @@ export interface ReservationResponse {
     isDriverStaying: boolean;
     stayingDuration?: number;
   }>;
+  passengers?: Array<{
+    passengerId: string;
+    fullName: string;
+    phoneNumber: string;
+    age: number;
+  }>;
 }
 
 /**
