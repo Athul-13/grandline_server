@@ -2,7 +2,8 @@ import { inject, injectable } from 'tsyringe';
 import { IHandlePaymentWebhookUseCase } from '../../interface/quote/handle_payment_webhook_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { IPaymentRepository } from '../../../../domain/repositories/payment_repository.interface';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { ICreateReservationUseCase } from '../../interface/reservation/create_reservation_use_case.interface';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../di/tokens';
 import { QuoteStatus } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { PaymentStatus } from '../../../../domain/entities/payment.entity';
@@ -18,7 +19,9 @@ export class HandlePaymentWebhookUseCase implements IHandlePaymentWebhookUseCase
     @inject(REPOSITORY_TOKENS.IQuoteRepository)
     private readonly quoteRepository: IQuoteRepository,
     @inject(REPOSITORY_TOKENS.IPaymentRepository as never)
-    private readonly paymentRepository: IPaymentRepository
+    private readonly paymentRepository: IPaymentRepository,
+    @inject(USE_CASE_TOKENS.CreateReservationUseCase)
+    private readonly createReservationUseCase: ICreateReservationUseCase
   ) {}
 
   async execute(event: { type: string; data: { object: unknown } }): Promise<void> {
@@ -77,6 +80,18 @@ export class HandlePaymentWebhookUseCase implements IHandlePaymentWebhookUseCase
     await this.quoteRepository.updateById(payment.quoteId, {
       status: QuoteStatus.PAID,
     } as Partial<import('../../../../domain/entities/quote.entity').Quote>);
+
+    // Create reservation from quote
+    try {
+      await this.createReservationUseCase.execute(payment.quoteId, payment.paymentId);
+      logger.info(`Reservation created for quote ${payment.quoteId}`);
+    } catch (reservationError) {
+      logger.error(
+        `Failed to create reservation for quote ${payment.quoteId}: ${reservationError instanceof Error ? reservationError.message : 'Unknown error'}`
+      );
+      // Don't fail payment processing if reservation creation fails
+      // Payment and quote status are already updated
+    }
 
     logger.info(
       `Updated payment ${payment.paymentId} and quote ${payment.quoteId} to PAID status`

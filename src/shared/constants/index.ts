@@ -56,6 +56,18 @@ export enum QuoteStatus {
 }
 
 /**
+ * Reservation status enumeration
+ * Tracks the current state of reservations in the system
+ */
+export enum ReservationStatus {
+  CONFIRMED = 'confirmed',      // Reservation confirmed (just created, no modifications)
+  MODIFIED = 'modified',        // Reservation has been modified from original
+  CANCELLED = 'cancelled',       // Reservation cancelled by user/admin
+  COMPLETED = 'completed',      // Trip completed
+  REFUNDED = 'refunded',        // Fully refunded
+}
+
+/**
  * Trip type enumeration
  * Defines the type of trip for a quote
  */
@@ -100,7 +112,13 @@ export enum MessageDeliveryStatus {
  */
 export enum NotificationType {
   CHAT_MESSAGE = 'chat_message',   // New chat message notification
-  // Future notification types can be added here
+  RESERVATION_DRIVER_CHANGED = 'reservation_driver_changed',   // Driver changed for reservation
+  RESERVATION_PASSENGERS_ADDED = 'reservation_passengers_added',   // Passengers added to reservation
+  RESERVATION_VEHICLES_ADJUSTED = 'reservation_vehicles_adjusted',   // Vehicles adjusted for reservation
+  RESERVATION_STATUS_CHANGED = 'reservation_status_changed',   // Reservation status changed
+  RESERVATION_CHARGE_ADDED = 'reservation_charge_added',   // Additional charge added to reservation
+  RESERVATION_CANCELLED = 'reservation_cancelled',   // Reservation cancelled
+  RESERVATION_REFUNDED = 'reservation_refunded',   // Reservation refund processed
 }
 
 /**

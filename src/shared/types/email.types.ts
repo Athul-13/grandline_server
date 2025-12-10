@@ -6,6 +6,7 @@ export enum EmailType {
   OTP = 'OTP',
   PASSWORD_RESET = 'PASSWORD_RESET',
   QUOTE = 'QUOTE',
+  INVOICE = 'INVOICE',
 }
 
 /**
@@ -44,5 +45,22 @@ export interface QuoteEmailData {
   quoteDate: Date;
   viewQuoteLink?: string;
   paymentLink?: string;
+}
+
+/**
+ * Invoice email data interface
+ * Contains all data needed to send an invoice email
+ */
+export interface InvoiceEmailData {
+  email: string;
+  fullName?: string;
+  reservationId: string;
+  invoiceNumber: string;
+  paymentAmount: number;
+  paymentDate: Date;
+  paymentMethod: string;
+  tripName?: string;
+  tripType: string;
+  viewReservationLink?: string;
 }
 

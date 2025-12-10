@@ -108,5 +108,19 @@ export const USE_CASE_TOKENS = {
   // Payment use cases
   CreatePaymentIntentUseCase: Symbol.for('CreatePaymentIntentUseCase'),
   HandlePaymentWebhookUseCase: Symbol.for('HandlePaymentWebhookUseCase'),
+  // Reservation use cases
+  CreateReservationUseCase: Symbol.for('CreateReservationUseCase'),
+  GetReservationUseCase: Symbol.for('GetReservationUseCase'),
+  GetReservationsListUseCase: Symbol.for('GetReservationsListUseCase'),
+  // Admin Reservation use cases
+  GetAdminReservationsListUseCase: Symbol.for('GetAdminReservationsListUseCase'),
+  GetAdminReservationUseCase: Symbol.for('GetAdminReservationUseCase'),
+  UpdateReservationStatusUseCase: Symbol.for('UpdateReservationStatusUseCase'),
+  AddPassengersToReservationUseCase: Symbol.for('AddPassengersToReservationUseCase'),
+  ChangeReservationDriverUseCase: Symbol.for('ChangeReservationDriverUseCase'),
+  AdjustReservationVehiclesUseCase: Symbol.for('AdjustReservationVehiclesUseCase'),
+  ProcessReservationRefundUseCase: Symbol.for('ProcessReservationRefundUseCase'),
+  CancelReservationUseCase: Symbol.for('CancelReservationUseCase'),
+  AddReservationChargeUseCase: Symbol.for('AddReservationChargeUseCase'),
 } as const;
 

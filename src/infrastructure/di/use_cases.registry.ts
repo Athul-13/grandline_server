@@ -91,6 +91,18 @@ import { GetUnreadNotificationCountUseCase } from '../../application/use-cases/i
 import { MarkChatNotificationsAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_chat_notifications_as_read.use-case';
 import { CreatePaymentIntentUseCase } from '../../application/use-cases/implementation/quote/create_payment_intent.use-case';
 import { HandlePaymentWebhookUseCase } from '../../application/use-cases/implementation/quote/handle_payment_webhook.use-case';
+import { CreateReservationUseCase } from '../../application/use-cases/implementation/reservation/create_reservation.use-case';
+import { GetReservationUseCase } from '../../application/use-cases/implementation/reservation/get_reservation.use-case';
+import { GetReservationsListUseCase } from '../../application/use-cases/implementation/reservation/get_reservations_list.use-case';
+import { GetAdminReservationsListUseCase } from '../../application/use-cases/implementation/admin/reservation/get_admin_reservations_list.use-case';
+import { GetAdminReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/get_admin_reservation.use-case';
+import { UpdateReservationStatusUseCase } from '../../application/use-cases/implementation/admin/reservation/update_reservation_status.use-case';
+import { AddPassengersToReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/add_passengers_to_reservation.use-case';
+import { ChangeReservationDriverUseCase } from '../../application/use-cases/implementation/admin/reservation/change_reservation_driver.use-case';
+import { AdjustReservationVehiclesUseCase } from '../../application/use-cases/implementation/admin/reservation/adjust_reservation_vehicles.use-case';
+import { ProcessReservationRefundUseCase } from '../../application/use-cases/implementation/admin/reservation/process_reservation_refund.use-case';
+import { CancelReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/cancel_reservation.use-case';
+import { AddReservationChargeUseCase } from '../../application/use-cases/implementation/admin/reservation/add_reservation_charge.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -202,5 +214,19 @@ export function registerUseCases(): void {
   // Payment use cases
   container.register(USE_CASE_TOKENS.CreatePaymentIntentUseCase, CreatePaymentIntentUseCase);
   container.register(USE_CASE_TOKENS.HandlePaymentWebhookUseCase, HandlePaymentWebhookUseCase);
+  // Reservation use cases
+  container.register(USE_CASE_TOKENS.CreateReservationUseCase, CreateReservationUseCase);
+  container.register(USE_CASE_TOKENS.GetReservationUseCase, GetReservationUseCase);
+  container.register(USE_CASE_TOKENS.GetReservationsListUseCase, GetReservationsListUseCase);
+  // Admin Reservation use cases
+  container.register(USE_CASE_TOKENS.GetAdminReservationsListUseCase, GetAdminReservationsListUseCase);
+  container.register(USE_CASE_TOKENS.GetAdminReservationUseCase, GetAdminReservationUseCase);
+  container.register(USE_CASE_TOKENS.UpdateReservationStatusUseCase, UpdateReservationStatusUseCase);
+  container.register(USE_CASE_TOKENS.AddPassengersToReservationUseCase, AddPassengersToReservationUseCase);
+  container.register(USE_CASE_TOKENS.ChangeReservationDriverUseCase, ChangeReservationDriverUseCase);
+  container.register(USE_CASE_TOKENS.AdjustReservationVehiclesUseCase, AdjustReservationVehiclesUseCase);
+  container.register(USE_CASE_TOKENS.ProcessReservationRefundUseCase, ProcessReservationRefundUseCase);
+  container.register(USE_CASE_TOKENS.CancelReservationUseCase, CancelReservationUseCase);
+  container.register(USE_CASE_TOKENS.AddReservationChargeUseCase, AddReservationChargeUseCase);
 }
 

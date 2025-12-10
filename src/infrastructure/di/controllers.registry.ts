@@ -18,6 +18,8 @@ import { DriverController } from '../../presentation/controllers/driver/driver.c
 import { ChatController } from '../../presentation/controllers/chat/chat.controller';
 import { MessageController } from '../../presentation/controllers/message/message.controller';
 import { NotificationController } from '../../presentation/controllers/notification/notification.controller';
+import { ReservationController } from '../../presentation/controllers/reservation/reservation.controller';
+import { AdminReservationController } from '../../presentation/controllers/admin/admin_reservation.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -48,5 +50,8 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.ChatController, ChatController);
   container.register(CONTROLLER_TOKENS.MessageController, MessageController);
   container.register(CONTROLLER_TOKENS.NotificationController, NotificationController);
+  // Reservation controllers
+  container.register(CONTROLLER_TOKENS.ReservationController, ReservationController);
+  container.register(CONTROLLER_TOKENS.AdminReservationController, AdminReservationController);
 }
 

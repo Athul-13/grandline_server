@@ -72,6 +72,8 @@ export class EmailServiceImpl implements IEmailService {
         return 'Reset Your Password - GRANDLINE';
       case EmailType.QUOTE:
         return 'Your Quotation - GRANDLINE';
+      case EmailType.INVOICE:
+        return 'Payment Confirmation & Invoice - GRANDLINE';
       default:
         return 'GRANDLINE';
     }

@@ -50,13 +50,13 @@ export class CreatePaymentIntentUseCase implements ICreatePaymentIntentUseCase {
       }
 
       // Verify quote is in QUOTED status
-      // if (quote.status !== QuoteStatus.QUOTED) {
-      //   throw new AppError(
-      //     'Quote must be in QUOTED status to proceed with payment',
-      //     'INVALID_QUOTE_STATUS',
-      //     400
-      //   );
-      // }
+      if (quote.status !== QuoteStatus.QUOTED) {
+        throw new AppError(
+          'Quote must be in QUOTED status to proceed with payment',
+          'INVALID_QUOTE_STATUS',
+          400
+        );
+      }
 
       // Check if payment window has expired
       if (quote.isPaymentWindowExpired()) {
