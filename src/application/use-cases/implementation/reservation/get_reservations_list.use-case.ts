@@ -60,7 +60,7 @@ export class GetReservationsListUseCase implements IGetReservationsListUseCase {
       const itineraryStops = itineraryMap.get(reservation.reservationId) || [];
       const listItem = ReservationMapper.toReservationListItemResponse(reservation);
 
-      // Extract start and end locations from itinerary
+      // Extract start and end locations from itinerary, and trip date
       if (itineraryStops.length > 0) {
         const outboundStops = itineraryStops
           .filter((stop) => stop.tripType === 'outbound')
@@ -69,6 +69,8 @@ export class GetReservationsListUseCase implements IGetReservationsListUseCase {
         const pickupStop = outboundStops.find((stop) => stop.stopType === StopType.PICKUP);
         if (pickupStop) {
           listItem.startLocation = pickupStop.locationName;
+          // Trip date is the first pickup stop's arrival time
+          listItem.tripDate = pickupStop.arrivalTime;
         }
 
         if (reservation.tripType === TripType.ONE_WAY) {

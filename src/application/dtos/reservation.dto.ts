@@ -81,6 +81,7 @@ export interface ReservationListItemResponse {
   tripType: TripType;
   status: ReservationStatus;
   reservationDate: Date;
+  tripDate?: Date; // Date of the trip (from first pickup stop's arrival time)
   startLocation?: string;
   endLocation?: string;
   originalPrice?: number;

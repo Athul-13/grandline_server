@@ -3,6 +3,7 @@ import { IAddPassengersToReservationUseCase, PassengerData } from '../../../inte
 import { IReservationRepository } from '../../../../../domain/repositories/reservation_repository.interface';
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
 import { IPassengerRepository } from '../../../../../domain/repositories/passenger_repository.interface';
+import { IVehicleRepository } from '../../../../../domain/repositories/vehicle_repository.interface';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
 import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
@@ -26,6 +27,8 @@ export class AddPassengersToReservationUseCase implements IAddPassengersToReserv
     private readonly modificationRepository: IReservationModificationRepository,
     @inject(REPOSITORY_TOKENS.IPassengerRepository)
     private readonly passengerRepository: IPassengerRepository,
+    @inject(REPOSITORY_TOKENS.IVehicleRepository)
+    private readonly vehicleRepository: IVehicleRepository,
     @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
     private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
@@ -60,6 +63,51 @@ export class AddPassengersToReservationUseCase implements IAddPassengersToReserv
       );
     }
 
+    // Validate vehicle capacity
+    const currentCount = reservation.passengerCount || 0;
+    const newCount = currentCount + passengers.length;
+
+    if (reservation.selectedVehicles && reservation.selectedVehicles.length > 0) {
+      // Calculate total vehicle capacity
+      let totalCapacity = 0;
+      const vehicleIds = reservation.selectedVehicles.map((v) => v.vehicleId);
+      const vehicles = await Promise.all(
+        vehicleIds.map((id) => this.vehicleRepository.findById(id))
+      );
+
+      for (let i = 0; i < reservation.selectedVehicles.length; i++) {
+        const vehicle = vehicles[i];
+        if (vehicle) {
+          totalCapacity += vehicle.capacity * reservation.selectedVehicles[i].quantity;
+        }
+      }
+
+      // Check if new passenger count exceeds capacity
+      if (newCount > totalCapacity) {
+        const excess = newCount - totalCapacity;
+        logger.warn(
+          `Adding ${passengers.length} passengers would exceed vehicle capacity by ${excess}. Current capacity: ${totalCapacity}, New total: ${newCount}`
+        );
+
+        // Suggest vehicle adjustments (find vehicles that can accommodate the excess)
+        const availableVehicles = await this.vehicleRepository.findAll();
+        const suitableVehicles = availableVehicles
+          .filter((v) => v.capacity >= excess && v.isAvailable())
+          .sort((a, b) => a.capacity - b.capacity) // Sort by capacity ascending to find smallest suitable vehicle
+          .slice(0, 3); // Get top 3 suggestions
+
+        const suggestionMessage = suitableVehicles.length > 0
+          ? ` Consider adding ${Math.ceil(excess / suitableVehicles[0].capacity)} vehicle(s) of capacity ${suitableVehicles[0].capacity} or higher.`
+          : ' Please adjust vehicles manually to accommodate the additional passengers.';
+
+        throw new AppError(
+          `Adding ${passengers.length} passenger(s) would exceed current vehicle capacity by ${excess} passenger(s). Current capacity: ${totalCapacity}, Required: ${newCount}.${suggestionMessage}`,
+          'VEHICLE_CAPACITY_EXCEEDED',
+          400
+        );
+      }
+    }
+
     // Create passenger entities and save
     const now = new Date();
     const createdPassengers: Passenger[] = [];
@@ -80,9 +128,7 @@ export class AddPassengersToReservationUseCase implements IAddPassengersToReserv
       createdPassengers.push(passenger);
     }
 
-    // Update reservation passenger count
-    const currentCount = reservation.passengerCount || 0;
-    const newCount = currentCount + passengers.length;
+    // Update reservation passenger count (newCount already calculated above during validation)
     await this.reservationRepository.updateById(reservationId, {
       passengerCount: newCount,
       status: reservation.status === ReservationStatus.CONFIRMED ? ReservationStatus.MODIFIED : reservation.status,
