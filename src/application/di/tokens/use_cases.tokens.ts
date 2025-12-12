@@ -40,6 +40,8 @@ export const USE_CASE_TOKENS = {
   UpdateOnboardingPasswordUseCase: Symbol.for('UpdateOnboardingPasswordUseCase'),
   GetDriverProfileUseCase: Symbol.for('GetDriverProfileUseCase'),
   GetDriverStatisticsUseCase: Symbol.for('GetDriverStatisticsUseCase'),
+  CompleteDriverOnboardingUseCase: Symbol.for('CompleteDriverOnboardingUseCase'),
+  GetDriverInfoUseCase: Symbol.for('GetDriverInfoUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),
@@ -81,6 +83,8 @@ export const USE_CASE_TOKENS = {
   GetAdminQuotesListUseCase: Symbol.for('GetAdminQuotesListUseCase'),
   GetAdminQuoteUseCase: Symbol.for('GetAdminQuoteUseCase'),
   UpdateQuoteStatusUseCase: Symbol.for('UpdateQuoteStatusUseCase'),
+  AssignDriverToQuoteUseCase: Symbol.for('AssignDriverToQuoteUseCase'),
+  RecalculateQuoteUseCase: Symbol.for('RecalculateQuoteUseCase'),
   // Pricing Config use cases
   GetPricingConfigUseCase: Symbol.for('GetPricingConfigUseCase'),
   CreatePricingConfigUseCase: Symbol.for('CreatePricingConfigUseCase'),
@@ -103,5 +107,30 @@ export const USE_CASE_TOKENS = {
   MarkAllNotificationsAsReadUseCase: Symbol.for('MarkAllNotificationsAsReadUseCase'),
   GetUnreadNotificationCountUseCase: Symbol.for('GetUnreadNotificationCountUseCase'),
   MarkChatNotificationsAsReadUseCase: Symbol.for('MarkChatNotificationsAsReadUseCase'),
+  // Payment use cases
+  CreatePaymentIntentUseCase: Symbol.for('CreatePaymentIntentUseCase'),
+  HandlePaymentWebhookUseCase: Symbol.for('HandlePaymentWebhookUseCase'),
+  // Reservation use cases
+  CreateReservationUseCase: Symbol.for('CreateReservationUseCase'),
+  GetReservationUseCase: Symbol.for('GetReservationUseCase'),
+  GetReservationsListUseCase: Symbol.for('GetReservationsListUseCase'),
+  // Admin Reservation use cases
+  GetAdminReservationsListUseCase: Symbol.for('GetAdminReservationsListUseCase'),
+  GetAdminReservationUseCase: Symbol.for('GetAdminReservationUseCase'),
+  UpdateReservationStatusUseCase: Symbol.for('UpdateReservationStatusUseCase'),
+  AddPassengersToReservationUseCase: Symbol.for('AddPassengersToReservationUseCase'),
+  ChangeReservationDriverUseCase: Symbol.for('ChangeReservationDriverUseCase'),
+  AdjustReservationVehiclesUseCase: Symbol.for('AdjustReservationVehiclesUseCase'),
+  UpdateReservationItineraryUseCase: Symbol.for('UpdateReservationItineraryUseCase'),
+  ProcessReservationRefundUseCase: Symbol.for('ProcessReservationRefundUseCase'),
+  CancelReservationUseCase: Symbol.for('CancelReservationUseCase'),
+  AddReservationChargeUseCase: Symbol.for('AddReservationChargeUseCase'),
+  MarkChargeAsPaidUseCase: Symbol.for('MarkChargeAsPaidUseCase'),
+  ExportReservationPDFUseCase: Symbol.for('ExportReservationPDFUseCase'),
+  ExportReservationCSVUseCase: Symbol.for('ExportReservationCSVUseCase'),
+  CreateChargePaymentIntentUseCase: Symbol.for('CreateChargePaymentIntentUseCase'),
+  // Dashboard use cases
+  GetDashboardStatsUseCase: Symbol.for('GetDashboardStatsUseCase'),
+  GetRecentActivityUseCase: Symbol.for('GetRecentActivityUseCase'),
 } as const;
 

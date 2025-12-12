@@ -1,6 +1,6 @@
 import { injectable } from 'tsyringe';
 import nodemailer, { Transporter } from 'nodemailer';
-import { IEmailService } from '../../domain/services/email_service.interface';
+import { IEmailService, IEmailAttachment } from '../../domain/services/email_service.interface';
 import { EmailType } from '../../shared/types/email.types';
 import { EMAIL_CONFIG } from '../../shared/config';
 import { getEmailTemplate } from '../../shared/templates/email';
@@ -26,7 +26,11 @@ export class EmailServiceImpl implements IEmailService {
     });
   }
 
-  async sendEmail<T extends { email: string }>(type: EmailType, data: T): Promise<void> {
+  async sendEmail<T extends { email: string }>(
+    type: EmailType,
+    data: T,
+    attachments?: IEmailAttachment[]
+  ): Promise<void> {
     try {
       // Get template for the email type
       const template = getEmailTemplate(type);
@@ -35,6 +39,13 @@ export class EmailServiceImpl implements IEmailService {
       const html = template.html(data);
       const text = template.text(data);
 
+      // Prepare attachments
+      const emailAttachments = attachments?.map((att) => ({
+        filename: att.filename,
+        content: att.content,
+        contentType: att.contentType || 'application/pdf',
+      }));
+
       // Send email
       await this.transporter.sendMail({
         from: `"GRANDLINE" <${EMAIL_CONFIG.USER}>`,
@@ -42,6 +53,7 @@ export class EmailServiceImpl implements IEmailService {
         subject: this.getSubject(type),
         html,
         text,
+        attachments: emailAttachments,
       });
     } catch (error) {
       logger.error('Failed to send email:', error);
@@ -59,7 +71,13 @@ export class EmailServiceImpl implements IEmailService {
       case EmailType.PASSWORD_RESET:
         return 'Reset Your Password - GRANDLINE';
       case EmailType.QUOTE:
-        return 'Quote Confirmation - GRANDLINE';
+        return 'Your Quotation - GRANDLINE';
+      case EmailType.INVOICE:
+        return 'Payment Confirmation & Invoice - GRANDLINE';
+      case EmailType.REFUND_CONFIRMATION:
+        return 'Refund Confirmation - GRANDLINE';
+      case EmailType.PAYMENT_REQUIRED:
+        return 'Payment Required - GRANDLINE';
       default:
         return 'GRANDLINE';
     }

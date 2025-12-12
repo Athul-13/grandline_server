@@ -424,3 +424,37 @@ export interface UpdateOnboardingPasswordResponse {
   message: string;
 }
 
+/**
+ * Request DTO for completing driver onboarding
+ */
+export class CompleteOnboardingRequest {
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^https?:\/\/res\.cloudinary\.com\/[^/]+\/[^/]+\/[^/]+\/.+/, {
+    message: 'Driver license must be a valid Cloudinary URL',
+  })
+  driverLicense!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^https?:\/\/res\.cloudinary\.com\/[^/]+\/[^/]+\/[^/]+\/.+/, {
+    message: 'Profile picture must be a valid Cloudinary URL',
+  })
+  profilePicture!: string;
+}
+
+/**
+ * Response DTO for completing driver onboarding
+ */
+export interface CompleteOnboardingResponse {
+  isOnboardingComplete: boolean;
+}
+
+/**
+ * Response DTO for getting driver info
+ */
+export interface GetDriverInfoResponse {
+  hasLicense: boolean;
+  hasProfilePicture: boolean;
+}
+

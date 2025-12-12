@@ -3,7 +3,7 @@ import { IChangeUserStatusUseCase } from '../../interface/user/change_user_statu
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ChangeUserStatusRequest, ChangeUserStatusResponse } from '../../../dtos/user.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
-import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES, UserStatus } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES, UserStatus } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';

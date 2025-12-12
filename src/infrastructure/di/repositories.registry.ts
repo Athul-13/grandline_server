@@ -26,6 +26,16 @@ import { IMessageRepository } from '../../domain/repositories/message_repository
 import { MessageRepositoryImpl } from '../repositories/message.repository';
 import { INotificationRepository } from '../../domain/repositories/notification_repository.interface';
 import { NotificationRepositoryImpl } from '../repositories/notification.repository';
+import { IPaymentRepository } from '../../domain/repositories/payment_repository.interface';
+import { PaymentRepositoryImpl } from '../repositories/payment.repository';
+import { IReservationRepository } from '../../domain/repositories/reservation_repository.interface';
+import { ReservationRepositoryImpl } from '../repositories/reservation.repository';
+import { IReservationItineraryRepository } from '../../domain/repositories/reservation_itinerary_repository.interface';
+import { ReservationItineraryRepositoryImpl } from '../repositories/reservation_itinerary.repository';
+import { IReservationModificationRepository } from '../../domain/repositories/reservation_modification_repository.interface';
+import { ReservationModificationRepositoryImpl } from '../repositories/reservation_modification.repository';
+import { IReservationChargeRepository } from '../../domain/repositories/reservation_charge_repository.interface';
+import { ReservationChargeRepositoryImpl } from '../repositories/reservation_charge.repository';
 
 /**
  * Registers all repository dependencies in the DI container
@@ -101,5 +111,35 @@ export function registerRepositories(): void {
   container.register<INotificationRepository>(
     REPOSITORY_TOKENS.INotificationRepository,
     { useClass: NotificationRepositoryImpl }
+  );
+
+  // Payment repository
+  container.register<IPaymentRepository>(
+    REPOSITORY_TOKENS.IPaymentRepository,
+    { useClass: PaymentRepositoryImpl }
+  );
+
+  // Reservation repository
+  container.register<IReservationRepository>(
+    REPOSITORY_TOKENS.IReservationRepository,
+    { useClass: ReservationRepositoryImpl }
+  );
+
+  // Reservation Itinerary repository
+  container.register<IReservationItineraryRepository>(
+    REPOSITORY_TOKENS.IReservationItineraryRepository,
+    { useClass: ReservationItineraryRepositoryImpl }
+  );
+
+  // Reservation Modification repository
+  container.register<IReservationModificationRepository>(
+    REPOSITORY_TOKENS.IReservationModificationRepository,
+    { useClass: ReservationModificationRepositoryImpl }
+  );
+
+  // Reservation Charge repository
+  container.register<IReservationChargeRepository>(
+    REPOSITORY_TOKENS.IReservationChargeRepository,
+    { useClass: ReservationChargeRepositoryImpl }
   );
 }

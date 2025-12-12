@@ -145,6 +145,12 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
     try {
       const result = await cloudinary.api.resource(publicId) as CloudinaryResourceResult;
       
+      // Validate required fields
+      if (!result.format || result.bytes === undefined) {
+        logger.warn(`Incomplete file info from Cloudinary. Public ID: ${publicId}`);
+        return null;
+      }
+      
       return {
         format: result.format,
         bytes: result.bytes,

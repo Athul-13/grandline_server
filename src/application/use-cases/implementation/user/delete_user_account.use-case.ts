@@ -30,7 +30,7 @@ export class DeleteUserAccountUseCase implements IDeleteUserAccountUseCase {
     }
 
     if (!request.password || typeof request.password !== 'string' || request.password.length === 0) {
-      throw new AppError(ERROR_MESSAGES.INVALID_PASSWORD, ERROR_CODES.INVALID_PASSWORD, 400);
+      throw new AppError(ERROR_MESSAGES.BAD_REQUEST, ERROR_CODES.INVALID_PASSWORD, 400);
     }
 
     // Find user

@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { LoginDriverRequest, LoginDriverResponse } from '../../../dtos/driver.dto';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
-import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { comparePassword } from '../../../../shared/utils/password.util';
 import { DriverMapper } from '../../../mapper/driver.mapper';
 import { logger } from '../../../../shared/logger';

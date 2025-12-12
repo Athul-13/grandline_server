@@ -34,6 +34,8 @@ import { UpdateLicenseCardPhotoUseCase } from '../../application/use-cases/imple
 import { UpdateOnboardingPasswordUseCase } from '../../application/use-cases/implementation/driver/update_onboarding_password.use-case';
 import { GetDriverProfileUseCase } from '../../application/use-cases/implementation/driver/get_driver_profile.use-case';
 import { GetDriverStatisticsUseCase } from '../../application/use-cases/implementation/driver/get_driver_statistics.use-case';
+import { CompleteDriverOnboardingUseCase } from '../../application/use-cases/implementation/driver/complete_driver_onboarding.use-case';
+import { GetDriverInfoUseCase } from '../../application/use-cases/implementation/driver/get_driver_info.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -69,6 +71,8 @@ import { SubmitQuoteUseCase } from '../../application/use-cases/implementation/q
 import { GetAdminQuotesListUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quotes_list.use-case';
 import { GetAdminQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/get_admin_quote.use-case';
 import { UpdateQuoteStatusUseCase } from '../../application/use-cases/implementation/quote/admin/update_quote_status.use-case';
+import { AssignDriverToQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/assign_driver_to_quote.use-case';
+import { RecalculateQuoteUseCase } from '../../application/use-cases/implementation/quote/admin/recalculate_quote.use-case';
 import { GetPricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config.use-case';
 import { CreatePricingConfigUseCase } from '../../application/use-cases/implementation/pricing_config/create_pricing_config.use-case';
 import { GetPricingConfigHistoryUseCase } from '../../application/use-cases/implementation/pricing_config/get_pricing_config_history.use-case';
@@ -87,6 +91,27 @@ import { MarkNotificationAsReadUseCase } from '../../application/use-cases/imple
 import { MarkAllNotificationsAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_all_notifications_as_read.use-case';
 import { GetUnreadNotificationCountUseCase } from '../../application/use-cases/implementation/notification/get_unread_notification_count.use-case';
 import { MarkChatNotificationsAsReadUseCase } from '../../application/use-cases/implementation/notification/mark_chat_notifications_as_read.use-case';
+import { CreatePaymentIntentUseCase } from '../../application/use-cases/implementation/quote/create_payment_intent.use-case';
+import { HandlePaymentWebhookUseCase } from '../../application/use-cases/implementation/quote/handle_payment_webhook.use-case';
+import { CreateReservationUseCase } from '../../application/use-cases/implementation/reservation/create_reservation.use-case';
+import { GetReservationUseCase } from '../../application/use-cases/implementation/reservation/get_reservation.use-case';
+import { GetReservationsListUseCase } from '../../application/use-cases/implementation/reservation/get_reservations_list.use-case';
+import { GetAdminReservationsListUseCase } from '../../application/use-cases/implementation/admin/reservation/get_admin_reservations_list.use-case';
+import { GetAdminReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/get_admin_reservation.use-case';
+import { UpdateReservationStatusUseCase } from '../../application/use-cases/implementation/admin/reservation/update_reservation_status.use-case';
+import { AddPassengersToReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/add_passengers_to_reservation.use-case';
+import { ChangeReservationDriverUseCase } from '../../application/use-cases/implementation/admin/reservation/change_reservation_driver.use-case';
+import { AdjustReservationVehiclesUseCase } from '../../application/use-cases/implementation/admin/reservation/adjust_reservation_vehicles.use-case';
+import { UpdateReservationItineraryUseCase } from '../../application/use-cases/implementation/admin/reservation/update_reservation_itinerary.use-case';
+import { ProcessReservationRefundUseCase } from '../../application/use-cases/implementation/admin/reservation/process_reservation_refund.use-case';
+import { CancelReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/cancel_reservation.use-case';
+import { AddReservationChargeUseCase } from '../../application/use-cases/implementation/admin/reservation/add_reservation_charge.use-case';
+import { MarkChargeAsPaidUseCase } from '../../application/use-cases/implementation/admin/reservation/mark_charge_as_paid.use-case';
+import { ExportReservationPDFUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_pdf.use-case';
+import { ExportReservationCSVUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_csv.use-case';
+import { CreateChargePaymentIntentUseCase } from '../../application/use-cases/implementation/reservation/create_charge_payment_intent.use-case';
+import { GetDashboardStatsUseCase } from '../../application/use-cases/implementation/dashboard/get_dashboard_stats.use-case';
+import { GetRecentActivityUseCase } from '../../application/use-cases/implementation/dashboard/get_recent_activity.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -130,6 +155,8 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.UpdateOnboardingPasswordUseCase, UpdateOnboardingPasswordUseCase);
   container.register(USE_CASE_TOKENS.GetDriverProfileUseCase, GetDriverProfileUseCase);
   container.register(USE_CASE_TOKENS.GetDriverStatisticsUseCase, GetDriverStatisticsUseCase);
+  container.register(USE_CASE_TOKENS.CompleteDriverOnboardingUseCase, CompleteDriverOnboardingUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverInfoUseCase, GetDriverInfoUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);
@@ -171,6 +198,8 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetAdminQuotesListUseCase, GetAdminQuotesListUseCase);
   container.register(USE_CASE_TOKENS.GetAdminQuoteUseCase, GetAdminQuoteUseCase);
   container.register(USE_CASE_TOKENS.UpdateQuoteStatusUseCase, UpdateQuoteStatusUseCase);
+  container.register(USE_CASE_TOKENS.AssignDriverToQuoteUseCase, AssignDriverToQuoteUseCase);
+  container.register(USE_CASE_TOKENS.RecalculateQuoteUseCase, RecalculateQuoteUseCase);
   // Pricing Config use cases
   container.register(USE_CASE_TOKENS.GetPricingConfigUseCase, GetPricingConfigUseCase);
   container.register(USE_CASE_TOKENS.CreatePricingConfigUseCase, CreatePricingConfigUseCase);
@@ -193,5 +222,30 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.MarkAllNotificationsAsReadUseCase, MarkAllNotificationsAsReadUseCase);
   container.register(USE_CASE_TOKENS.GetUnreadNotificationCountUseCase, GetUnreadNotificationCountUseCase);
   container.register(USE_CASE_TOKENS.MarkChatNotificationsAsReadUseCase, MarkChatNotificationsAsReadUseCase);
+  // Payment use cases
+  container.register(USE_CASE_TOKENS.CreatePaymentIntentUseCase, CreatePaymentIntentUseCase);
+  container.register(USE_CASE_TOKENS.HandlePaymentWebhookUseCase, HandlePaymentWebhookUseCase);
+  // Reservation use cases
+  container.register(USE_CASE_TOKENS.CreateReservationUseCase, CreateReservationUseCase);
+  container.register(USE_CASE_TOKENS.GetReservationUseCase, GetReservationUseCase);
+  container.register(USE_CASE_TOKENS.GetReservationsListUseCase, GetReservationsListUseCase);
+  // Admin Reservation use cases
+  container.register(USE_CASE_TOKENS.GetAdminReservationsListUseCase, GetAdminReservationsListUseCase);
+  container.register(USE_CASE_TOKENS.GetAdminReservationUseCase, GetAdminReservationUseCase);
+  container.register(USE_CASE_TOKENS.UpdateReservationStatusUseCase, UpdateReservationStatusUseCase);
+  container.register(USE_CASE_TOKENS.AddPassengersToReservationUseCase, AddPassengersToReservationUseCase);
+  container.register(USE_CASE_TOKENS.ChangeReservationDriverUseCase, ChangeReservationDriverUseCase);
+  container.register(USE_CASE_TOKENS.AdjustReservationVehiclesUseCase, AdjustReservationVehiclesUseCase);
+  container.register(USE_CASE_TOKENS.UpdateReservationItineraryUseCase, UpdateReservationItineraryUseCase);
+    container.register(USE_CASE_TOKENS.ProcessReservationRefundUseCase, ProcessReservationRefundUseCase);
+    container.register(USE_CASE_TOKENS.CancelReservationUseCase, CancelReservationUseCase);
+    container.register(USE_CASE_TOKENS.AddReservationChargeUseCase, AddReservationChargeUseCase);
+    container.register(USE_CASE_TOKENS.MarkChargeAsPaidUseCase, MarkChargeAsPaidUseCase);
+    container.register(USE_CASE_TOKENS.ExportReservationPDFUseCase, ExportReservationPDFUseCase);
+    container.register(USE_CASE_TOKENS.ExportReservationCSVUseCase, ExportReservationCSVUseCase);
+    container.register(USE_CASE_TOKENS.CreateChargePaymentIntentUseCase, CreateChargePaymentIntentUseCase);
+  // Dashboard use cases
+  container.register(USE_CASE_TOKENS.GetDashboardStatsUseCase, GetDashboardStatsUseCase);
+  container.register(USE_CASE_TOKENS.GetRecentActivityUseCase, GetRecentActivityUseCase);
 }
 

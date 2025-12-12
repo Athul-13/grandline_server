@@ -18,9 +18,15 @@ import { IPricingCalculationService } from '../../domain/services/pricing_calcul
 import { PricingCalculationServiceImpl } from '../service/pricing_calculation.service';
 import { IVehicleRecommendationService } from '../../domain/services/vehicle_recommendation_service.interface';
 import { VehicleRecommendationServiceImpl } from '../service/vehicle_recommendation.service';
+import { IPDFGenerationService } from '../../domain/services/pdf_generation_service.interface';
+import { PDFGenerationServiceImpl } from '../service/pdf_generation.service';
 import { MapboxService } from '../service/mapbox.service';
 import { ISocketEventService } from '../../domain/services/socket_event_service.interface';
 import { SocketEventService } from '../service/socket_event.service';
+import { IAutoDriverAssignmentService } from '../../domain/services/auto_driver_assignment_service.interface';
+import { AutoDriverAssignmentServiceImpl } from '../service/auto_driver_assignment.service';
+import { IQueueService } from '../../domain/services/queue_service.interface';
+import { QueueServiceImpl } from '../service/queue.service';
 
 /**
  * Registers all service dependencies in the DI container
@@ -79,10 +85,26 @@ export function registerServices(): void {
     { useClass: VehicleRecommendationServiceImpl }
   );
 
+  container.register<IPDFGenerationService>(
+    SERVICE_TOKENS.IPDFGenerationService,
+    { useClass: PDFGenerationServiceImpl }
+  );
+
   // Socket event service - register as singleton so all resolutions return the same instance
   // This ensures setIOServer(io) called in index.ts affects the same instance used everywhere
   container.registerSingleton<ISocketEventService>(
     SERVICE_TOKENS.ISocketEventService,
     SocketEventService
+  );
+
+  // Queue and auto-assignment services
+  container.register<IAutoDriverAssignmentService>(
+    SERVICE_TOKENS.IAutoDriverAssignmentService,
+    { useClass: AutoDriverAssignmentServiceImpl }
+  );
+
+  container.register<IQueueService>(
+    SERVICE_TOKENS.IQueueService,
+    { useClass: QueueServiceImpl }
   );
 }

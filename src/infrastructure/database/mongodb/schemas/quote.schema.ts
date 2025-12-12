@@ -103,7 +103,7 @@ export const QuoteSchema: Schema = new Schema(
       required: false,
       index: true,
     },
-    actualDriverRate: {
+  actualDriverRate: {
       type: Number,
       required: false,
       min: 0,
@@ -111,6 +111,11 @@ export const QuoteSchema: Schema = new Schema(
     pricingLastUpdatedAt: {
       type: Date,
       required: false,
+    },
+    quotedAt: {
+      type: Date,
+      required: false,
+      index: true,
     },
     isDeleted: {
       type: Boolean,
@@ -133,4 +138,9 @@ QuoteSchema.index({ isDeleted: 1 });
 QuoteSchema.index({ createdAt: -1 });
 QuoteSchema.index({ userId: 1, status: 1 });
 QuoteSchema.index({ userId: 1, isDeleted: 1 });
+// Add indexes for availability queries (for date-based availability checking)
+QuoteSchema.index({ status: 1, isDeleted: 1, 'selectedVehicles.vehicleId': 1 });
+QuoteSchema.index({ status: 1, isDeleted: 1, assignedDriverId: 1 });
+QuoteSchema.index({ status: 1, createdAt: 1 }); // For DRAFT reservation queries
+QuoteSchema.index({ status: 1, quotedAt: 1 }); // For 24-hour payment window queries
 

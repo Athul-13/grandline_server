@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { container } from 'tsyringe';
 import { QuoteController } from '../../controllers/quote/quote.controller';
+import { PaymentController } from '../../controllers/quote/payment.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import {
@@ -18,6 +19,7 @@ import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 export function createQuoteRoutesWithDI(): Router {
   const router = Router();
   const quoteController = container.resolve<QuoteController>(CONTROLLER_TOKENS.QuoteController);
+  const paymentController = container.resolve<PaymentController>(CONTROLLER_TOKENS.PaymentController);
 
 /**
  * @route   POST /api/v1/quotes
@@ -108,6 +110,28 @@ router.post(
   '/:id/submit',
   authenticate,
   (req, res) => void quoteController.submitQuote(req, res)
+);
+
+/**
+ * @route   GET /api/v1/quotes/:id/payment
+ * @desc    Get payment page data for a quote
+ * @access  Private
+ */
+router.get(
+  '/:id/payment',
+  authenticate,
+  (req, res) => void paymentController.getPaymentPage(req, res)
+);
+
+/**
+ * @route   POST /api/v1/quotes/:id/payment/create-intent
+ * @desc    Create a payment intent for a quote
+ * @access  Private
+ */
+router.post(
+  '/:id/payment/create-intent',
+  authenticate,
+  (req, res) => void paymentController.createPaymentIntent(req, res)
 );
 
   return router;

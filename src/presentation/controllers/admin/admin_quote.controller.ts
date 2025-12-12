@@ -4,7 +4,9 @@ import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { IGetAdminQuotesListUseCase } from '../../../application/use-cases/interface/quote/admin/get_admin_quotes_list_use_case.interface';
 import { IGetAdminQuoteUseCase } from '../../../application/use-cases/interface/quote/admin/get_admin_quote_use_case.interface';
 import { IUpdateQuoteStatusUseCase } from '../../../application/use-cases/interface/quote/admin/update_quote_status_use_case.interface';
-import { UpdateQuoteStatusRequest } from '../../../application/dtos/quote.dto';
+import { IAssignDriverToQuoteUseCase } from '../../../application/use-cases/interface/quote/admin/assign_driver_to_quote_use_case.interface';
+import { IRecalculateQuoteUseCase } from '../../../application/use-cases/interface/quote/admin/recalculate_quote_use_case.interface';
+import { UpdateQuoteStatusRequest, AssignDriverToQuoteRequest } from '../../../application/dtos/quote.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, QuoteStatus } from '../../../shared/constants';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
@@ -22,7 +24,11 @@ export class AdminQuoteController {
     @inject(USE_CASE_TOKENS.GetAdminQuoteUseCase)
     private readonly getAdminQuoteUseCase: IGetAdminQuoteUseCase,
     @inject(USE_CASE_TOKENS.UpdateQuoteStatusUseCase)
-    private readonly updateQuoteStatusUseCase: IUpdateQuoteStatusUseCase
+    private readonly updateQuoteStatusUseCase: IUpdateQuoteStatusUseCase,
+    @inject(USE_CASE_TOKENS.AssignDriverToQuoteUseCase)
+    private readonly assignDriverToQuoteUseCase: IAssignDriverToQuoteUseCase,
+    @inject(USE_CASE_TOKENS.RecalculateQuoteUseCase)
+    private readonly recalculateQuoteUseCase: IRecalculateQuoteUseCase
   ) {}
 
   /**
@@ -107,6 +113,49 @@ export class AdminQuoteController {
     } catch (error) {
       logger.error(
         `Error updating quote status: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles assigning driver to quote
+   */
+  async assignDriver(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const request = req.body as AssignDriverToQuoteRequest;
+
+      logger.info(`Admin driver assignment request for quote ID: ${id}, driver ID: ${request.driverId}`);
+
+      const response = await this.assignDriverToQuoteUseCase.execute(id, request);
+
+      logger.info(`Driver assigned successfully to quote: ${id}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error assigning driver to quote: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles recalculating quote pricing
+   */
+  async recalculateQuote(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      logger.info(`Admin quote recalculation request for ID: ${id}`);
+
+      const response = await this.recalculateQuoteUseCase.execute(id);
+
+      logger.info(`Quote recalculated successfully: ${id}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error recalculating quote: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       sendErrorResponse(res, error);
     }

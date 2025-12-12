@@ -56,6 +56,18 @@ export enum QuoteStatus {
 }
 
 /**
+ * Reservation status enumeration
+ * Tracks the current state of reservations in the system
+ */
+export enum ReservationStatus {
+  CONFIRMED = 'confirmed',      // Reservation confirmed (just created, no modifications)
+  MODIFIED = 'modified',        // Reservation has been modified from original
+  CANCELLED = 'cancelled',       // Reservation cancelled by user/admin
+  COMPLETED = 'completed',      // Trip completed
+  REFUNDED = 'refunded',        // Fully refunded
+}
+
+/**
  * Trip type enumeration
  * Defines the type of trip for a quote
  */
@@ -100,7 +112,16 @@ export enum MessageDeliveryStatus {
  */
 export enum NotificationType {
   CHAT_MESSAGE = 'chat_message',   // New chat message notification
-  // Future notification types can be added here
+  RESERVATION_CONFIRMED = 'reservation_confirmed',   // Reservation confirmed (created after payment)
+  RESERVATION_MODIFIED = 'reservation_modified',   // Reservation has been modified
+  RESERVATION_DRIVER_CHANGED = 'reservation_driver_changed',   // Driver changed for reservation
+  RESERVATION_PASSENGERS_ADDED = 'reservation_passengers_added',   // Passengers added to reservation
+  RESERVATION_VEHICLES_ADJUSTED = 'reservation_vehicles_adjusted',   // Vehicles adjusted for reservation
+  ITINERARY_UPDATED = 'itinerary_updated',   // Itinerary updated for reservation
+  RESERVATION_STATUS_CHANGED = 'reservation_status_changed',   // Reservation status changed
+  RESERVATION_CHARGE_ADDED = 'reservation_charge_added',   // Additional charge added to reservation
+  RESERVATION_CANCELLED = 'reservation_cancelled',   // Reservation cancelled
+  RESERVATION_REFUNDED = 'reservation_refunded',   // Reservation refund processed
 }
 
 /**
@@ -255,6 +276,9 @@ export const ERROR_MESSAGES = {
   DRIVER_LICENSE_NUMBER_EXISTS: 'Driver with this license number already exists',
   DRIVER_INVALID_STATUS: 'Invalid driver status',
   DRIVER_CANNOT_ACCEPT_RIDE: 'Driver cannot accept rides. Driver must be onboarded and available',
+  QUOTE_PAYMENT_WINDOW_EXPIRED: 'Quote payment window has expired. Please request a new quote.',
+  DRIVER_NOT_AVAILABLE: 'Driver is not available for the selected dates',
+  VEHICLES_NOT_AVAILABLE: 'Selected vehicles are no longer available. Please select new vehicles.',
 } as const;
 
 /**
@@ -295,4 +319,7 @@ export const ERROR_CODES = {
   DRIVER_DUPLICATE_LICENSE: 'DRIVER_DUPLICATE_LICENSE',
   INVALID_DRIVER_STATUS: 'INVALID_DRIVER_STATUS',
   INVALID_DRIVER_ID: 'INVALID_DRIVER_ID',
+  QUOTE_EXPIRED: 'QUOTE_EXPIRED',
+  DRIVER_NOT_AVAILABLE: 'DRIVER_NOT_AVAILABLE',
+  VEHICLES_NOT_AVAILABLE: 'VEHICLES_NOT_AVAILABLE',
 } as const;

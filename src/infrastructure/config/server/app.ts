@@ -12,6 +12,7 @@ import { createAmenityRoutesWithDI } from '../../../presentation/routes/amenity/
 import { createQuoteRoutesWithDI } from '../../../presentation/routes/quote/quote_routes';
 import { createEventTypeRoutesWithDI } from '../../../presentation/routes/event_type/event_type_routes';
 import { createAdminQuoteRoutesWithDI } from '../../../presentation/routes/admin/admin_quote_routes';
+import { createAdminReservationRoutesWithDI } from '../../../presentation/routes/admin/admin_reservation_routes';
 import { createAdminPricingConfigRoutesWithDI } from '../../../presentation/routes/admin/admin_pricing_config_routes';
 import { createAdminUserRoutesWithDI } from '../../../presentation/routes/admin/admin_user_routes';
 import { createAdminDriverRoutesWithDI } from '../../../presentation/routes/admin/admin_driver_routes';
@@ -19,6 +20,10 @@ import { createDriverRoutesWithDI } from '../../../presentation/routes/driver/dr
 import { createChatRoutesWithDI } from '../../../presentation/routes/chat/chat_routes';
 import { createMessageRoutesWithDI } from '../../../presentation/routes/message/message_routes';
 import { createNotificationRoutesWithDI } from '../../../presentation/routes/notification/notification_routes';
+import { createReservationRoutesWithDI } from '../../../presentation/routes/reservation/reservation_routes';
+import { createWebhookRoutesWithDI } from '../../../presentation/routes/webhook/webhook_routes';
+import { createDashboardRoutesWithDI } from '../../../presentation/routes/dashboard/dashboard_routes';
+import express from 'express';
 
 /**
  * Express application wrapper class
@@ -75,8 +80,18 @@ export class App {
   /**
    * Registers API routes
    * Controllers are resolved here (after DI registration)
+   * Note: Webhook routes must be registered FIRST to ensure raw body parsing works correctly
    */
   public registerRoutes(): void {
+    // Webhook routes - must be registered FIRST with raw body parser for Stripe signature verification
+    // The middleware configurator excludes webhook paths from JSON parsing, preserving raw body
+    const webhookRoutes = createWebhookRoutesWithDI();
+    this.app.use(
+      '/api/v1/webhooks',
+      express.raw({ type: 'application/json' }),
+      webhookRoutes
+    );
+
     const authRoutes = createAuthRoutesWithDI();
     this.app.use(`/api/v1/auth`, authRoutes);
 
@@ -104,6 +119,9 @@ export class App {
     const adminQuoteRoutes = createAdminQuoteRoutesWithDI();
     this.app.use(`/api/v1/admin/quotes`, adminQuoteRoutes);
 
+    const adminReservationRoutes = createAdminReservationRoutesWithDI();
+    this.app.use(`/api/v1/admin/reservations`, adminReservationRoutes);
+
     const adminPricingConfigRoutes = createAdminPricingConfigRoutesWithDI();
     this.app.use(`/api/v1/admin/pricing-config`, adminPricingConfigRoutes);
 
@@ -121,6 +139,12 @@ export class App {
 
     const notificationRoutes = createNotificationRoutesWithDI();
     this.app.use(`/api/v1/notifications`, notificationRoutes);
+
+    const reservationRoutes = createReservationRoutesWithDI();
+    this.app.use(`/api/v1/reservations`, reservationRoutes);
+
+    const dashboardRoutes = createDashboardRoutesWithDI();
+    this.app.use(`/api/v1/dashboard`, dashboardRoutes);
   }
 
   /**

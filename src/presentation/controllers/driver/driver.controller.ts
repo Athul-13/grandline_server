@@ -6,7 +6,9 @@ import { IUpdateProfilePictureUseCase } from '../../../application/use-cases/int
 import { IUpdateLicenseCardPhotoUseCase } from '../../../application/use-cases/interface/driver/update_license_card_photo_use_case.interface';
 import { IUpdateOnboardingPasswordUseCase } from '../../../application/use-cases/interface/driver/update_onboarding_password_use_case.interface';
 import { IGetDriverProfileUseCase } from '../../../application/use-cases/interface/driver/get_driver_profile_use_case.interface';
-import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest } from '../../../application/dtos/driver.dto';
+import { ICompleteDriverOnboardingUseCase } from '../../../application/use-cases/interface/driver/complete_driver_onboarding_use_case.interface';
+import { IGetDriverInfoUseCase } from '../../../application/use-cases/interface/driver/get_driver_info_use_case.interface';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -32,6 +34,10 @@ export class DriverController {
     private readonly updateOnboardingPasswordUseCase: IUpdateOnboardingPasswordUseCase,
     @inject(USE_CASE_TOKENS.GetDriverProfileUseCase)
     private readonly getDriverProfileUseCase: IGetDriverProfileUseCase,
+    @inject(USE_CASE_TOKENS.CompleteDriverOnboardingUseCase)
+    private readonly completeDriverOnboardingUseCase: ICompleteDriverOnboardingUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverInfoUseCase)
+    private readonly getDriverInfoUseCase: IGetDriverInfoUseCase,
   ) {}
 
   /**
@@ -206,6 +212,67 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error fetching driver profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles completing driver onboarding
+   */
+  async completeOnboarding(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Complete onboarding attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Complete onboarding attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request = req.body as CompleteOnboardingRequest;
+      logger.info(`Complete onboarding request for driver: ${driverId}`);
+
+      const response = await this.completeDriverOnboardingUseCase.execute(driverId, request);
+
+      logger.info(`Onboarding completed successfully for driver: ${driverId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error completing onboarding: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting driver info
+   */
+  async getDriverInfo(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver info attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Get driver info attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      logger.info(`Driver info fetch request for driver: ${driverId}`);
+      const response = await this.getDriverInfoUseCase.execute(driverId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error fetching driver info: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

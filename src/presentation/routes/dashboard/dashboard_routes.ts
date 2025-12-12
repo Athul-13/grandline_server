@@ -1,0 +1,40 @@
+import { Router } from 'express';
+import { container } from 'tsyringe';
+import { DashboardController } from '../../controllers/dashboard/dashboard.controller';
+import { authenticate } from '../../middleware/auth.middleware';
+import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
+
+/**
+ * Factory function to create dashboard routes with DI resolution
+ */
+export function createDashboardRoutesWithDI(): Router {
+  const router = Router();
+  const dashboardController = container.resolve<DashboardController>(
+    CONTROLLER_TOKENS.DashboardController
+  );
+
+  /**
+   * Get Dashboard Statistics
+   * GET /api/v1/dashboard/stats
+   * Requires authentication
+   */
+  router.get(
+    '/stats',
+    authenticate,
+    (req, res) => void dashboardController.getDashboardStats(req, res)
+  );
+
+  /**
+   * Get Recent Activity
+   * GET /api/v1/dashboard/activity
+   * Requires authentication
+   */
+  router.get(
+    '/activity',
+    authenticate,
+    (req, res) => void dashboardController.getRecentActivity(req, res)
+  );
+
+  return router;
+}
+

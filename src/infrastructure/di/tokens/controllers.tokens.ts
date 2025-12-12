@@ -14,7 +14,12 @@ export const CONTROLLER_TOKENS = {
   VehicleController: Symbol.for('VehicleController'),
   // Quote controllers
   QuoteController: Symbol.for('QuoteController'),
+  PaymentController: Symbol.for('PaymentController'),
   AdminQuoteController: Symbol.for('AdminQuoteController'),
+  // Reservation controllers
+  ReservationController: Symbol.for('ReservationController'),
+  AdminReservationController: Symbol.for('AdminReservationController'),
+  ChargePaymentController: Symbol.for('ChargePaymentController'),
   // Other controllers
   AmenityController: Symbol.for('AmenityController'),
   EventTypeController: Symbol.for('EventTypeController'),
@@ -22,6 +27,7 @@ export const CONTROLLER_TOKENS = {
   AdminUserController: Symbol.for('AdminUserController'),
   AdminDriverController: Symbol.for('AdminDriverController'),
   DriverController: Symbol.for('DriverController'),
+  DashboardController: Symbol.for('DashboardController'),
   // Chat, Message & Notification controllers
   ChatController: Symbol.for('ChatController'),
   MessageController: Symbol.for('MessageController'),

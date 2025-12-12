@@ -22,5 +22,12 @@ export const REPOSITORY_TOKENS = {
   IChatRepository: Symbol.for('IChatRepository'),
   IMessageRepository: Symbol.for('IMessageRepository'),
   INotificationRepository: Symbol.for('INotificationRepository'),
+  // Payment repository
+  IPaymentRepository: Symbol.for('IPaymentRepository'),
+  // Reservation repositories
+  IReservationRepository: Symbol.for('IReservationRepository'),
+  IReservationItineraryRepository: Symbol.for('IReservationItineraryRepository'),
+  IReservationModificationRepository: Symbol.for('IReservationModificationRepository'),
+  IReservationChargeRepository: Symbol.for('IReservationChargeRepository'),
 } as const;
 

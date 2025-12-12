@@ -8,15 +8,20 @@ import { VehicleTypeController } from '../../presentation/controllers/vehicle_ty
 import { VehicleController } from '../../presentation/controllers/vehicle/vehicle.controller';
 import { AmenityController } from '../../presentation/controllers/amenity/amenity.controller';
 import { QuoteController } from '../../presentation/controllers/quote/quote.controller';
+import { PaymentController } from '../../presentation/controllers/quote/payment.controller';
 import { EventTypeController } from '../../presentation/controllers/event_type/event_type.controller';
 import { AdminQuoteController } from '../../presentation/controllers/admin/admin_quote.controller';
 import { AdminPricingConfigController } from '../../presentation/controllers/admin/admin_pricing_config.controller';
 import { AdminUserController } from '../../presentation/controllers/admin/admin_user.controller';
 import { AdminDriverController } from '../../presentation/controllers/admin/admin_driver.controller';
 import { DriverController } from '../../presentation/controllers/driver/driver.controller';
+import { DashboardController } from '../../presentation/controllers/dashboard/dashboard.controller';
 import { ChatController } from '../../presentation/controllers/chat/chat.controller';
 import { MessageController } from '../../presentation/controllers/message/message.controller';
 import { NotificationController } from '../../presentation/controllers/notification/notification.controller';
+import { ReservationController } from '../../presentation/controllers/reservation/reservation.controller';
+import { AdminReservationController } from '../../presentation/controllers/admin/admin_reservation.controller';
+import { ChargePaymentController } from '../../presentation/controllers/reservation/charge_payment.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -34,6 +39,7 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.VehicleController, VehicleController);
   // Quote controllers
   container.register(CONTROLLER_TOKENS.QuoteController, QuoteController);
+  container.register(CONTROLLER_TOKENS.PaymentController, PaymentController);
   container.register(CONTROLLER_TOKENS.AdminQuoteController, AdminQuoteController);
   // Other controllers
   container.register(CONTROLLER_TOKENS.AmenityController, AmenityController);
@@ -42,9 +48,14 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.AdminUserController, AdminUserController);
   container.register(CONTROLLER_TOKENS.AdminDriverController, AdminDriverController);
   container.register(CONTROLLER_TOKENS.DriverController, DriverController);
+  container.register(CONTROLLER_TOKENS.DashboardController, DashboardController);
   // Chat, Message & Notification controllers
   container.register(CONTROLLER_TOKENS.ChatController, ChatController);
   container.register(CONTROLLER_TOKENS.MessageController, MessageController);
   container.register(CONTROLLER_TOKENS.NotificationController, NotificationController);
+  // Reservation controllers
+  container.register(CONTROLLER_TOKENS.ReservationController, ReservationController);
+  container.register(CONTROLLER_TOKENS.AdminReservationController, AdminReservationController);
+  container.register(CONTROLLER_TOKENS.ChargePaymentController, ChargePaymentController);
 }
 

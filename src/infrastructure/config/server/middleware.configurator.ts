@@ -35,6 +35,7 @@ export class MiddlewareConfigurator {
   /**
    * Configures all middleware on the Express app
    * Order matters: CORS -> Cookie Parser -> Body Parsers -> Error Handler (last)
+   * Note: Webhook paths are excluded from JSON parsing to preserve raw body for signature verification
    */
   public configure(): void {
     // CORS middleware (first - handles preflight requests)
@@ -48,13 +49,30 @@ export class MiddlewareConfigurator {
     // Cookie parser middleware
     this.app.use(cookieParser());
 
-    // Body parsing middleware
+    // Body parsing middleware - exclude webhook paths to preserve raw body for Stripe signature verification
     const jsonOptions = this.config.bodyParserOptions?.json || SERVER_CONFIG.BODY_PARSER.json;
     const urlencodedOptions =
       this.config.bodyParserOptions?.urlencoded || SERVER_CONFIG.BODY_PARSER.urlencoded;
 
-    this.app.use(jsonOptions ? express.json(jsonOptions) : express.json());
-    this.app.use(urlencodedOptions ? express.urlencoded(urlencodedOptions) : express.urlencoded({ extended: true }));
+    // JSON parser - skip webhook routes
+    this.app.use((req, res, next) => {
+      if (req.path.startsWith('/api/v1/webhooks')) {
+        return next(); // Skip JSON parsing for webhook routes
+      }
+      const jsonParser = jsonOptions ? express.json(jsonOptions) : express.json();
+      return jsonParser(req, res, next);
+    });
+
+    // URL encoded parser - skip webhook routes
+    this.app.use((req, res, next) => {
+      if (req.path.startsWith('/api/v1/webhooks')) {
+        return next(); // Skip URL encoded parsing for webhook routes
+      }
+      const urlencodedParser = urlencodedOptions
+        ? express.urlencoded(urlencodedOptions)
+        : express.urlencoded({ extended: true });
+      return urlencodedParser(req, res, next);
+    });
 
     // Error handling middleware (must be last - catches all errors)
     this.app.use(this.errorHandler);

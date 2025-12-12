@@ -1,4 +1,4 @@
-import { injectable } from 'tsyringe';
+import { injectable, container } from 'tsyringe';
 import { IDriverRepository } from '../../domain/repositories/driver_repository.interface';
 import { Driver } from '../../domain/entities/driver.entity';
 import { IDriverModel, createDriverModel } from '../database/mongodb/models/driver.model';
@@ -6,6 +6,9 @@ import { DriverRepositoryMapper } from '../mappers/driver_repository.mapper';
 import { MongoBaseRepository } from './base/mongo_base.repository';
 import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
 import { DriverStatus } from '../../shared/constants';
+import { IQueueService } from '../../domain/services/queue_service.interface';
+import { SERVICE_TOKENS } from '../../application/di/tokens';
+import { logger } from '../../shared/logger';
 
 /**
  * Driver repository implementation
@@ -141,8 +144,29 @@ export class DriverRepositoryImpl
         ? updates.licenseCardPhotoUrl 
         : currentDriver.licenseCardPhotoUrl;
       
+      const wasOnboarded = currentDriver.isOnboarded;
       if (profilePictureUrl !== '' && licenseCardPhotoUrl !== '' && !currentDriver.isOnboarded) {
         updateData.isOnboarded = true;
+      }
+
+      // Trigger job to process pending quotes when driver completes onboarding
+      if (!wasOnboarded && updateData.isOnboarded === true) {
+        // Use container.resolve to avoid circular dependency issues
+        // This is called asynchronously to not block the repository update
+        setImmediate(() => {
+          void (async () => {
+            try {
+              const queueService = container.resolve<IQueueService>(SERVICE_TOKENS.IQueueService);
+              await queueService.addProcessPendingQuotesJob();
+              logger.info(`Driver ${driverId} completed onboarding, triggered pending quotes job`);
+            } catch (error) {
+              // Don't fail repository update if queue service fails
+              logger.warn(
+                `Failed to trigger pending quotes job after driver ${driverId} onboarding: ${error instanceof Error ? error.message : 'Unknown error'}`
+              );
+            }
+          })();
+        });
       }
     }
 

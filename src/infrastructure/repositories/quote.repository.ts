@@ -46,6 +46,7 @@ export class QuoteRepositoryImpl
       assignedDriverId: entity.assignedDriverId,
       actualDriverRate: entity.actualDriverRate,
       pricingLastUpdatedAt: entity.pricingLastUpdatedAt,
+      quotedAt: entity.quotedAt,
       isDeleted: entity.isDeleted,
     };
   }
@@ -108,6 +109,398 @@ export class QuoteRepositoryImpl
 
     const docs = await this.quoteModel.find(filter);
     return QuoteRepositoryMapper.toEntities(docs);
+  }
+
+  /**
+   * Finds vehicle IDs that are booked during the specified date range
+   * Uses MongoDB aggregation pipeline for efficient querying
+   */
+  async findBookedVehicleIdsInDateRange(
+    startDate: Date,
+    endDate: Date,
+    excludeQuoteId?: string
+  ): Promise<Set<string>> {
+    // Statuses that block vehicle availability
+    const blockingStatuses = [
+      QuoteStatus.PAID,
+      QuoteStatus.ACCEPTED,
+      QuoteStatus.QUOTED,
+      QuoteStatus.NEGOTIATING,
+    ];
+
+    const matchStage: Record<string, unknown> = {
+      status: { $in: blockingStatuses },
+      isDeleted: false,
+      'selectedVehicles.0': { $exists: true }, // Has at least one vehicle
+    };
+
+    // Exclude specific quote if provided (useful when updating existing quote)
+    if (excludeQuoteId) {
+      matchStage.quoteId = { $ne: excludeQuoteId };
+    }
+
+    const pipeline = [
+      // 1. Match quotes with blocking statuses that have vehicles
+      { $match: matchStage },
+
+      // 2. Join with itinerary collection
+      {
+        $lookup: {
+          from: 'quote_itinerary',
+          localField: 'quoteId',
+          foreignField: 'quoteId',
+          as: 'itinerary',
+        },
+      },
+
+      // 3. Filter quotes with overlapping dates
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $gt: [{ $size: '$itinerary' }, 0] }, // Has itinerary
+              {
+                $or: [
+                  // Check overlap using arrivalTime
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          { $min: '$itinerary.arrivalTime' },
+                          endDate,
+                        ],
+                      },
+                      {
+                        $gte: [
+                          { $max: '$itinerary.arrivalTime' },
+                          startDate,
+                        ],
+                      },
+                    ],
+                  },
+                  // Check overlap using departureTime (if exists)
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          {
+                            $min: {
+                              $filter: {
+                                input: '$itinerary.departureTime',
+                                as: 'dep',
+                                cond: { $ne: ['$$dep', null] },
+                              },
+                            },
+                          },
+                          endDate,
+                        ],
+                      },
+                      {
+                        $gte: [
+                          {
+                            $max: {
+                              $filter: {
+                                input: '$itinerary.departureTime',
+                                as: 'dep',
+                                cond: { $ne: ['$$dep', null] },
+                              },
+                            },
+                          },
+                          startDate,
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+
+      // 4. Unwind selectedVehicles array
+      { $unwind: '$selectedVehicles' },
+
+      // 5. Group by vehicleId to get unique vehicle IDs
+      {
+        $group: {
+          _id: '$selectedVehicles.vehicleId',
+        },
+      },
+
+      // 6. Project just the vehicle ID
+      {
+        $project: {
+          _id: 1,
+        },
+      },
+    ];
+
+    const result = (await this.quoteModel.aggregate(pipeline)) as Array<{ _id: string }>;
+    return new Set<string>(result.map((r: { _id: string }) => r._id));
+  }
+
+  /**
+   * Finds driver IDs that are booked during the specified date range
+   * Uses MongoDB aggregation pipeline for efficient querying
+   * Excludes expired QUOTED quotes (more than 24 hours old)
+   */
+  async findBookedDriverIdsInDateRange(
+    startDate: Date,
+    endDate: Date,
+    excludeQuoteId?: string
+  ): Promise<Set<string>> {
+    // Statuses that block driver availability
+    const blockingStatuses = [
+      QuoteStatus.PAID,
+      QuoteStatus.ACCEPTED,
+      QuoteStatus.QUOTED,
+      QuoteStatus.NEGOTIATING,
+    ];
+
+    // Calculate 24 hours ago for QUOTED status expiration check
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const matchStage: Record<string, unknown> = {
+      status: { $in: blockingStatuses },
+      isDeleted: false,
+      assignedDriverId: { $exists: true, $ne: null },
+      // For QUOTED status, only block if within 24-hour payment window
+      // For other statuses, always block
+      $or: [
+        { status: { $ne: QuoteStatus.QUOTED } },
+        {
+          status: QuoteStatus.QUOTED,
+          quotedAt: { $gte: twentyFourHoursAgo },
+        },
+      ],
+    };
+
+    // Exclude specific quote if provided
+    if (excludeQuoteId) {
+      matchStage.quoteId = { $ne: excludeQuoteId };
+    }
+
+    const pipeline = [
+      // 1. Match quotes with blocking statuses that have assigned drivers
+      { $match: matchStage },
+
+      // 2. Join with itinerary collection
+      {
+        $lookup: {
+          from: 'quote_itinerary',
+          localField: 'quoteId',
+          foreignField: 'quoteId',
+          as: 'itinerary',
+        },
+      },
+
+      // 3. Filter quotes with overlapping dates
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $gt: [{ $size: '$itinerary' }, 0] }, // Has itinerary
+              {
+                $or: [
+                  // Check overlap using arrivalTime
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          { $min: '$itinerary.arrivalTime' },
+                          endDate,
+                        ],
+                      },
+                      {
+                        $gte: [
+                          { $max: '$itinerary.arrivalTime' },
+                          startDate,
+                        ],
+                      },
+                    ],
+                  },
+                  // Check overlap using departureTime (if exists)
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          {
+                            $min: {
+                              $filter: {
+                                input: '$itinerary.departureTime',
+                                as: 'dep',
+                                cond: { $ne: ['$$dep', null] },
+                              },
+                            },
+                          },
+                          endDate,
+                        ],
+                      },
+                      {
+                        $gte: [
+                          {
+                            $max: {
+                              $filter: {
+                                input: '$itinerary.departureTime',
+                                as: 'dep',
+                                cond: { $ne: ['$$dep', null] },
+                              },
+                            },
+                          },
+                          startDate,
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+
+      // 4. Group by driverId to get unique driver IDs
+      {
+        $group: {
+          _id: '$assignedDriverId',
+        },
+      },
+
+      // 5. Project just the driver ID
+      {
+        $project: {
+          _id: 1,
+        },
+      },
+    ];
+
+    const result = (await this.quoteModel.aggregate(pipeline)) as Array<{ _id: string }>;
+    return new Set<string>(result.map((r: { _id: string }) => r._id));
+  }
+
+  /**
+   * Finds vehicle IDs that are temporarily reserved in DRAFT quotes
+   * Only includes DRAFT quotes created within the last 30 minutes
+   */
+  async findReservedVehicleIdsInDateRange(
+    startDate: Date,
+    endDate: Date,
+    excludeQuoteId?: string
+  ): Promise<Set<string>> {
+    const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
+
+    const matchStage: Record<string, unknown> = {
+      status: QuoteStatus.DRAFT,
+      isDeleted: false,
+      'selectedVehicles.0': { $exists: true },
+      createdAt: { $gte: thirtyMinutesAgo }, // Only recent DRAFT quotes
+    };
+
+    // Exclude specific quote if provided
+    if (excludeQuoteId) {
+      matchStage.quoteId = { $ne: excludeQuoteId };
+    }
+
+    const pipeline = [
+      // 1. Match recent DRAFT quotes with vehicles
+      { $match: matchStage },
+
+      // 2. Join with itinerary collection
+      {
+        $lookup: {
+          from: 'quote_itinerary',
+          localField: 'quoteId',
+          foreignField: 'quoteId',
+          as: 'itinerary',
+        },
+      },
+
+      // 3. Filter quotes with overlapping dates
+      {
+        $match: {
+          $expr: {
+            $and: [
+              { $gt: [{ $size: '$itinerary' }, 0] }, // Has itinerary
+              {
+                $or: [
+                  // Check overlap using arrivalTime
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          { $min: '$itinerary.arrivalTime' },
+                          endDate,
+                        ],
+                      },
+                      {
+                        $gte: [
+                          { $max: '$itinerary.arrivalTime' },
+                          startDate,
+                        ],
+                      },
+                    ],
+                  },
+                  // Check overlap using departureTime (if exists)
+                  {
+                    $and: [
+                      {
+                        $lte: [
+                          {
+                            $min: {
+                              $filter: {
+                                input: '$itinerary.departureTime',
+                                as: 'dep',
+                                cond: { $ne: ['$$dep', null] },
+                              },
+                            },
+                          },
+                          endDate,
+                        ],
+                      },
+                      {
+                        $gte: [
+                          {
+                            $max: {
+                              $filter: {
+                                input: '$itinerary.departureTime',
+                                as: 'dep',
+                                cond: { $ne: ['$$dep', null] },
+                              },
+                            },
+                          },
+                          startDate,
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      },
+
+      // 4. Unwind selectedVehicles array
+      { $unwind: '$selectedVehicles' },
+
+      // 5. Group by vehicleId to get unique vehicle IDs
+      {
+        $group: {
+          _id: '$selectedVehicles.vehicleId',
+        },
+      },
+
+      // 6. Project just the vehicle ID
+      {
+        $project: {
+          _id: 1,
+        },
+      },
+    ];
+
+    const result = (await this.quoteModel.aggregate(pipeline)) as Array<{ _id: string }>;
+    return new Set<string>(result.map((r: { _id: string }) => r._id));
   }
 }
 

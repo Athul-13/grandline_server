@@ -57,7 +57,7 @@ export class MapboxService {
         throw new Error(`Mapbox API error: ${response.statusText}`);
       }
 
-      const data: MapboxDirectionsResponse = await response.json();
+      const data = await response.json() as MapboxDirectionsResponse;
 
       if (!data.routes || data.routes.length === 0) {
         throw new Error('No routes found');

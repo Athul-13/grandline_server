@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { DriverController } from '../../controllers/driver/driver.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest } from '../../../application/dtos/driver.dto';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest } from '../../../application/dtos/driver.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -83,6 +83,29 @@ export function createDriverRoutesWithDI(): Router {
     '/profile',
     authenticate,
     (req, res) => void driverController.getDriverProfile(req, res)
+  );
+
+  /**
+   * Complete Driver Onboarding
+   * POST /api/v1/driver/onboarding
+   * Requires authentication
+   */
+  router.post(
+    '/onboarding',
+    authenticate,
+    validationMiddleware(CompleteOnboardingRequest),
+    (req, res) => void driverController.completeOnboarding(req, res)
+  );
+
+  /**
+   * Get Driver Info
+   * GET /api/v1/driver/info
+   * Requires authentication
+   */
+  router.get(
+    '/info',
+    authenticate,
+    (req, res) => void driverController.getDriverInfo(req, res)
   );
 
   return router;

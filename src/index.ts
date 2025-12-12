@@ -12,6 +12,9 @@ import { ChatSocketHandler } from './presentation/socket_handlers/chat_socket.ha
 import { MessageSocketHandler } from './presentation/socket_handlers/message_socket.handler';
 import { NotificationSocketHandler } from './presentation/socket_handlers/notification_socket.handler';
 import { SocketEventService } from './infrastructure/service/socket_event.service';
+import { DriverAssignmentWorker } from './infrastructure/queue/workers/driver_assignment.worker';
+import { DriverAssignmentScheduler } from './infrastructure/queue/scheduler/driver_assignment.scheduler';
+import { driverAssignmentQueue } from './infrastructure/queue/driver_assignment.queue';
 
 /**
  * Starts the Express server with database connection, Socket.io, and error handling
@@ -69,6 +72,50 @@ const startServer = async (): Promise<void> => {
     const messageSocketHandler = new MessageSocketHandler(io, chatSocketHandler);
     messageSocketHandler.registerHandlers();
     console.log('[Server] MessageSocketHandler registered');
+
+    // Initialize Bull queue workers
+    const driverAssignmentWorker = new DriverAssignmentWorker();
+    driverAssignmentWorker.initialize();
+    console.log('[Server] Driver assignment worker initialized');
+
+    // Initialize scheduler for periodic pending quotes processing
+    const driverAssignmentScheduler = new DriverAssignmentScheduler();
+    driverAssignmentScheduler.start();
+    console.log('[Server] Driver assignment scheduler started');
+
+    // Graceful shutdown handler
+    const gracefulShutdown = async (signal: string): Promise<void> => {
+      console.log(`\n${signal} received. Starting graceful shutdown...`);
+      
+      // Stop scheduler
+      driverAssignmentScheduler.stop();
+      
+      // Close queue connections
+      await driverAssignmentQueue.close();
+      console.log('[Server] Queue connections closed');
+
+      // Close database connections
+      await app.disconnectDatabases();
+      
+      // Close HTTP server
+      httpServer.close(() => {
+        console.log('[Server] HTTP server closed');
+        process.exit(0);
+      });
+
+      // Force exit after 10 seconds
+      setTimeout(() => {
+        console.error('[Server] Forced shutdown after timeout');
+        process.exit(1);
+      }, 10000);
+    };
+
+    process.on('SIGTERM', () => {
+      void gracefulShutdown('SIGTERM');
+    });
+    process.on('SIGINT', () => {
+      void gracefulShutdown('SIGINT');
+    });
 
     // Start HTTP server (which includes Socket.io)
     httpServer.listen(APP_CONFIG.PORT, () => {
