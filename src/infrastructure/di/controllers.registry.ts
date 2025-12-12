@@ -15,6 +15,7 @@ import { AdminPricingConfigController } from '../../presentation/controllers/adm
 import { AdminUserController } from '../../presentation/controllers/admin/admin_user.controller';
 import { AdminDriverController } from '../../presentation/controllers/admin/admin_driver.controller';
 import { DriverController } from '../../presentation/controllers/driver/driver.controller';
+import { DashboardController } from '../../presentation/controllers/dashboard/dashboard.controller';
 import { ChatController } from '../../presentation/controllers/chat/chat.controller';
 import { MessageController } from '../../presentation/controllers/message/message.controller';
 import { NotificationController } from '../../presentation/controllers/notification/notification.controller';
@@ -47,6 +48,7 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.AdminUserController, AdminUserController);
   container.register(CONTROLLER_TOKENS.AdminDriverController, AdminDriverController);
   container.register(CONTROLLER_TOKENS.DriverController, DriverController);
+  container.register(CONTROLLER_TOKENS.DashboardController, DashboardController);
   // Chat, Message & Notification controllers
   container.register(CONTROLLER_TOKENS.ChatController, ChatController);
   container.register(CONTROLLER_TOKENS.MessageController, MessageController);

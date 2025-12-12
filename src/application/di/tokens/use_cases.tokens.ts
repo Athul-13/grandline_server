@@ -40,6 +40,8 @@ export const USE_CASE_TOKENS = {
   UpdateOnboardingPasswordUseCase: Symbol.for('UpdateOnboardingPasswordUseCase'),
   GetDriverProfileUseCase: Symbol.for('GetDriverProfileUseCase'),
   GetDriverStatisticsUseCase: Symbol.for('GetDriverStatisticsUseCase'),
+  CompleteDriverOnboardingUseCase: Symbol.for('CompleteDriverOnboardingUseCase'),
+  GetDriverInfoUseCase: Symbol.for('GetDriverInfoUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),
@@ -127,5 +129,8 @@ export const USE_CASE_TOKENS = {
   ExportReservationPDFUseCase: Symbol.for('ExportReservationPDFUseCase'),
   ExportReservationCSVUseCase: Symbol.for('ExportReservationCSVUseCase'),
   CreateChargePaymentIntentUseCase: Symbol.for('CreateChargePaymentIntentUseCase'),
+  // Dashboard use cases
+  GetDashboardStatsUseCase: Symbol.for('GetDashboardStatsUseCase'),
+  GetRecentActivityUseCase: Symbol.for('GetRecentActivityUseCase'),
 } as const;
 

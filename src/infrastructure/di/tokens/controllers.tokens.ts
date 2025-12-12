@@ -27,6 +27,7 @@ export const CONTROLLER_TOKENS = {
   AdminUserController: Symbol.for('AdminUserController'),
   AdminDriverController: Symbol.for('AdminDriverController'),
   DriverController: Symbol.for('DriverController'),
+  DashboardController: Symbol.for('DashboardController'),
   // Chat, Message & Notification controllers
   ChatController: Symbol.for('ChatController'),
   MessageController: Symbol.for('MessageController'),

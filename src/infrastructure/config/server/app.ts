@@ -22,6 +22,7 @@ import { createMessageRoutesWithDI } from '../../../presentation/routes/message/
 import { createNotificationRoutesWithDI } from '../../../presentation/routes/notification/notification_routes';
 import { createReservationRoutesWithDI } from '../../../presentation/routes/reservation/reservation_routes';
 import { createWebhookRoutesWithDI } from '../../../presentation/routes/webhook/webhook_routes';
+import { createDashboardRoutesWithDI } from '../../../presentation/routes/dashboard/dashboard_routes';
 import express from 'express';
 
 /**
@@ -141,6 +142,9 @@ export class App {
 
     const reservationRoutes = createReservationRoutesWithDI();
     this.app.use(`/api/v1/reservations`, reservationRoutes);
+
+    const dashboardRoutes = createDashboardRoutesWithDI();
+    this.app.use(`/api/v1/dashboard`, dashboardRoutes);
   }
 
   /**
