@@ -154,6 +154,42 @@ export function createAdminReservationRoutesWithDI(): Router {
     (req, res) => void adminReservationController.addCharge(req, res)
   );
 
+  /**
+   * @route   PUT /api/v1/admin/reservations/:id/charges/:chargeId/mark-paid
+   * @desc    Mark charge as paid (admin only)
+   * @access  Private (Admin)
+   */
+  router.put(
+    '/:id/charges/:chargeId/mark-paid',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminReservationController.markChargeAsPaid(req, res)
+  );
+
+  /**
+   * @route   GET /api/v1/admin/reservations/:id/export/pdf
+   * @desc    Export reservation to PDF (admin only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/:id/export/pdf',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminReservationController.exportPDF(req, res)
+  );
+
+  /**
+   * @route   GET /api/v1/admin/reservations/:id/export/csv
+   * @desc    Export reservation to CSV (admin only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/:id/export/csv',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminReservationController.exportCSV(req, res)
+  );
+
   return router;
 }
 

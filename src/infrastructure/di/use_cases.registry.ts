@@ -104,6 +104,10 @@ import { UpdateReservationItineraryUseCase } from '../../application/use-cases/i
 import { ProcessReservationRefundUseCase } from '../../application/use-cases/implementation/admin/reservation/process_reservation_refund.use-case';
 import { CancelReservationUseCase } from '../../application/use-cases/implementation/admin/reservation/cancel_reservation.use-case';
 import { AddReservationChargeUseCase } from '../../application/use-cases/implementation/admin/reservation/add_reservation_charge.use-case';
+import { MarkChargeAsPaidUseCase } from '../../application/use-cases/implementation/admin/reservation/mark_charge_as_paid.use-case';
+import { ExportReservationPDFUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_pdf.use-case';
+import { ExportReservationCSVUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_csv.use-case';
+import { CreateChargePaymentIntentUseCase } from '../../application/use-cases/implementation/reservation/create_charge_payment_intent.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -227,8 +231,12 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.ChangeReservationDriverUseCase, ChangeReservationDriverUseCase);
   container.register(USE_CASE_TOKENS.AdjustReservationVehiclesUseCase, AdjustReservationVehiclesUseCase);
   container.register(USE_CASE_TOKENS.UpdateReservationItineraryUseCase, UpdateReservationItineraryUseCase);
-  container.register(USE_CASE_TOKENS.ProcessReservationRefundUseCase, ProcessReservationRefundUseCase);
-  container.register(USE_CASE_TOKENS.CancelReservationUseCase, CancelReservationUseCase);
-  container.register(USE_CASE_TOKENS.AddReservationChargeUseCase, AddReservationChargeUseCase);
+    container.register(USE_CASE_TOKENS.ProcessReservationRefundUseCase, ProcessReservationRefundUseCase);
+    container.register(USE_CASE_TOKENS.CancelReservationUseCase, CancelReservationUseCase);
+    container.register(USE_CASE_TOKENS.AddReservationChargeUseCase, AddReservationChargeUseCase);
+    container.register(USE_CASE_TOKENS.MarkChargeAsPaidUseCase, MarkChargeAsPaidUseCase);
+    container.register(USE_CASE_TOKENS.ExportReservationPDFUseCase, ExportReservationPDFUseCase);
+    container.register(USE_CASE_TOKENS.ExportReservationCSVUseCase, ExportReservationCSVUseCase);
+    container.register(USE_CASE_TOKENS.CreateChargePaymentIntentUseCase, CreateChargePaymentIntentUseCase);
 }
 

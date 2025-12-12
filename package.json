@@ -14,7 +14,9 @@
     "test:integration": "vitest run --dir src/infrastructure src/presentation",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "test:refund-email": "ts-node src/scripts/test_refund_email.ts",
+    "test:payment-email": "ts-node src/scripts/test_payment_required_email.ts"
   },
   "keywords": [],
   "author": "",

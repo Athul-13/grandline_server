@@ -11,7 +11,7 @@ import { ICreatePaymentIntentUseCase } from '../../../application/use-cases/inte
 import { IHandlePaymentWebhookUseCase } from '../../../application/use-cases/interface/quote/handle_payment_webhook_use_case.interface';
 import { STRIPE_CONFIG } from '../../../shared/config';
 import Stripe from 'stripe';
-import { getStripeInstance } from '../../../infrastructure/services/stripe.service';
+import { getStripeInstance } from '../../../infrastructure/service/stripe.service';
 import { QuoteStatus } from '../../../shared/constants';
 /**
  * Payment controller

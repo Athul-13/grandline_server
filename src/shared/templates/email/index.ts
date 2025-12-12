@@ -1,9 +1,11 @@
 import { EmailType } from '../../types/email.types';
-import { OTPEmailData, PasswordResetEmailData, QuoteEmailData, InvoiceEmailData } from '../../types/email.types';
+import { OTPEmailData, PasswordResetEmailData, QuoteEmailData, InvoiceEmailData, RefundConfirmationEmailData, PaymentRequiredEmailData } from '../../types/email.types';
 import { renderOTPHTML, renderOTPText } from './otp.template';
 import { renderPasswordResetHTML, renderPasswordResetText } from './password_reset.template';
 import { renderQuoteHTML, renderQuoteText } from './quote.template';
 import { renderInvoiceHTML, renderInvoiceText } from './invoice.template';
+import { renderRefundConfirmationHTML, renderRefundConfirmationText } from './refund_confirmation.template';
+import { renderPaymentRequiredHTML, renderPaymentRequiredText } from './payment_required.template';
 
 /**
  * Template renderer type
@@ -34,6 +36,14 @@ const TEMPLATE_REGISTRY: Record<EmailType, TemplateRenderer> = {
   [EmailType.INVOICE]: {
     html: (data: unknown) => renderInvoiceHTML(data as InvoiceEmailData),
     text: (data: unknown) => renderInvoiceText(data as InvoiceEmailData),
+  },
+  [EmailType.REFUND_CONFIRMATION]: {
+    html: (data: unknown) => renderRefundConfirmationHTML(data as RefundConfirmationEmailData),
+    text: (data: unknown) => renderRefundConfirmationText(data as RefundConfirmationEmailData),
+  },
+  [EmailType.PAYMENT_REQUIRED]: {
+    html: (data: unknown) => renderPaymentRequiredHTML(data as PaymentRequiredEmailData),
+    text: (data: unknown) => renderPaymentRequiredText(data as PaymentRequiredEmailData),
   },
 };
 

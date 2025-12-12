@@ -123,5 +123,9 @@ export const USE_CASE_TOKENS = {
   ProcessReservationRefundUseCase: Symbol.for('ProcessReservationRefundUseCase'),
   CancelReservationUseCase: Symbol.for('CancelReservationUseCase'),
   AddReservationChargeUseCase: Symbol.for('AddReservationChargeUseCase'),
+  MarkChargeAsPaidUseCase: Symbol.for('MarkChargeAsPaidUseCase'),
+  ExportReservationPDFUseCase: Symbol.for('ExportReservationPDFUseCase'),
+  ExportReservationCSVUseCase: Symbol.for('ExportReservationCSVUseCase'),
+  CreateChargePaymentIntentUseCase: Symbol.for('CreateChargePaymentIntentUseCase'),
 } as const;
 

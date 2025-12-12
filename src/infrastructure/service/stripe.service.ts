@@ -29,3 +29,4 @@ export function getStripeInstance(): Stripe {
 
   return stripeInstance;
 }
+

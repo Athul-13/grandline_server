@@ -9,8 +9,12 @@ import { IAmenityRepository } from '../../../../../domain/repositories/amenity_r
 import { IPricingConfigRepository } from '../../../../../domain/repositories/pricing_config_repository.interface';
 import { IPricingCalculationService } from '../../../../../domain/services/pricing_calculation_service.interface';
 import { IDriverRepository } from '../../../../../domain/repositories/driver_repository.interface';
+import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
+import { IEmailService } from '../../../../../domain/services/email_service.interface';
 import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
+import { EmailType, PaymentRequiredEmailData } from '../../../../../shared/types/email.types';
+import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
 import { ReservationCharge } from '../../../../../domain/entities/reservation_charge.entity';
@@ -45,7 +49,11 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
     @inject(SERVICE_TOKENS.IPricingCalculationService)
     private readonly pricingCalculationService: IPricingCalculationService,
     @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
-    private readonly createNotificationUseCase: ICreateNotificationUseCase
+    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    @inject(REPOSITORY_TOKENS.IUserRepository)
+    private readonly userRepository: IUserRepository,
+    @inject(SERVICE_TOKENS.IEmailService)
+    private readonly emailService: IEmailService
   ) {}
 
   async execute(
@@ -213,8 +221,9 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
     } as Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel>);
 
     // Create charge record if additional charge is needed
+    let chargeId: string | undefined;
     if (additionalChargeAmount > 0) {
-      const chargeId = randomUUID();
+      chargeId = randomUUID();
       const charge = new ReservationCharge(
         chargeId,
         reservationId,
@@ -229,6 +238,38 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
       logger.info(
         `Created additional charge of ${additionalChargeAmount} ${reservation.originalPricing?.currency || 'INR'} for vehicle adjustment on reservation: ${reservationId}`
       );
+
+      // Send payment required email to user
+      try {
+        const user = await this.userRepository.findById(reservation.userId);
+        if (user && chargeId) {
+          const paymentLink = `${FRONTEND_CONFIG.URL}/reservations/${reservationId}/charges/${chargeId}/pay`;
+          const viewReservationLink = `${FRONTEND_CONFIG.URL}/reservations/${reservationId}`;
+
+          const emailData: PaymentRequiredEmailData = {
+            email: user.email,
+            fullName: user.fullName,
+            reservationId,
+            chargeId,
+            chargeDescription,
+            amount: additionalChargeAmount,
+            currency: reservation.originalPricing?.currency || 'INR',
+            chargeType: 'vehicle_upgrade',
+            tripName: reservation.tripName,
+            tripType: reservation.tripType,
+            paymentLink,
+            viewReservationLink,
+          };
+
+          await this.emailService.sendEmail(EmailType.PAYMENT_REQUIRED, emailData);
+          logger.info(`Payment required email sent to user ${user.email} for charge ${chargeId}`);
+        }
+      } catch (emailError) {
+        logger.error(
+          `Failed to send payment required email: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
+        );
+        // Don't throw - email failure shouldn't block vehicle adjustment
+      }
     }
 
     // Create modification record

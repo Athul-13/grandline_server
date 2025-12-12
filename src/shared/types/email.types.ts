@@ -7,6 +7,8 @@ export enum EmailType {
   PASSWORD_RESET = 'PASSWORD_RESET',
   QUOTE = 'QUOTE',
   INVOICE = 'INVOICE',
+  REFUND_CONFIRMATION = 'REFUND_CONFIRMATION',
+  PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
 }
 
 /**
@@ -62,5 +64,44 @@ export interface InvoiceEmailData {
   tripName?: string;
   tripType: string;
   viewReservationLink?: string;
+}
+
+/**
+ * Refund confirmation email data interface
+ * Contains all data needed to send a refund confirmation email
+ */
+export interface RefundConfirmationEmailData {
+  email: string;
+  fullName?: string;
+  reservationId: string;
+  refundAmount: number;
+  refundId: string;
+  refundDate: Date;
+  currency: string;
+  tripName?: string;
+  tripType: string;
+  reason?: string;
+  isFullRefund: boolean;
+  viewReservationLink?: string;
+}
+
+/**
+ * Payment required email data interface
+ * Contains all data needed to send a payment required email for outstanding charges
+ */
+export interface PaymentRequiredEmailData {
+  email: string;
+  fullName?: string;
+  reservationId: string;
+  chargeId: string;
+  chargeDescription: string;
+  amount: number;
+  currency: string;
+  chargeType: string;
+  tripName?: string;
+  tripType: string;
+  paymentLink?: string;
+  viewReservationLink?: string;
+  dueDate?: Date;
 }
 

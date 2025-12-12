@@ -70,6 +70,7 @@ export interface ReservationResponse {
     phoneNumber: string;
     age: number;
   }>;
+  charges?: ReservationChargeResponse[];
 }
 
 /**

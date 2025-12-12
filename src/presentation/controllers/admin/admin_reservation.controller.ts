@@ -11,6 +11,9 @@ import { IUpdateReservationItineraryUseCase } from '../../../application/use-cas
 import { IProcessReservationRefundUseCase } from '../../../application/use-cases/interface/admin/reservation/process_reservation_refund_use_case.interface';
 import { ICancelReservationUseCase } from '../../../application/use-cases/interface/admin/reservation/cancel_reservation_use_case.interface';
 import { IAddReservationChargeUseCase } from '../../../application/use-cases/interface/admin/reservation/add_reservation_charge_use_case.interface';
+import { IMarkChargeAsPaidUseCase } from '../../../application/use-cases/interface/admin/reservation/mark_charge_as_paid_use_case.interface';
+import { IExportReservationPDFUseCase } from '../../../application/use-cases/interface/admin/reservation/export_reservation_pdf_use_case.interface';
+import { IExportReservationCSVUseCase } from '../../../application/use-cases/interface/admin/reservation/export_reservation_csv_use_case.interface';
 import {
   UpdateReservationStatusRequest,
   AddPassengersToReservationRequest,
@@ -52,7 +55,13 @@ export class AdminReservationController {
     @inject(USE_CASE_TOKENS.CancelReservationUseCase)
     private readonly cancelReservationUseCase: ICancelReservationUseCase,
     @inject(USE_CASE_TOKENS.AddReservationChargeUseCase)
-    private readonly addReservationChargeUseCase: IAddReservationChargeUseCase
+    private readonly addReservationChargeUseCase: IAddReservationChargeUseCase,
+    @inject(USE_CASE_TOKENS.MarkChargeAsPaidUseCase)
+    private readonly markChargeAsPaidUseCase: IMarkChargeAsPaidUseCase,
+    @inject(USE_CASE_TOKENS.ExportReservationPDFUseCase)
+    private readonly exportReservationPDFUseCase: IExportReservationPDFUseCase,
+    @inject(USE_CASE_TOKENS.ExportReservationCSVUseCase)
+    private readonly exportReservationCSVUseCase: IExportReservationCSVUseCase
   ) {}
 
   /**
@@ -329,6 +338,71 @@ export class AdminReservationController {
     } catch (error) {
       logger.error(
         `Error adding charge to reservation: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles marking a charge as paid
+   */
+  async markChargeAsPaid(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id: reservationId, chargeId } = req.params;
+      const adminUserId = req.user?.userId || '';
+
+      logger.info(`Admin marking charge as paid: reservation=${reservationId}, charge=${chargeId}`);
+
+      const charge = await this.markChargeAsPaidUseCase.execute(chargeId, adminUserId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, { charge });
+    } catch (error) {
+      logger.error(
+        `Error marking charge as paid: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles exporting reservation to PDF
+   */
+  async exportPDF(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      logger.info(`Admin exporting reservation to PDF: ${id}`);
+
+      const pdfBuffer = await this.exportReservationPDFUseCase.execute(id);
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="reservation-${id}.pdf"`);
+      res.send(pdfBuffer);
+    } catch (error) {
+      logger.error(
+        `Error exporting reservation to PDF: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles exporting reservation to CSV
+   */
+  async exportCSV(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      logger.info(`Admin exporting reservation to CSV: ${id}`);
+
+      const csvContent = await this.exportReservationCSVUseCase.execute(id);
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="reservation-${id}.csv"`);
+      res.send(csvContent);
+    } catch (error) {
+      logger.error(
+        `Error exporting reservation to CSV: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       sendErrorResponse(res, error);
     }

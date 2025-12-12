@@ -64,12 +64,13 @@ export class CancelReservationUseCase implements ICancelReservationUseCase {
       );
     }
 
-    // Update reservation
+    // Update reservation - cancel and free up driver/vehicles
     const now = new Date();
     await this.reservationRepository.updateById(reservationId, {
       status: ReservationStatus.CANCELLED,
       cancelledAt: now,
       cancellationReason: reason,
+      assignedDriverId: undefined, // Free up driver
     } as Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel>);
 
     // Create modification record

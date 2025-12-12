@@ -74,6 +74,10 @@ export class EmailServiceImpl implements IEmailService {
         return 'Your Quotation - GRANDLINE';
       case EmailType.INVOICE:
         return 'Payment Confirmation & Invoice - GRANDLINE';
+      case EmailType.REFUND_CONFIRMATION:
+        return 'Refund Confirmation - GRANDLINE';
+      case EmailType.PAYMENT_REQUIRED:
+        return 'Payment Required - GRANDLINE';
       default:
         return 'GRANDLINE';
     }

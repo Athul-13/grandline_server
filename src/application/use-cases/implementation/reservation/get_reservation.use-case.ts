@@ -10,6 +10,7 @@ import { ReservationMapper } from '../../../mapper/reservation.mapper';
 import { ERROR_MESSAGES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
+import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';
 
 /**
  * Use case for getting a reservation by ID
@@ -25,7 +26,9 @@ export class GetReservationUseCase implements IGetReservationUseCase {
     @inject(REPOSITORY_TOKENS.IReservationItineraryRepository)
     private readonly itineraryRepository: IReservationItineraryRepository,
     @inject(REPOSITORY_TOKENS.IPassengerRepository)
-    private readonly passengerRepository: IPassengerRepository
+    private readonly passengerRepository: IPassengerRepository,
+    @inject(REPOSITORY_TOKENS.IReservationChargeRepository)
+    private readonly chargeRepository: IReservationChargeRepository
   ) {}
 
   async execute(reservationId: string, userId: string): Promise<ReservationResponse> {
@@ -139,8 +142,42 @@ export class GetReservationUseCase implements IGetReservationUseCase {
       // Don't fail reservation fetch if passenger fetch fails
     }
 
-    // Map to response DTO with driver, itinerary, and passengers
-    return ReservationMapper.toReservationResponse(reservation, driverDetails, itineraryStops, passengers);
+    // Fetch charges
+    let charges: Array<{
+      chargeId: string;
+      reservationId: string;
+      chargeType: 'additional_passenger' | 'vehicle_upgrade' | 'amenity_add' | 'late_fee' | 'other';
+      description: string;
+      amount: number;
+      currency: string;
+      addedBy: string;
+      isPaid: boolean;
+      paidAt?: Date;
+      createdAt: Date;
+    }> = [];
+    try {
+      const chargeEntities = await this.chargeRepository.findByReservationId(reservationId);
+      charges = chargeEntities.map((charge) => ({
+        chargeId: charge.chargeId,
+        reservationId: charge.reservationId,
+        chargeType: charge.chargeType,
+        description: charge.description,
+        amount: charge.amount,
+        currency: charge.currency,
+        addedBy: charge.addedBy,
+        isPaid: charge.isPaid,
+        paidAt: charge.paidAt,
+        createdAt: charge.createdAt,
+      }));
+    } catch (chargeError) {
+      logger.error(
+        `Failed to fetch charges for reservation ${reservationId}: ${chargeError instanceof Error ? chargeError.message : 'Unknown error'}`
+      );
+      // Don't fail reservation fetch if charge fetch fails
+    }
+
+    // Map to response DTO with driver, itinerary, passengers, and charges
+    return ReservationMapper.toReservationResponse(reservation, driverDetails, itineraryStops, passengers, charges);
   }
 }
 

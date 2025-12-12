@@ -3,16 +3,20 @@ import { IProcessReservationRefundUseCase } from '../../../interface/admin/reser
 import { IReservationRepository } from '../../../../../domain/repositories/reservation_repository.interface';
 import { IPaymentRepository } from '../../../../../domain/repositories/payment_repository.interface';
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
+import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
+import { IEmailService } from '../../../../../domain/services/email_service.interface';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
-import { ReservationStatus, NotificationType, ERROR_MESSAGES } from '../../../../../shared/constants';
+import { ReservationStatus, NotificationType, ERROR_MESSAGES, TripType } from '../../../../../shared/constants';
 import { PaymentStatus } from '../../../../../domain/entities/payment.entity';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 import { randomUUID } from 'crypto';
-import { getStripeInstance } from '../../../../../infrastructure/services/stripe.service';
+import { getStripeInstance } from '../../../../../infrastructure/service/stripe.service';
+import { EmailType, RefundConfirmationEmailData } from '../../../../../shared/types/email.types';
+import { FRONTEND_CONFIG } from '../../../../../shared/config';
 
 /**
  * Use case for processing reservation refund
@@ -27,8 +31,12 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
     private readonly paymentRepository: IPaymentRepository,
     @inject(REPOSITORY_TOKENS.IReservationModificationRepository)
     private readonly modificationRepository: IReservationModificationRepository,
+    @inject(REPOSITORY_TOKENS.IUserRepository)
+    private readonly userRepository: IUserRepository,
     @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
-    private readonly createNotificationUseCase: ICreateNotificationUseCase
+    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    @inject(SERVICE_TOKENS.IEmailService)
+    private readonly emailService: IEmailService
   ) {}
 
   async execute(
@@ -180,6 +188,38 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
       logger.error(
         `Failed to send notification for refund: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
       );
+    }
+
+    // Send refund confirmation email
+    try {
+      const user = await this.userRepository.findById(reservation.userId);
+      if (user && user.email) {
+        const tripTypeLabel = reservation.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way';
+        const viewReservationLink = `${FRONTEND_CONFIG.URL}/reservations/${reservationId}`;
+
+        const emailData: RefundConfirmationEmailData = {
+          email: user.email,
+          fullName: user.fullName,
+          reservationId,
+          refundAmount: amount,
+          refundId,
+          refundDate: now,
+          currency: payment.currency,
+          tripName: reservation.tripName,
+          tripType: tripTypeLabel,
+          reason,
+          isFullRefund: isFullyRefunded,
+          viewReservationLink,
+        };
+
+        await this.emailService.sendEmail(EmailType.REFUND_CONFIRMATION, emailData);
+        logger.info(`Refund confirmation email sent to ${user.email} for reservation: ${reservationId}`);
+      }
+    } catch (emailError) {
+      logger.error(
+        `Failed to send refund confirmation email: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
+      );
+      // Don't throw error - email failure shouldn't fail the refund
     }
 
     // Fetch and return updated reservation

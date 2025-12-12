@@ -8,7 +8,7 @@ import { clearContainer } from '../../../../shared/test/helpers/test_setup';
 import { createQuotedQuoteFixture, createQuoteWithPricingFixture, createQuoteFixture } from '../../../../shared/test/fixtures/quote.fixture';
 import { createPendingPaymentFixture } from '../../../../shared/test/fixtures/payment.fixture';
 import { QuoteStatus } from '../../../../shared/constants';
-import * as stripeService from '../../../../infrastructure/services/stripe.service';
+import * as stripeService from '../../../../infrastructure/service/stripe.service';
 
 // Mock the Stripe service
 vi.mock('../../../../infrastructure/services/stripe.service', () => ({

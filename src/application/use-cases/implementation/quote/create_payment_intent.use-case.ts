@@ -9,7 +9,7 @@ import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { Payment } from '../../../../domain/entities/payment.entity';
 import { PaymentStatus, PaymentMethod } from '../../../../domain/entities/payment.entity';
-import { getStripeInstance } from '../../../../infrastructure/services/stripe.service';
+import { getStripeInstance } from '../../../../infrastructure/service/stripe.service';
 import { v4 as uuidv4 } from 'uuid';
 
 /**

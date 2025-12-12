@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { HandlePaymentWebhookUseCase } from './handle_payment_webhook.use-case';
 import { MockQuoteRepository } from '../../../../shared/test/mocks/repositories/quote_repository.mock';
 import { MockPaymentRepository } from '../../../../shared/test/mocks/repositories/payment_repository.mock';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../di/tokens';
 import { clearContainer } from '../../../../shared/test/helpers/test_setup';
 import { createPendingPaymentFixture } from '../../../../shared/test/fixtures/payment.fixture';
 import { QuoteStatus } from '../../../../shared/constants';
@@ -24,6 +24,9 @@ describe('HandlePaymentWebhookUseCase', () => {
   let useCase: HandlePaymentWebhookUseCase;
   let mockQuoteRepository: MockQuoteRepository;
   let mockPaymentRepository: MockPaymentRepository;
+  let mockCreateReservationUseCase: {
+    execute: ReturnType<typeof vi.fn>;
+  };
 
   beforeEach(() => {
     clearContainer();
@@ -32,9 +35,15 @@ describe('HandlePaymentWebhookUseCase', () => {
     mockQuoteRepository = new MockQuoteRepository();
     mockPaymentRepository = new MockPaymentRepository();
 
+    // Create mock use case
+    mockCreateReservationUseCase = {
+      execute: vi.fn().mockResolvedValue(undefined),
+    };
+
     // Register mocks in container
     container.registerInstance(REPOSITORY_TOKENS.IQuoteRepository, mockQuoteRepository);
     container.registerInstance(REPOSITORY_TOKENS.IPaymentRepository, mockPaymentRepository);
+    container.registerInstance(USE_CASE_TOKENS.CreateReservationUseCase, mockCreateReservationUseCase);
 
     // Create use case instance
     useCase = container.resolve(HandlePaymentWebhookUseCase);

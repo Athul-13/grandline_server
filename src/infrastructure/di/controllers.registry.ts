@@ -20,6 +20,7 @@ import { MessageController } from '../../presentation/controllers/message/messag
 import { NotificationController } from '../../presentation/controllers/notification/notification.controller';
 import { ReservationController } from '../../presentation/controllers/reservation/reservation.controller';
 import { AdminReservationController } from '../../presentation/controllers/admin/admin_reservation.controller';
+import { ChargePaymentController } from '../../presentation/controllers/reservation/charge_payment.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -53,5 +54,6 @@ export function registerControllers(): void {
   // Reservation controllers
   container.register(CONTROLLER_TOKENS.ReservationController, ReservationController);
   container.register(CONTROLLER_TOKENS.AdminReservationController, AdminReservationController);
+  container.register(CONTROLLER_TOKENS.ChargePaymentController, ChargePaymentController);
 }
 

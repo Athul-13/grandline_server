@@ -37,6 +37,18 @@ export class ReservationMapper {
       fullName: string;
       phoneNumber: string;
       age: number;
+    }>,
+    charges?: Array<{
+      chargeId: string;
+      reservationId: string;
+      chargeType: 'additional_passenger' | 'vehicle_upgrade' | 'amenity_add' | 'late_fee' | 'other';
+      description: string;
+      amount: number;
+      currency: string;
+      addedBy: string;
+      isPaid: boolean;
+      paidAt?: Date;
+      createdAt: Date;
     }>
   ): ReservationResponse {
     return {
@@ -72,6 +84,18 @@ export class ReservationMapper {
       driver: driverDetails || undefined,
       itinerary: itineraryStops || undefined,
       passengers: passengers || undefined,
+      charges: charges?.map((charge) => ({
+        chargeId: charge.chargeId,
+        reservationId: charge.reservationId,
+        chargeType: charge.chargeType,
+        description: charge.description,
+        amount: charge.amount,
+        currency: charge.currency,
+        addedBy: charge.addedBy,
+        isPaid: charge.isPaid,
+        paidAt: charge.paidAt,
+        createdAt: charge.createdAt,
+      })) || undefined,
     };
   }
 

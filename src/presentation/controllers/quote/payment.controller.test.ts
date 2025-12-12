@@ -9,7 +9,7 @@ import { QuoteStatus } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { Response } from 'express';
 import { AppError } from '../../../shared/utils/app_error.util';
-import * as stripeService from '../../../infrastructure/services/stripe.service';
+import * as stripeService from '../../../infrastructure/service/stripe.service';
 import Stripe from 'stripe';
 
 // Mock the Stripe service
