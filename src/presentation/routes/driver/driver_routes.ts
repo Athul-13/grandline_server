@@ -108,6 +108,17 @@ export function createDriverRoutesWithDI(): Router {
   );
 
   /**
+   * Generate Signed Upload URL for Driver Profile Picture/License Card
+   * GET /api/v1/driver/profile/upload-url
+   * Requires authentication
+   */
+  router.get(
+    '/profile/upload-url',
+    authenticate,
+    (req, res) => void driverController.generateUploadUrl(req, res)
+  );
+
+  /**
    * Complete Driver Onboarding
    * POST /api/v1/driver/onboarding
    * Requires authentication

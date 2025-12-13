@@ -10,6 +10,7 @@ import { IUpdateOnboardingPasswordUseCase } from '../../../application/use-cases
 import { IGetDriverProfileUseCase } from '../../../application/use-cases/interface/driver/get_driver_profile_use_case.interface';
 import { ICompleteDriverOnboardingUseCase } from '../../../application/use-cases/interface/driver/complete_driver_onboarding_use_case.interface';
 import { IGetDriverInfoUseCase } from '../../../application/use-cases/interface/driver/get_driver_info_use_case.interface';
+import { IGenerateDriverUploadUrlUseCase } from '../../../application/use-cases/interface/driver/generate_driver_upload_url_use_case.interface';
 import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -44,6 +45,8 @@ export class DriverController {
     private readonly completeDriverOnboardingUseCase: ICompleteDriverOnboardingUseCase,
     @inject(USE_CASE_TOKENS.GetDriverInfoUseCase)
     private readonly getDriverInfoUseCase: IGetDriverInfoUseCase,
+    @inject(USE_CASE_TOKENS.GenerateDriverUploadUrlUseCase)
+    private readonly generateDriverUploadUrlUseCase: IGenerateDriverUploadUrlUseCase,
   ) {}
 
   /**
@@ -315,6 +318,36 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error fetching driver info: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles generating signed upload URL for driver profile picture/license card
+   */
+  async generateUploadUrl(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Upload URL generation attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Upload URL generation attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      logger.info(`Upload URL generation request for driver: ${driverId}`);
+      const response = await this.generateDriverUploadUrlUseCase.execute(driverId);
+
+      logger.info(`Upload URL generated successfully for driver: ${driverId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error generating upload URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }
