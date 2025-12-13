@@ -458,3 +458,46 @@ export interface GetDriverInfoResponse {
   hasProfilePicture: boolean;
 }
 
+/**
+ * Request DTO for driver forgot password
+ * Validates input data before processing
+ */
+export class ForgotDriverPasswordRequest {
+  @IsEmail()
+  email!: string;
+}
+
+/**
+ * Response DTO for driver forgot password
+ * Contains the result of the forgot password process
+ */
+export interface ForgotDriverPasswordResponse {
+  message: string;
+  email: string;
+}
+
+/**
+ * Request DTO for driver reset password
+ * Validates input data before processing
+ */
+export class ResetDriverPasswordRequest {
+  @IsString()
+  @IsNotEmpty()
+  token!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
+    message: 'Password must contain at least one lowercase letter, one uppercase letter, and one number'
+  })
+  newPassword!: string;
+}
+
+/**
+ * Response DTO for driver reset password
+ * Contains the result of the reset password process
+ */
+export interface ResetDriverPasswordResponse {
+  message: string;
+}
+

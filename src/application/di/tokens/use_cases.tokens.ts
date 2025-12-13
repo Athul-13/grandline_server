@@ -35,6 +35,8 @@ export const USE_CASE_TOKENS = {
   DeleteDriverUseCase: Symbol.for('DeleteDriverUseCase'),
   LoginDriverUseCase: Symbol.for('LoginDriverUseCase'),
   ChangeDriverPasswordUseCase: Symbol.for('ChangeDriverPasswordUseCase'),
+  ForgotDriverPasswordUseCase: Symbol.for('ForgotDriverPasswordUseCase'),
+  ResetDriverPasswordUseCase: Symbol.for('ResetDriverPasswordUseCase'),
   UpdateProfilePictureUseCase: Symbol.for('UpdateProfilePictureUseCase'),
   UpdateLicenseCardPhotoUseCase: Symbol.for('UpdateLicenseCardPhotoUseCase'),
   UpdateOnboardingPasswordUseCase: Symbol.for('UpdateOnboardingPasswordUseCase'),
