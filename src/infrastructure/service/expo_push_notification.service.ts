@@ -5,48 +5,18 @@
 
 import { injectable, inject } from 'tsyringe';
 import { IDriverFcmTokenRepository } from '../../domain/repositories/driver_fcm_token_repository.interface';
+import { IExpoPushNotificationService } from '../../domain/services/expo_push_notification_service.interface';
 import { REPOSITORY_TOKENS } from '../../application/di/tokens';
+import { EXPO_PUSH_API_URL } from '../../shared/constants';
 import { logger } from '../../shared/logger';
-
-/**
- * Expo Push Notification API endpoint
- */
-const EXPO_PUSH_API_URL = 'https://exp.host/--/api/v2/push/send';
-
-/**
- * Expo push notification message structure
- */
-interface ExpoPushMessage {
-  to: string; // Expo push token
-  sound?: 'default';
-  title?: string;
-  body?: string;
-  data?: Record<string, unknown>;
-  badge?: number;
-  priority?: 'default' | 'normal' | 'high';
-  channelId?: string;
-}
-
-/**
- * Expo push notification response
- */
-interface ExpoPushResponse {
-  data: Array<{
-    status: 'ok' | 'error';
-    id?: string;
-    message?: string;
-    details?: {
-      error?: string;
-    };
-  }>;
-}
+import type { ExpoPushMessage, ExpoPushResponse } from '../../shared/types';
 
 /**
  * Expo Push Notification Service
  * Sends push notifications to mobile devices via Expo Push Notification service
  */
 @injectable()
-export class ExpoPushNotificationService {
+export class ExpoPushNotificationService implements IExpoPushNotificationService {
   constructor(
     @inject(REPOSITORY_TOKENS.IDriverFcmTokenRepository)
     private readonly fcmTokenRepository: IDriverFcmTokenRepository
@@ -111,26 +81,29 @@ export class ExpoPushNotificationService {
       const responseData = (await response.json()) as ExpoPushResponse;
 
       // Check for errors
-      const errors = responseData.data.filter((result: { status: string; details?: { error?: string } }) => result.status === 'error');
+      const errors = responseData.data.filter((result): result is ExpoPushResponse['data'][number] & { status: 'error' } => result.status === 'error');
       if (errors.length > 0) {
         logger.error(`[ExpoPushNotification] Errors sending push notifications: ${JSON.stringify(errors)}`);
         
         // Remove invalid tokens
-        for (const errorItem of errors) {
+        for (let i = 0; i < errors.length; i++) {
+          const errorItem = errors[i];
           if (errorItem.details?.error === 'DeviceNotRegistered') {
-            // Find and delete the invalid token
-            const invalidToken = validTokens.find((token) => 
-              messages.some((msg) => msg.to === token.fcmToken)
-            );
-            if (invalidToken) {
-              await this.fcmTokenRepository.deleteByFcmToken(invalidToken.fcmToken);
-              logger.info(`[ExpoPushNotification] Deleted invalid token: ${invalidToken.fcmToken}`);
+            // Find the corresponding message index
+            const errorIndex = responseData.data.findIndex((result) => result === errorItem);
+            if (errorIndex >= 0 && errorIndex < messages.length) {
+              const errorMessage = messages[errorIndex];
+              const invalidToken = validTokens.find((token) => token.fcmToken === errorMessage.to);
+              if (invalidToken) {
+                await this.fcmTokenRepository.deleteByFcmToken(invalidToken.fcmToken);
+                logger.info(`[ExpoPushNotification] Deleted invalid token: ${invalidToken.fcmToken}`);
+              }
             }
           }
         }
       }
 
-      const successCount = responseData.data.filter((result: { status: string }) => result.status === 'ok').length;
+      const successCount = responseData.data.filter((result): result is ExpoPushResponse['data'][number] & { status: 'ok' } => result.status === 'ok').length;
       logger.info(`[ExpoPushNotification] Sent ${successCount}/${validTokens.length} push notifications to driver: ${driverId}`);
       
       return successCount > 0;

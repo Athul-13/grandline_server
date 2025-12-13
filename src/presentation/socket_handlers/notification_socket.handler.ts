@@ -2,14 +2,14 @@ import { Server } from 'socket.io';
 import { AuthenticatedSocket } from '../../infrastructure/config/server/socket.config';
 import { getSocketUser, isSocketAuthenticated } from '../middleware/socket_auth.middleware';
 import { container } from 'tsyringe';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../application/di/tokens';
+import { SERVICE_TOKENS, USE_CASE_TOKENS } from '../../application/di/tokens';
 import { CONFIG_TOKENS } from '../../infrastructure/di/tokens';
 import { ICreateNotificationUseCase } from '../../application/use-cases/interface/notification/create_notification_use_case.interface';
 import { IGetUnreadNotificationCountUseCase } from '../../application/use-cases/interface/notification/get_unread_notification_count_use_case.interface';
 import { IRedisConnection } from '../../domain/services/redis_connection.interface';
+import { IExpoPushNotificationService } from '../../domain/services/expo_push_notification_service.interface';
 import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
 import { logger } from '../../shared/logger';
-import { ExpoPushNotificationService } from '../../infrastructure/service/expo_push_notification.service';
 
 /**
  * Socket event names for notifications
@@ -31,13 +31,13 @@ export const NOTIFICATION_SOCKET_EVENTS = {
 export class NotificationSocketHandler {
   private io: Server;
   private redis: IRedisConnection;
-  private expoPushService: ExpoPushNotificationService;
+  private expoPushService: IExpoPushNotificationService;
 
   constructor(io: Server) {
     this.io = io;
     this.redis = container.resolve<IRedisConnection>(CONFIG_TOKENS.RedisConnection);
-    this.expoPushService = new ExpoPushNotificationService(
-      container.resolve(REPOSITORY_TOKENS.IDriverFcmTokenRepository)
+    this.expoPushService = container.resolve<IExpoPushNotificationService>(
+      SERVICE_TOKENS.IExpoPushNotificationService
     );
   }
 
