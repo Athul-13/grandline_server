@@ -35,6 +35,8 @@ export const USE_CASE_TOKENS = {
   DeleteDriverUseCase: Symbol.for('DeleteDriverUseCase'),
   LoginDriverUseCase: Symbol.for('LoginDriverUseCase'),
   ChangeDriverPasswordUseCase: Symbol.for('ChangeDriverPasswordUseCase'),
+  ForgotDriverPasswordUseCase: Symbol.for('ForgotDriverPasswordUseCase'),
+  ResetDriverPasswordUseCase: Symbol.for('ResetDriverPasswordUseCase'),
   UpdateProfilePictureUseCase: Symbol.for('UpdateProfilePictureUseCase'),
   UpdateLicenseCardPhotoUseCase: Symbol.for('UpdateLicenseCardPhotoUseCase'),
   UpdateOnboardingPasswordUseCase: Symbol.for('UpdateOnboardingPasswordUseCase'),
@@ -42,6 +44,7 @@ export const USE_CASE_TOKENS = {
   GetDriverStatisticsUseCase: Symbol.for('GetDriverStatisticsUseCase'),
   CompleteDriverOnboardingUseCase: Symbol.for('CompleteDriverOnboardingUseCase'),
   GetDriverInfoUseCase: Symbol.for('GetDriverInfoUseCase'),
+  GenerateDriverUploadUrlUseCase: Symbol.for('GenerateDriverUploadUrlUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),

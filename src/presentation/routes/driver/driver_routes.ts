@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { DriverController } from '../../controllers/driver/driver.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { LoginDriverRequest, ChangeDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest } from '../../../application/dtos/driver.dto';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest } from '../../../application/dtos/driver.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -27,7 +27,29 @@ export function createDriverRoutesWithDI(): Router {
   );
 
   /**
-   * Change Driver Password
+   * Driver Forgot Password
+   * POST /api/v1/driver/auth/forgot-password
+   * Public endpoint - no authentication required
+   */
+  router.post(
+    '/auth/forgot-password',
+    validationMiddleware(ForgotDriverPasswordRequest),
+    (req, res) => void driverController.forgotDriverPassword(req, res)
+  );
+
+  /**
+   * Driver Reset Password
+   * POST /api/v1/driver/auth/reset-password
+   * Public endpoint - no authentication required
+   */
+  router.post(
+    '/auth/reset-password',
+    validationMiddleware(ResetDriverPasswordRequest),
+    (req, res) => void driverController.resetDriverPassword(req, res)
+  );
+
+  /**
+   * Change Driver Password (authenticated)
    * POST /api/v1/driver/auth/change-password
    * Requires authentication
    */
@@ -83,6 +105,17 @@ export function createDriverRoutesWithDI(): Router {
     '/profile',
     authenticate,
     (req, res) => void driverController.getDriverProfile(req, res)
+  );
+
+  /**
+   * Generate Signed Upload URL for Driver Profile Picture/License Card
+   * GET /api/v1/driver/profile/upload-url
+   * Requires authentication
+   */
+  router.get(
+    '/profile/upload-url',
+    authenticate,
+    (req, res) => void driverController.generateUploadUrl(req, res)
   );
 
   /**

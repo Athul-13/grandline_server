@@ -82,6 +82,15 @@ export const FRONTEND_CONFIG = {
 } as const;
 
 /**
+ * Mobile app configuration constants
+ * Manages mobile app deep links for password reset
+ */
+export const MOBILE_CONFIG = {
+  SCHEME: 'grandlinemobile',
+  DEEP_LINK_BASE: 'grandlinemobile://reset-password',
+} as const;
+
+/**
  * Cloudinary configuration constants
  * Manages Cloudinary cloud storage settings for file uploads
  */
