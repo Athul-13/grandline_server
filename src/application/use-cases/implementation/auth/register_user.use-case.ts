@@ -14,6 +14,8 @@ import { EmailType, OTPEmailData } from '../../../../shared/types/email.types';
 import { logger } from '../../../../shared/logger';
 import { IRegisterUserUseCase } from '../../interface/auth/register_user_use_case.interface';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 @injectable()
 export class RegisterUserUseCase implements IRegisterUserUseCase {
@@ -121,6 +123,15 @@ export class RegisterUserUseCase implements IRegisterUserUseCase {
     }
 
     logger.info(`User registered successfully: ${finalUser.email}`);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitUserCreated(finalUser);
+    } catch (error) {
+      // Don't fail user registration if socket emission fails
+      logger.error('Error emitting user created event:', error);
+    }
 
     return UserMapper.toRegisterUserResponse(finalUser);
   }

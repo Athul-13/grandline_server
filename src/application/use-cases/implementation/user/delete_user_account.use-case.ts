@@ -2,11 +2,13 @@ import { injectable, inject } from 'tsyringe';
 import { IDeleteUserAccountUseCase } from '../../interface/user/delete_user_account_use_case.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { DeleteUserAccountRequest, DeleteUserAccountResponse } from '../../../dtos/user.dto';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES, SUCCESS_MESSAGES } from '../../../../shared/constants';
 import { comparePassword } from '../../../../shared/utils/password.util';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for deleting user account (self-service)
@@ -57,6 +59,15 @@ export class DeleteUserAccountUseCase implements IDeleteUserAccountUseCase {
 
     // Soft delete user account
     await this.userRepository.softDelete(userId);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitUserDeleted(userId);
+    } catch (error) {
+      // Don't fail account deletion if socket emission fails
+      logger.error('Error emitting user deleted event:', error);
+    }
 
     logger.info(`User account deleted (soft): ${user.email} (${userId})`);
 

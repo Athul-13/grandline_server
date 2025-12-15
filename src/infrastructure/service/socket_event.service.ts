@@ -10,7 +10,9 @@ import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
-import { MessageDeliveryStatus, NotificationType, QuoteStatus, ReservationStatus } from '../../shared/constants';
+import { MessageDeliveryStatus, NotificationType, QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus } from '../../shared/constants';
+import { User } from '../../domain/entities/user.entity';
+import { Driver } from '../../domain/entities/driver.entity';
 import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
 import { logger } from '../../shared/logger';
 import { ChatSocketHandler } from '../../presentation/socket_handlers/chat_socket.handler';
@@ -43,6 +45,16 @@ export const ADMIN_DASHBOARD_SOCKET_EVENTS = {
   RESERVATION_UPDATED: 'admin:reservation-updated',
   RESERVATION_STATUS_CHANGED: 'admin:reservation-status-changed',
   DASHBOARD_ANALYTICS_UPDATE: 'admin:dashboard-analytics-update',
+  USER_CREATED: 'admin:user-created',
+  USER_UPDATED: 'admin:user-updated',
+  USER_STATUS_CHANGED: 'admin:user-status-changed',
+  USER_ROLE_CHANGED: 'admin:user-role-changed',
+  USER_VERIFIED: 'admin:user-verified',
+  USER_DELETED: 'admin:user-deleted',
+  DRIVER_CREATED: 'admin:driver-created',
+  DRIVER_UPDATED: 'admin:driver-updated',
+  DRIVER_STATUS_CHANGED: 'admin:driver-status-changed',
+  DRIVER_DELETED: 'admin:driver-deleted',
 } as const;
 
 /**
@@ -535,6 +547,273 @@ export class SocketEventService implements ISocketEventService {
       logger.debug(`Reservation status changed event emitted to admin dashboard: ${reservation.reservationId}, ${oldStatus} -> ${reservation.status}`);
     } catch (error) {
       logger.error(`Error emitting reservation status changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits user created event to admin dashboard room
+   */
+  emitUserCreated(user: User): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit user created event. ` +
+        `Method: emitUserCreated, UserId: ${user.userId}.`
+      );
+      return;
+    }
+
+    try {
+      const userData = {
+        userId: user.userId,
+        email: user.email,
+        status: user.status,
+        role: user.role,
+        createdAt: user.createdAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.USER_CREATED, userData);
+      logger.debug(`User created event emitted to admin dashboard: ${user.userId}`);
+    } catch (error) {
+      logger.error(`Error emitting user created event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits user updated event to admin dashboard room
+   */
+  emitUserUpdated(user: User): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit user updated event. ` +
+        `Method: emitUserUpdated, UserId: ${user.userId}.`
+      );
+      return;
+    }
+
+    try {
+      const userData = {
+        userId: user.userId,
+        email: user.email,
+        status: user.status,
+        role: user.role,
+        isVerified: user.isVerified,
+        updatedAt: user.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.USER_UPDATED, userData);
+      logger.debug(`User updated event emitted to admin dashboard: ${user.userId}`);
+    } catch (error) {
+      logger.error(`Error emitting user updated event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits user status changed event to admin dashboard room
+   */
+  emitUserStatusChanged(user: User, oldStatus: UserStatus): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit user status changed event. ` +
+        `Method: emitUserStatusChanged, UserId: ${user.userId}.`
+      );
+      return;
+    }
+
+    try {
+      const userData = {
+        userId: user.userId,
+        oldStatus,
+        newStatus: user.status,
+        updatedAt: user.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.USER_STATUS_CHANGED, userData);
+      logger.debug(`User status changed event emitted to admin dashboard: ${user.userId}, ${oldStatus} -> ${user.status}`);
+    } catch (error) {
+      logger.error(`Error emitting user status changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits user role changed event to admin dashboard room
+   */
+  emitUserRoleChanged(user: User, oldRole: UserRole): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit user role changed event. ` +
+        `Method: emitUserRoleChanged, UserId: ${user.userId}.`
+      );
+      return;
+    }
+
+    try {
+      const userData = {
+        userId: user.userId,
+        oldRole,
+        newRole: user.role,
+        updatedAt: user.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.USER_ROLE_CHANGED, userData);
+      logger.debug(`User role changed event emitted to admin dashboard: ${user.userId}, ${oldRole} -> ${user.role}`);
+    } catch (error) {
+      logger.error(`Error emitting user role changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits user verified event to admin dashboard room
+   */
+  emitUserVerified(userId: string): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit user verified event. ` +
+        `Method: emitUserVerified, UserId: ${userId}.`
+      );
+      return;
+    }
+
+    try {
+      const userData = {
+        userId,
+        verifiedAt: new Date().toISOString(),
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.USER_VERIFIED, userData);
+      logger.debug(`User verified event emitted to admin dashboard: ${userId}`);
+    } catch (error) {
+      logger.error(`Error emitting user verified event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits user deleted event to admin dashboard room
+   */
+  emitUserDeleted(userId: string): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit user deleted event. ` +
+        `Method: emitUserDeleted, UserId: ${userId}.`
+      );
+      return;
+    }
+
+    try {
+      const userData = {
+        userId,
+        deletedAt: new Date().toISOString(),
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.USER_DELETED, userData);
+      logger.debug(`User deleted event emitted to admin dashboard: ${userId}`);
+    } catch (error) {
+      logger.error(`Error emitting user deleted event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits driver created event to admin dashboard room
+   */
+  emitDriverCreated(driver: Driver): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit driver created event. ` +
+        `Method: emitDriverCreated, DriverId: ${driver.driverId}.`
+      );
+      return;
+    }
+
+    try {
+      const driverData = {
+        driverId: driver.driverId,
+        fullName: driver.fullName,
+        status: driver.status,
+        createdAt: driver.createdAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_CREATED, driverData);
+      logger.debug(`Driver created event emitted to admin dashboard: ${driver.driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting driver created event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits driver updated event to admin dashboard room
+   */
+  emitDriverUpdated(driver: Driver): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit driver updated event. ` +
+        `Method: emitDriverUpdated, DriverId: ${driver.driverId}.`
+      );
+      return;
+    }
+
+    try {
+      const driverData = {
+        driverId: driver.driverId,
+        fullName: driver.fullName,
+        status: driver.status,
+        updatedAt: driver.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_UPDATED, driverData);
+      logger.debug(`Driver updated event emitted to admin dashboard: ${driver.driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting driver updated event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits driver status changed event to admin dashboard room
+   */
+  emitDriverStatusChanged(driver: Driver, oldStatus: DriverStatus): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit driver status changed event. ` +
+        `Method: emitDriverStatusChanged, DriverId: ${driver.driverId}.`
+      );
+      return;
+    }
+
+    try {
+      const driverData = {
+        driverId: driver.driverId,
+        oldStatus,
+        newStatus: driver.status,
+        updatedAt: driver.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_STATUS_CHANGED, driverData);
+      logger.debug(`Driver status changed event emitted to admin dashboard: ${driver.driverId}, ${oldStatus} -> ${driver.status}`);
+    } catch (error) {
+      logger.error(`Error emitting driver status changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits driver deleted event to admin dashboard room
+   */
+  emitDriverDeleted(driverId: string): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit driver deleted event. ` +
+        `Method: emitDriverDeleted, DriverId: ${driverId}.`
+      );
+      return;
+    }
+
+    try {
+      const driverData = {
+        driverId,
+        deletedAt: new Date().toISOString(),
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_DELETED, driverData);
+      logger.debug(`Driver deleted event emitted to admin dashboard: ${driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting driver deleted event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

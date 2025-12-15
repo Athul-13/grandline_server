@@ -2,11 +2,13 @@ import { injectable, inject } from 'tsyringe';
 import { IChangeUserStatusUseCase } from '../../interface/user/change_user_status_use_case.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { ChangeUserStatusRequest, ChangeUserStatusResponse } from '../../../dtos/user.dto';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES, UserStatus } from '../../../../shared/constants';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for changing user status (admin)
@@ -58,8 +60,20 @@ export class ChangeUserStatusUseCase implements IChangeUserStatusUseCase {
       throw new AppError(ERROR_MESSAGES.CANNOT_BLOCK_ADMIN, ERROR_CODES.FORBIDDEN, 403);
     }
 
+    // Store old status for socket event
+    const oldStatus = existingUser.status;
+
     // Update status
     const updatedUser = await this.userRepository.updateUserStatus(userId, request.status);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitUserStatusChanged(updatedUser, oldStatus);
+    } catch (error) {
+      // Don't fail status change if socket emission fails
+      logger.error('Error emitting user status changed event:', error);
+    }
 
     logger.info(`Admin changed user status: ${updatedUser.email} to ${request.status} (${userId})`);
 
