@@ -36,6 +36,8 @@ import { IReservationModificationRepository } from '../../domain/repositories/re
 import { ReservationModificationRepositoryImpl } from '../repositories/reservation/reservation_modification.repository';
 import { IReservationChargeRepository } from '../../domain/repositories/reservation_charge_repository.interface';
 import { ReservationChargeRepositoryImpl } from '../repositories/reservation/reservation_charge.repository';
+import { IDriverFcmTokenRepository } from '../../domain/repositories/driver_fcm_token_repository.interface';
+import { DriverFcmTokenRepositoryImpl } from '../repositories/driver_fcm_token.repository';
 
 /**
  * Registers all repository dependencies in the DI container
@@ -141,5 +143,11 @@ export function registerRepositories(): void {
   container.register<IReservationChargeRepository>(
     REPOSITORY_TOKENS.IReservationChargeRepository,
     { useClass: ReservationChargeRepositoryImpl }
+  );
+
+  // Driver FCM Token repository
+  container.register<IDriverFcmTokenRepository>(
+    REPOSITORY_TOKENS.IDriverFcmTokenRepository,
+    { useClass: DriverFcmTokenRepositoryImpl }
   );
 }

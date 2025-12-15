@@ -128,9 +128,18 @@ export class SocketEventService implements ISocketEventService {
         return;
       }
 
-      // Get sender user for notification title
+      // Get sender for notification title
+      // Check both repositories since sender could be a user or driver
+      // Try user repository first, then driver repository
       const userRepository = container.resolve<IUserRepository>(REPOSITORY_TOKENS.IUserRepository);
-      const sender = await userRepository.findById(senderId);
+      let sender: { fullName: string } | null = await userRepository.findById(senderId);
+      
+      if (!sender) {
+        // Sender not found in user repository, try driver repository
+        const driverRepository = container.resolve<IDriverRepository>(REPOSITORY_TOKENS.IDriverRepository);
+        sender = await driverRepository.findById(senderId);
+      }
+
       if (!sender) {
         logger.warn(`Sender not found: ${senderId}, cannot create notification`);
       }

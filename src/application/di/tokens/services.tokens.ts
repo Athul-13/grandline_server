@@ -22,5 +22,7 @@ export const SERVICE_TOKENS = {
   // Queue and auto-assignment services
   IAutoDriverAssignmentService: Symbol.for('IAutoDriverAssignmentService'),
   IQueueService: Symbol.for('IQueueService'),
+  // Push notification service
+  IExpoPushNotificationService: Symbol.for('IExpoPushNotificationService'),
 } as const;
 

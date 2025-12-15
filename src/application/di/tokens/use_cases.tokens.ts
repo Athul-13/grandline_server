@@ -45,6 +45,7 @@ export const USE_CASE_TOKENS = {
   CompleteDriverOnboardingUseCase: Symbol.for('CompleteDriverOnboardingUseCase'),
   GetDriverInfoUseCase: Symbol.for('GetDriverInfoUseCase'),
   GenerateDriverUploadUrlUseCase: Symbol.for('GenerateDriverUploadUrlUseCase'),
+  SaveDriverFcmTokenUseCase: Symbol.for('SaveDriverFcmTokenUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),

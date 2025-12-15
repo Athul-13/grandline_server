@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { DriverController } from '../../controllers/driver/driver.controller';
 import { authenticate } from '../../middleware/auth.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
-import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest } from '../../../application/dtos/driver.dto';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest } from '../../../application/dtos/driver.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
@@ -139,6 +139,18 @@ export function createDriverRoutesWithDI(): Router {
     '/info',
     authenticate,
     (req, res) => void driverController.getDriverInfo(req, res)
+  );
+
+  /**
+   * Save Driver FCM Token
+   * POST /api/v1/driver/fcm-token
+   * Requires authentication
+   */
+  router.post(
+    '/fcm-token',
+    authenticate,
+    validationMiddleware(SaveFcmTokenRequest),
+    (req, res) => void driverController.saveFcmToken(req, res)
   );
 
   return router;

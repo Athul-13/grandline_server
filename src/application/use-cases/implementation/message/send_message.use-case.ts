@@ -4,6 +4,7 @@ import { IChatRepository } from '../../../../domain/repositories/chat_repository
 import { IMessageRepository } from '../../../../domain/repositories/message_repository.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
+import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { SendMessageRequest, MessageResponse } from '../../../dtos/message.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { Message } from '../../../../domain/entities/message.entity';
@@ -27,7 +28,9 @@ export class SendMessageUseCase implements ISendMessageUseCase {
     @inject(REPOSITORY_TOKENS.IQuoteRepository)
     private readonly quoteRepository: IQuoteRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IUserRepository,
+    @inject(REPOSITORY_TOKENS.IDriverRepository)
+    private readonly driverRepository: IDriverRepository
   ) {}
 
   async execute(request: SendMessageRequest, senderId: string): Promise<MessageResponse> {
@@ -135,9 +138,14 @@ export class SendMessageUseCase implements ISendMessageUseCase {
       return await this.createDirectAdminChat(contextId, senderId, contextType);
     }
 
+    // Handle driver-based chat creation (bidirectional: admin ↔ driver)
+    if (contextType === 'driver') {
+      return await this.createDriverBasedChat(contextId, senderId);
+    }
+
     // Unsupported contextType
     throw new AppError(
-      `Unsupported contextType: ${contextType}. Supported types: 'quote', 'admin', 'direct'`,
+      `Unsupported contextType: ${contextType}. Supported types: 'quote', 'driver', 'admin', 'direct'`,
       ERROR_CODES.INVALID_REQUEST,
       400
     );
@@ -271,6 +279,97 @@ export class SendMessageUseCase implements ISendMessageUseCase {
     await this.chatRepository.create(chat);
 
     logger.info(`Auto-created direct admin chat: ${chatId} for user: ${senderId} with admin: ${admin.userId}`);
+
+    return chatId;
+  }
+
+  /**
+   * Creates a driver-based chat (bidirectional: admin ↔ driver)
+   * Either admin or driver can initiate the chat
+   */
+  private async createDriverBasedChat(driverId: string, senderId: string): Promise<string> {
+    let isAdmin = false;
+    let isDriver = false;
+
+    // Check if sender is admin
+    const senderUser = await this.userRepository.findById(senderId);
+    if (senderUser && senderUser.role === UserRole.ADMIN) {
+      isAdmin = true;
+    }
+
+    // Check if sender is the driver
+    if (senderId === driverId) {
+      isDriver = true;
+    }
+
+    // Verify sender is either admin OR the driver themselves
+    if (!isAdmin && !isDriver) {
+      logger.warn(`User ${senderId} attempted to create driver chat without permission (not admin or driver)`);
+      throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    // Verify driver exists
+    const driver = await this.driverRepository.findById(driverId);
+    if (!driver) {
+      logger.warn(`Attempt to create chat for non-existent driver: ${driverId}`);
+      throw new AppError(ERROR_MESSAGES.DRIVER_NOT_FOUND, ERROR_CODES.DRIVER_NOT_FOUND, 404);
+    }
+
+    // Check if chat already exists for this context
+    const existingChat = await this.chatRepository.findByContext('driver', driverId);
+
+    if (existingChat) {
+      // Verify sender has access to existing chat
+      if (!existingChat.hasParticipant(senderId)) {
+        throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
+      }
+
+      logger.info(`Using existing driver chat: ${existingChat.chatId} for driver: ${driverId}`);
+      return existingChat.chatId;
+    }
+
+    // Find first available admin (if driver is initiating)
+    let adminId: string;
+    if (isDriver) {
+      // Driver is initiating - find admin
+      const admins = await this.userRepository.findByRole(UserRole.ADMIN);
+      if (admins.length === 0) {
+        logger.error('No admin available to assign to driver chat');
+        throw new AppError(ERROR_MESSAGES.NO_ADMIN_AVAILABLE, ERROR_CODES.NO_ADMIN_AVAILABLE, 503);
+      }
+      adminId = admins[0].userId;
+    } else {
+      // Admin is initiating
+      adminId = senderId;
+    }
+
+    // Create new chat with participants (admin and driver)
+    const chatId = randomUUID();
+    const now = new Date();
+    const participants: IChatParticipant[] = [
+      {
+        userId: adminId,
+        participantType: ParticipantType.ADMIN_DRIVER,
+      },
+      {
+        userId: driverId,
+        participantType: ParticipantType.ADMIN_DRIVER,
+      },
+    ];
+
+    const chat = new Chat(
+      chatId,
+      'driver',
+      driverId,
+      ParticipantType.ADMIN_DRIVER,
+      participants,
+      now,
+      now
+    );
+
+    await this.chatRepository.create(chat);
+
+    logger.info(`Auto-created driver chat: ${chatId} for driver: ${driverId} with admin: ${adminId}, initiated by: ${senderId}`);
 
     return chatId;
   }
