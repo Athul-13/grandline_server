@@ -4,7 +4,7 @@ import { IQuoteRepository } from '../../../../domain/repositories/quote_reposito
 import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
 import { IPassengerRepository } from '../../../../domain/repositories/passenger_repository.interface';
 import { UpdateQuoteDraftRequest, QuoteResponse } from '../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { QuoteMapper } from '../../../mapper/quote.mapper';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
@@ -13,6 +13,8 @@ import { QuoteItinerary } from '../../../../domain/entities/quote_itinerary.enti
 import { Passenger } from '../../../../domain/entities/passenger.entity';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { v4 as uuidv4 } from 'uuid';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for updating a quote draft
@@ -212,6 +214,15 @@ export class UpdateQuoteDraftUseCase implements IUpdateQuoteDraftUseCase {
     // Fetch itinerary and passengers to include in response
     const itineraryStops = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
     const passengers = await this.passengerRepository.findByQuoteId(quoteId);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitQuoteUpdated(updatedQuote);
+    } catch (error) {
+      // Don't fail quote update if socket emission fails
+      logger.error('Error emitting quote updated event:', error);
+    }
 
     return QuoteMapper.toQuoteResponse(updatedQuote, itineraryStops, passengers);
   }

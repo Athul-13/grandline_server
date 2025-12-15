@@ -19,6 +19,8 @@ import { logger } from '../../../../shared/logger';
 import { randomUUID } from 'crypto';
 import { EmailType, InvoiceEmailData } from '../../../../shared/types/email.types';
 import { FRONTEND_CONFIG } from '../../../../shared/config';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for creating a reservation
@@ -259,6 +261,15 @@ export class CreateReservationUseCase implements ICreateReservationUseCase {
           `Failed to send notification for reservation confirmation: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
         );
         // Don't fail reservation creation if notification fails
+      }
+
+      // Emit socket event for admin dashboard
+      try {
+        const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+        socketEventService.emitReservationCreated(createdReservation);
+      } catch (error) {
+        // Don't fail reservation creation if socket emission fails
+        logger.error('Error emitting reservation created event:', error);
       }
 
       logger.info(`Reservation created successfully: ${reservationId}`);

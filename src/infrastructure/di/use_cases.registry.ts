@@ -115,6 +115,7 @@ import { ExportReservationCSVUseCase } from '../../application/use-cases/impleme
 import { CreateChargePaymentIntentUseCase } from '../../application/use-cases/implementation/reservation/create_charge_payment_intent.use-case';
 import { GetDashboardStatsUseCase } from '../../application/use-cases/implementation/dashboard/get_dashboard_stats.use-case';
 import { GetRecentActivityUseCase } from '../../application/use-cases/implementation/dashboard/get_recent_activity.use-case';
+import { GetAdminDashboardAnalyticsUseCase } from '../../application/use-cases/implementation/dashboard/get_admin_dashboard_analytics.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -253,5 +254,6 @@ export function registerUseCases(): void {
   // Dashboard use cases
   container.register(USE_CASE_TOKENS.GetDashboardStatsUseCase, GetDashboardStatsUseCase);
   container.register(USE_CASE_TOKENS.GetRecentActivityUseCase, GetRecentActivityUseCase);
+  container.register(USE_CASE_TOKENS.GetAdminDashboardAnalyticsUseCase, GetAdminDashboardAnalyticsUseCase);
 }
 

@@ -22,6 +22,8 @@ import { EmailType, QuoteEmailData } from '../../../../shared/types/email.types'
 import { FRONTEND_CONFIG } from '../../../../shared/config';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../domain/entities/amenity.entity';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for submitting a quote
@@ -321,6 +323,16 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
       const updatedQuote = await this.quoteRepository.findById(quoteId);
       if (!updatedQuote) {
         throw new AppError(ERROR_MESSAGES.QUOTE_NOT_FOUND, ERROR_CODES.QUOTE_NOT_FOUND, 404);
+      }
+
+      // Emit socket event for admin dashboard
+      try {
+        const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+        const oldStatus = quote.status;
+        socketEventService.emitQuoteStatusChanged(updatedQuote, oldStatus);
+      } catch (error) {
+        // Don't fail quote submission if socket emission fails
+        logger.error('Error emitting quote status changed event:', error);
       }
 
       logger.info(`Quote submitted successfully: ${quoteId}, status: ${finalStatus}, driver assigned: ${driverAssigned}`);

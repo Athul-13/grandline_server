@@ -4,11 +4,13 @@ import { container } from 'tsyringe';
 import { ISocketEventService } from '../../domain/services/socket_event_service.interface';
 import { Message } from '../../domain/entities/message.entity';
 import { Chat } from '../../domain/entities/chat.entity';
+import { Quote } from '../../domain/entities/quote.entity';
+import { Reservation } from '../../domain/entities/reservation.entity';
 import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
-import { MessageDeliveryStatus, NotificationType } from '../../shared/constants';
+import { MessageDeliveryStatus, NotificationType, QuoteStatus, ReservationStatus } from '../../shared/constants';
 import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
 import { logger } from '../../shared/logger';
 import { ChatSocketHandler } from '../../presentation/socket_handlers/chat_socket.handler';
@@ -28,6 +30,19 @@ export const MESSAGE_SOCKET_EVENTS = {
  */
 export const CHAT_SOCKET_EVENTS = {
   CHAT_CREATED: 'chat-created',
+} as const;
+
+/**
+ * Socket event names for admin dashboard
+ */
+export const ADMIN_DASHBOARD_SOCKET_EVENTS = {
+  QUOTE_CREATED: 'admin:quote-created',
+  QUOTE_UPDATED: 'admin:quote-updated',
+  QUOTE_STATUS_CHANGED: 'admin:quote-status-changed',
+  RESERVATION_CREATED: 'admin:reservation-created',
+  RESERVATION_UPDATED: 'admin:reservation-updated',
+  RESERVATION_STATUS_CHANGED: 'admin:reservation-status-changed',
+  DASHBOARD_ANALYTICS_UPDATE: 'admin:dashboard-analytics-update',
 } as const;
 
 /**
@@ -355,6 +370,171 @@ export class SocketEventService implements ISocketEventService {
       logger.error(
         `Error emitting unread count update: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
+    }
+  }
+
+  /**
+   * Emits quote created event to admin dashboard room
+   */
+  emitQuoteCreated(quote: Quote): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit quote created event. ` +
+        `Method: emitQuoteCreated, QuoteId: ${quote.quoteId}.`
+      );
+      return;
+    }
+
+    try {
+      const quoteData = {
+        quoteId: quote.quoteId,
+        userId: quote.userId,
+        status: quote.status,
+        createdAt: quote.createdAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.QUOTE_CREATED, quoteData);
+      logger.debug(`Quote created event emitted to admin dashboard: ${quote.quoteId}`);
+    } catch (error) {
+      logger.error(`Error emitting quote created event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits quote updated event to admin dashboard room
+   */
+  emitQuoteUpdated(quote: Quote): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit quote updated event. ` +
+        `Method: emitQuoteUpdated, QuoteId: ${quote.quoteId}.`
+      );
+      return;
+    }
+
+    try {
+      const quoteData = {
+        quoteId: quote.quoteId,
+        userId: quote.userId,
+        status: quote.status,
+        updatedAt: quote.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.QUOTE_UPDATED, quoteData);
+      logger.debug(`Quote updated event emitted to admin dashboard: ${quote.quoteId}`);
+    } catch (error) {
+      logger.error(`Error emitting quote updated event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits quote status changed event to admin dashboard room
+   */
+  emitQuoteStatusChanged(quote: Quote, oldStatus: QuoteStatus): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit quote status changed event. ` +
+        `Method: emitQuoteStatusChanged, QuoteId: ${quote.quoteId}.`
+      );
+      return;
+    }
+
+    try {
+      const quoteData = {
+        quoteId: quote.quoteId,
+        userId: quote.userId,
+        oldStatus,
+        newStatus: quote.status,
+        updatedAt: quote.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.QUOTE_STATUS_CHANGED, quoteData);
+      logger.debug(`Quote status changed event emitted to admin dashboard: ${quote.quoteId}, ${oldStatus} -> ${quote.status}`);
+    } catch (error) {
+      logger.error(`Error emitting quote status changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits reservation created event to admin dashboard room
+   */
+  emitReservationCreated(reservation: Reservation): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit reservation created event. ` +
+        `Method: emitReservationCreated, ReservationId: ${reservation.reservationId}.`
+      );
+      return;
+    }
+
+    try {
+      const reservationData = {
+        reservationId: reservation.reservationId,
+        userId: reservation.userId,
+        quoteId: reservation.quoteId,
+        status: reservation.status,
+        createdAt: reservation.createdAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.RESERVATION_CREATED, reservationData);
+      logger.debug(`Reservation created event emitted to admin dashboard: ${reservation.reservationId}`);
+    } catch (error) {
+      logger.error(`Error emitting reservation created event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits reservation updated event to admin dashboard room
+   */
+  emitReservationUpdated(reservation: Reservation): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit reservation updated event. ` +
+        `Method: emitReservationUpdated, ReservationId: ${reservation.reservationId}.`
+      );
+      return;
+    }
+
+    try {
+      const reservationData = {
+        reservationId: reservation.reservationId,
+        userId: reservation.userId,
+        status: reservation.status,
+        updatedAt: reservation.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.RESERVATION_UPDATED, reservationData);
+      logger.debug(`Reservation updated event emitted to admin dashboard: ${reservation.reservationId}`);
+    } catch (error) {
+      logger.error(`Error emitting reservation updated event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits reservation status changed event to admin dashboard room
+   */
+  emitReservationStatusChanged(reservation: Reservation, oldStatus: ReservationStatus): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit reservation status changed event. ` +
+        `Method: emitReservationStatusChanged, ReservationId: ${reservation.reservationId}.`
+      );
+      return;
+    }
+
+    try {
+      const reservationData = {
+        reservationId: reservation.reservationId,
+        userId: reservation.userId,
+        oldStatus,
+        newStatus: reservation.status,
+        updatedAt: reservation.updatedAt,
+      };
+
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.RESERVATION_STATUS_CHANGED, reservationData);
+      logger.debug(`Reservation status changed event emitted to admin dashboard: ${reservation.reservationId}, ${oldStatus} -> ${reservation.status}`);
+    } catch (error) {
+      logger.error(`Error emitting reservation status changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

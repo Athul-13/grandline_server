@@ -1,6 +1,15 @@
 import { QuoteStatus, TripType } from '../../shared/constants';
 import { Quote } from '../entities/quote.entity';
 import { IBaseRepository } from './base_repository.interface';
+import {
+  DateRange,
+  RevenueMetrics,
+  QuoteConversionRates,
+  TimeTrend,
+  GeographicData,
+  VehicleAnalytics,
+  UserAnalytics,
+} from '../../application/dtos/dashboard.dto';
 
 /**
  * Repository interface for Quote entity operations
@@ -83,5 +92,40 @@ export interface IQuoteRepository extends IBaseRepository<Quote> {
     endDate: Date,
     excludeQuoteId?: string
   ): Promise<Set<string>>;
+
+  /**
+   * Gets counts of quotes grouped by status
+   */
+  getCountsByStatus(timeRange?: DateRange): Promise<Map<QuoteStatus, number>>;
+
+  /**
+   * Gets revenue metrics for quotes
+   */
+  getRevenueMetrics(timeRange?: DateRange): Promise<RevenueMetrics>;
+
+  /**
+   * Gets conversion rates for quotes
+   */
+  getConversionRates(timeRange?: DateRange): Promise<QuoteConversionRates>;
+
+  /**
+   * Gets time-based trends for quotes
+   */
+  getTimeBasedTrends(timeRange: DateRange, granularity: 'day' | 'week' | 'month'): Promise<TimeTrend[]>;
+
+  /**
+   * Gets geographic analytics for quotes
+   */
+  getGeographicAnalytics(timeRange?: DateRange): Promise<GeographicData[]>;
+
+  /**
+   * Gets vehicle analytics for quotes
+   */
+  getVehicleAnalytics(timeRange?: DateRange): Promise<VehicleAnalytics[]>;
+
+  /**
+   * Gets user analytics for quotes
+   */
+  getUserAnalytics(timeRange?: DateRange): Promise<UserAnalytics[]>;
 }
 

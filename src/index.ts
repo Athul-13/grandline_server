@@ -11,6 +11,7 @@ import { SocketConfig } from './infrastructure/config/server/socket.config';
 import { ChatSocketHandler } from './presentation/socket_handlers/chat_socket.handler';
 import { MessageSocketHandler } from './presentation/socket_handlers/message_socket.handler';
 import { NotificationSocketHandler } from './presentation/socket_handlers/notification_socket.handler';
+import { AdminSocketHandler } from './presentation/socket_handlers/admin_socket.handler';
 import { SocketEventService } from './infrastructure/service/socket_event.service';
 import { DriverAssignmentWorker } from './infrastructure/queue/workers/driver_assignment.worker';
 import { DriverAssignmentScheduler } from './infrastructure/queue/scheduler/driver_assignment.scheduler';
@@ -72,6 +73,10 @@ const startServer = async (): Promise<void> => {
     const messageSocketHandler = new MessageSocketHandler(io, chatSocketHandler);
     messageSocketHandler.registerHandlers();
     console.log('[Server] MessageSocketHandler registered');
+
+    const adminSocketHandler = new AdminSocketHandler(io);
+    adminSocketHandler.registerHandlers();
+    console.log('[Server] AdminSocketHandler registered');
 
     // Initialize Bull queue workers
     const driverAssignmentWorker = new DriverAssignmentWorker();

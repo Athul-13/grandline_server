@@ -4,12 +4,14 @@ import { IQuoteRepository } from '../../../../../domain/repositories/quote_repos
 import { IQuoteItineraryRepository } from '../../../../../domain/repositories/quote_itinerary_repository.interface';
 import { IPassengerRepository } from '../../../../../domain/repositories/passenger_repository.interface';
 import { UpdateQuoteStatusRequest, QuoteResponse } from '../../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
 import { QuoteMapper } from '../../../../mapper/quote.mapper';
 import { QuoteStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../../shared/constants';
 import { logger } from '../../../../../shared/logger';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { Quote } from '../../../../../domain/entities/quote.entity';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for updating quote status
@@ -85,6 +87,15 @@ export class UpdateQuoteStatusUseCase implements IUpdateQuoteStatusUseCase {
     // Fetch itinerary and passengers
     const itineraryStops = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
     const passengers = await this.passengerRepository.findByQuoteId(quoteId);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitQuoteStatusChanged(updatedQuote, currentStatus);
+    } catch (error) {
+      // Don't fail quote status update if socket emission fails
+      logger.error('Error emitting quote status changed event:', error);
+    }
 
     logger.info(
       `Admin updated quote status: ${quoteId}, ${currentStatus} -> ${newStatus}`

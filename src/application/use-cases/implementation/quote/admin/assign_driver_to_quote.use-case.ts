@@ -22,6 +22,8 @@ import { EmailType, QuoteEmailData } from '../../../../../shared/types/email.typ
 import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Vehicle } from '../../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../../domain/entities/amenity.entity';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for assigning driver to quote
@@ -283,6 +285,15 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
       // Fetch itinerary and passengers for response
       const itineraryStops = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
       const passengers = await this.passengerRepository.findByQuoteId(quoteId);
+
+      // Emit socket event for admin dashboard
+      try {
+        const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+        socketEventService.emitQuoteUpdated(updatedQuote);
+      } catch (error) {
+        // Don't fail driver assignment if socket emission fails
+        logger.error('Error emitting quote updated event:', error);
+      }
 
       logger.info(`Driver ${request.driverId} assigned successfully to quote: ${quoteId}`);
 

@@ -135,5 +135,6 @@ export const USE_CASE_TOKENS = {
   // Dashboard use cases
   GetDashboardStatsUseCase: Symbol.for('GetDashboardStatsUseCase'),
   GetRecentActivityUseCase: Symbol.for('GetRecentActivityUseCase'),
+  GetAdminDashboardAnalyticsUseCase: Symbol.for('GetAdminDashboardAnalyticsUseCase'),
 } as const;
 
