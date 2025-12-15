@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import mongoose from 'mongoose';
-import { QuoteRepositoryImpl } from './quote.repository';
+import { QuoteRepositoryImpl } from './quotes/quote.repository';
 import { disconnectTestDatabase, clearTestDatabase } from '../../shared/test/helpers/database_helper';
 import { createQuoteFixture, createDraftQuoteFixture, createQuotedQuoteFixture } from '../../shared/test/fixtures/quote.fixture';
 import { QuoteStatus, TripType } from '../../shared/constants';

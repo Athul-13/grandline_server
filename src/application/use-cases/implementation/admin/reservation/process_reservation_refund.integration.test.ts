@@ -10,7 +10,7 @@ import {
 } from '../../../../../shared/test/helpers/database_helper';
 import { ReservationStatus } from '../../../../../shared/constants';
 import { PaymentStatus } from '../../../../../domain/entities/payment.entity';
-import { ReservationRepositoryImpl } from '../../../../../infrastructure/repositories/reservation.repository';
+import { ReservationRepositoryImpl } from '../../../../../infrastructure/repositories/reservation/reservation.repository';
 import { PaymentRepositoryImpl } from '../../../../../infrastructure/repositories/payment.repository';
 import { ReservationModificationRepositoryImpl } from '../../../../../infrastructure/repositories/reservation_modification.repository';
 import { UserRepositoryImpl } from '../../../../../infrastructure/repositories/user.repository';

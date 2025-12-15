@@ -11,9 +11,9 @@ import { VehicleRepositoryImpl } from '../repositories/vehicle.repository';
 import { IAmenityRepository } from '../../domain/repositories/amenity_repository.interface';
 import { AmenityRepositoryImpl } from '../repositories/amenity.repository';
 import { IQuoteRepository } from '../../domain/repositories/quote_repository.interface';
-import { QuoteRepositoryImpl } from '../repositories/quote.repository';
+import { QuoteRepositoryImpl } from '../repositories/quotes/quote.repository';
 import { IQuoteItineraryRepository } from '../../domain/repositories/quote_itinerary_repository.interface';
-import { QuoteItineraryRepositoryImpl } from '../repositories/quote_itinerary.repository';
+import { QuoteItineraryRepositoryImpl } from '../repositories/quotes/quote_itinerary.repository';
 import { IPassengerRepository } from '../../domain/repositories/passenger_repository.interface';
 import { PassengerRepositoryImpl } from '../repositories/passenger.repository';
 import { IPricingConfigRepository } from '../../domain/repositories/pricing_config_repository.interface';
@@ -29,13 +29,13 @@ import { NotificationRepositoryImpl } from '../repositories/notification.reposit
 import { IPaymentRepository } from '../../domain/repositories/payment_repository.interface';
 import { PaymentRepositoryImpl } from '../repositories/payment.repository';
 import { IReservationRepository } from '../../domain/repositories/reservation_repository.interface';
-import { ReservationRepositoryImpl } from '../repositories/reservation.repository';
+import { ReservationRepositoryImpl } from '../repositories/reservation/reservation.repository';
 import { IReservationItineraryRepository } from '../../domain/repositories/reservation_itinerary_repository.interface';
-import { ReservationItineraryRepositoryImpl } from '../repositories/reservation_itinerary.repository';
+import { ReservationItineraryRepositoryImpl } from '../repositories/reservation/reservation_itinerary.repository';
 import { IReservationModificationRepository } from '../../domain/repositories/reservation_modification_repository.interface';
-import { ReservationModificationRepositoryImpl } from '../repositories/reservation_modification.repository';
+import { ReservationModificationRepositoryImpl } from '../repositories/reservation/reservation_modification.repository';
 import { IReservationChargeRepository } from '../../domain/repositories/reservation_charge_repository.interface';
-import { ReservationChargeRepositoryImpl } from '../repositories/reservation_charge.repository';
+import { ReservationChargeRepositoryImpl } from '../repositories/reservation/reservation_charge.repository';
 
 /**
  * Registers all repository dependencies in the DI container

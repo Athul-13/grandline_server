@@ -1,13 +1,13 @@
 import { injectable } from 'tsyringe';
-import { IReservationChargeRepository } from '../../domain/repositories/reservation_charge_repository.interface';
-import { ReservationCharge } from '../../domain/entities/reservation_charge.entity';
+import { IReservationChargeRepository } from '../../../domain/repositories/reservation_charge_repository.interface';
+import { ReservationCharge } from '../../../domain/entities/reservation_charge.entity';
 import {
   IReservationChargeModel,
   createReservationChargeModel,
-} from '../database/mongodb/models/reservation_charge.model';
-import { ReservationChargeRepositoryMapper } from '../mappers/reservation_charge_repository.mapper';
-import { MongoBaseRepository } from './base/mongo_base.repository';
-import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
+} from '../../database/mongodb/models/reservation_charge.model';
+import { ReservationChargeRepositoryMapper } from '../../mappers/reservation_charge_repository.mapper';
+import { MongoBaseRepository } from '../base/mongo_base.repository';
+import { IDatabaseModel } from '../../../domain/services/mongodb_model.interface';
 
 /**
  * ReservationCharge repository implementation
