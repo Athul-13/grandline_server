@@ -22,6 +22,8 @@ export const REPOSITORY_TOKENS = {
   IChatRepository: Symbol.for('IChatRepository'),
   IMessageRepository: Symbol.for('IMessageRepository'),
   INotificationRepository: Symbol.for('INotificationRepository'),
+  // Driver FCM Token repository
+  IDriverFcmTokenRepository: Symbol.for('IDriverFcmTokenRepository'),
   // Payment repository
   IPaymentRepository: Symbol.for('IPaymentRepository'),
   // Reservation repositories

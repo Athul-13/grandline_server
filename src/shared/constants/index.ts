@@ -1,4 +1,9 @@
 /**
+ * Expo Push Notification API endpoint
+ */
+export const EXPO_PUSH_API_URL = 'https://exp.host/--/api/v2/push/send';
+
+/**
  * User role enumeration
  * Defines available user roles in the bus rental system
  */
@@ -322,4 +327,5 @@ export const ERROR_CODES = {
   QUOTE_EXPIRED: 'QUOTE_EXPIRED',
   DRIVER_NOT_AVAILABLE: 'DRIVER_NOT_AVAILABLE',
   VEHICLES_NOT_AVAILABLE: 'VEHICLES_NOT_AVAILABLE',
+  SERVER_ERROR: 'SERVER_ERROR',
 } as const;

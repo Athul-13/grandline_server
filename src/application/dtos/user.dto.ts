@@ -169,10 +169,11 @@ export interface RefreshTokenRequest {
 
 /**
  * Response DTO for refresh token
- * Contains the new access token
+ * Contains the new access token and refresh token
  */
 export interface RefreshTokenResponse {
   accessToken: string;
+  refreshToken?: string; // Optional - same refresh token (for mobile clients)
 }
 
 /**

@@ -8,6 +8,7 @@ import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
+import { IDriverRepository } from '../../domain/repositories/driver_repository.interface';
 import { MessageDeliveryStatus, NotificationType } from '../../shared/constants';
 import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
 import { logger } from '../../shared/logger';
@@ -101,9 +102,18 @@ export class SocketEventService implements ISocketEventService {
         return;
       }
 
-      // Get sender user for notification title
+      // Get sender for notification title
+      // Check both repositories since sender could be a user or driver
+      // Try user repository first, then driver repository
       const userRepository = container.resolve<IUserRepository>(REPOSITORY_TOKENS.IUserRepository);
-      const sender = await userRepository.findById(senderId);
+      let sender: { fullName: string } | null = await userRepository.findById(senderId);
+      
+      if (!sender) {
+        // Sender not found in user repository, try driver repository
+        const driverRepository = container.resolve<IDriverRepository>(REPOSITORY_TOKENS.IDriverRepository);
+        sender = await driverRepository.findById(senderId);
+      }
+
       if (!sender) {
         logger.warn(`Sender not found: ${senderId}, cannot create notification`);
       }
