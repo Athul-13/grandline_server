@@ -8,6 +8,8 @@ import { ERROR_MESSAGES, ERROR_CODES, DriverStatus } from '../../../../shared/co
 import { DriverMapper } from '../../../mapper/driver.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for updating driver status (admin)
@@ -44,25 +46,37 @@ export class UpdateDriverStatusUseCase implements IUpdateDriverStatusUseCase {
       throw new AppError(ERROR_MESSAGES.DRIVER_NOT_FOUND, ERROR_CODES.DRIVER_NOT_FOUND, 404);
     }
 
-      // Update driver status
-      const updatedDriver = await this.driverRepository.updateDriverStatus(driverId, request.status);
+    // Store old status for socket event
+    const oldStatus = existingDriver.status;
 
-      logger.info(`Driver status updated successfully: ${updatedDriver.email} (${driverId}) - Status: ${request.status}`);
+    // Update driver status
+    const updatedDriver = await this.driverRepository.updateDriverStatus(driverId, request.status);
 
-      // If driver status changed to AVAILABLE and driver is onboarded, trigger pending quotes job
-      if (request.status === DriverStatus.AVAILABLE && updatedDriver.isOnboarded) {
-        try {
-          await this.queueService.addProcessPendingQuotesJob();
-          logger.info(`Driver ${driverId} became available and onboarded, triggered pending quotes job`);
-        } catch (error) {
-          logger.warn(
-            `Failed to trigger pending quotes job after driver ${driverId} status change: ${error instanceof Error ? error.message : 'Unknown error'}`
-          );
-          // Don't fail status update if queue job fails
-        }
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitDriverStatusChanged(updatedDriver, oldStatus);
+    } catch (error) {
+      // Don't fail status change if socket emission fails
+      logger.error('Error emitting driver status changed event:', error);
+    }
+
+    logger.info(`Driver status updated successfully: ${updatedDriver.email} (${driverId}) - Status: ${request.status}`);
+
+    // If driver status changed to AVAILABLE and driver is onboarded, trigger pending quotes job
+    if (request.status === DriverStatus.AVAILABLE && updatedDriver.isOnboarded) {
+      try {
+        await this.queueService.addProcessPendingQuotesJob();
+        logger.info(`Driver ${driverId} became available and onboarded, triggered pending quotes job`);
+      } catch (error) {
+        logger.warn(
+          `Failed to trigger pending quotes job after driver ${driverId} status change: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+        // Don't fail status update if queue job fails
       }
+    }
 
-      return DriverMapper.toUpdateDriverStatusResponse(updatedDriver);
+    return DriverMapper.toUpdateDriverStatusResponse(updatedDriver);
   }
 }
 

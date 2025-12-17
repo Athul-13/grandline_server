@@ -4,11 +4,13 @@ import { IQuoteRepository } from '../../../../domain/repositories/quote_reposito
 import { IPaymentRepository } from '../../../../domain/repositories/payment_repository.interface';
 import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';
 import { ICreateReservationUseCase } from '../../interface/reservation/create_reservation_use_case.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { QuoteStatus } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { PaymentStatus } from '../../../../domain/entities/payment.entity';
 import Stripe from 'stripe';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for handling payment webhooks
@@ -99,10 +101,27 @@ export class HandlePaymentWebhookUseCase implements IHandlePaymentWebhookUseCase
       }
     } else {
       // This is a quote payment - handle quote flow
+      // Get quote before update to track old status
+      const quote = await this.quoteRepository.findById(payment.quoteId);
+      const oldStatus = quote?.status;
+
       // Update quote status to PAID
       await this.quoteRepository.updateById(payment.quoteId, {
         status: QuoteStatus.PAID,
       } as Partial<import('../../../../domain/entities/quote.entity').Quote>);
+
+      // Fetch updated quote for socket emission
+      const updatedQuote = await this.quoteRepository.findById(payment.quoteId);
+      if (updatedQuote && oldStatus) {
+        // Emit socket event for admin dashboard
+        try {
+          const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+          socketEventService.emitQuoteStatusChanged(updatedQuote, oldStatus);
+        } catch (error) {
+          // Don't fail payment processing if socket emission fails
+          logger.error('Error emitting quote status changed event:', error);
+        }
+      }
 
       // Create reservation from quote
       try {

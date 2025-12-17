@@ -2,11 +2,13 @@ import { injectable, inject } from 'tsyringe';
 import { IUpdateDriverUseCase } from '../../interface/driver/update_driver_use_case.interface';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { UpdateDriverRequest, UpdateDriverResponse } from '../../../dtos/driver.dto';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { DriverMapper } from '../../../mapper/driver.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for updating driver details (admin)
@@ -95,6 +97,15 @@ export class UpdateDriverUseCase implements IUpdateDriverUseCase {
 
     // Update driver profile
     const updatedDriver = await this.driverRepository.updateDriverProfile(driverId, updates);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitDriverUpdated(updatedDriver);
+    } catch (error) {
+      // Don't fail driver update if socket emission fails
+      logger.error('Error emitting driver updated event:', error);
+    }
 
     logger.info(`Driver updated successfully: ${updatedDriver.email} (${driverId})`);
 

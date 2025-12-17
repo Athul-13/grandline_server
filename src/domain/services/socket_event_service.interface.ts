@@ -1,5 +1,10 @@
 import { Message } from '../entities/message.entity';
 import { Chat } from '../entities/chat.entity';
+import { Quote } from '../entities/quote.entity';
+import { Reservation } from '../entities/reservation.entity';
+import { User } from '../entities/user.entity';
+import { Driver } from '../entities/driver.entity';
+import { QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus } from '../../shared/constants';
 
 /**
  * Socket event service interface
@@ -26,5 +31,85 @@ export interface ISocketEventService {
    * Emits unread count updates to a user
    */
   emitUnreadCountUpdate(userId: string, chatId: string, unreadCount: number, totalUnreadCount: number): void;
+
+  /**
+   * Emits quote created event to admin dashboard room
+   */
+  emitQuoteCreated(quote: Quote): void;
+
+  /**
+   * Emits quote updated event to admin dashboard room
+   */
+  emitQuoteUpdated(quote: Quote): void;
+
+  /**
+   * Emits quote status changed event to admin dashboard room
+   */
+  emitQuoteStatusChanged(quote: Quote, oldStatus: QuoteStatus): void;
+
+  /**
+   * Emits reservation created event to admin dashboard room
+   */
+  emitReservationCreated(reservation: Reservation): void;
+
+  /**
+   * Emits reservation updated event to admin dashboard room
+   */
+  emitReservationUpdated(reservation: Reservation): void;
+
+  /**
+   * Emits reservation status changed event to admin dashboard room
+   */
+  emitReservationStatusChanged(reservation: Reservation, oldStatus: ReservationStatus): void;
+
+  /**
+   * Emits user created event to admin dashboard room
+   */
+  emitUserCreated(user: User): void;
+
+  /**
+   * Emits user updated event to admin dashboard room
+   */
+  emitUserUpdated(user: User): void;
+
+  /**
+   * Emits user status changed event to admin dashboard room
+   */
+  emitUserStatusChanged(user: User, oldStatus: UserStatus): void;
+
+  /**
+   * Emits user role changed event to admin dashboard room
+   */
+  emitUserRoleChanged(user: User, oldRole: UserRole): void;
+
+  /**
+   * Emits user verified event to admin dashboard room
+   */
+  emitUserVerified(userId: string): void;
+
+  /**
+   * Emits user deleted event to admin dashboard room
+   */
+  emitUserDeleted(userId: string): void;
+
+  /**
+   * Emits driver created event to admin dashboard room
+   */
+  emitDriverCreated(driver: Driver): void;
+
+  /**
+   * Emits driver updated event to admin dashboard room
+   */
+  emitDriverUpdated(driver: Driver): void;
+
+  /**
+   * Emits driver status changed event to admin dashboard room
+   */
+  emitDriverStatusChanged(driver: Driver, oldStatus: DriverStatus): void;
+
+  /**
+   * Emits driver deleted event to admin dashboard room
+   */
+  emitDriverDeleted(driverId: string): void;
 }
 

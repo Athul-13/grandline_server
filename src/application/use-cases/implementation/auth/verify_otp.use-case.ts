@@ -8,6 +8,8 @@ import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { logger } from '../../../../shared/logger';
 import { IVerifyOtpUseCase } from '../../interface/auth/verify_otp_use_case.interface';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 @injectable()
 export class VerifyOtpUseCase implements IVerifyOtpUseCase {
@@ -44,6 +46,15 @@ export class VerifyOtpUseCase implements IVerifyOtpUseCase {
 
     const updatedUser = await this.userRepository.updateVerificationStatus(user.userId, true);
     await this.otpService.deleteOTP(request.email);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitUserVerified(updatedUser.userId);
+    } catch (error) {
+      // Don't fail OTP verification if socket emission fails
+      logger.error('Error emitting user verified event:', error);
+    }
 
     logger.info(`OTP verified successfully for user: ${user.email}`);
 

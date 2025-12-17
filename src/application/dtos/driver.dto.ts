@@ -501,3 +501,31 @@ export interface ResetDriverPasswordResponse {
   message: string;
 }
 
+/**
+ * Request DTO for saving driver FCM token
+ * Validates input data before processing
+ */
+export class SaveFcmTokenRequest {
+  @IsString()
+  @IsNotEmpty()
+  fcmToken!: string;
+
+  @IsOptional()
+  @IsString()
+  deviceId?: string;
+
+  @IsEnum(['ios', 'android'])
+  @IsNotEmpty()
+  platform!: 'ios' | 'android';
+}
+
+/**
+ * Response DTO for saving driver FCM token
+ * Contains the result of the save FCM token process
+ */
+export interface SaveFcmTokenResponse {
+  success: boolean;
+  message: string;
+  tokenId?: string;
+}
+

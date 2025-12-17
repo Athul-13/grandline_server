@@ -11,7 +11,8 @@ import { IGetDriverProfileUseCase } from '../../../application/use-cases/interfa
 import { ICompleteDriverOnboardingUseCase } from '../../../application/use-cases/interface/driver/complete_driver_onboarding_use_case.interface';
 import { IGetDriverInfoUseCase } from '../../../application/use-cases/interface/driver/get_driver_info_use_case.interface';
 import { IGenerateDriverUploadUrlUseCase } from '../../../application/use-cases/interface/driver/generate_driver_upload_url_use_case.interface';
-import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest } from '../../../application/dtos/driver.dto';
+import { ISaveDriverFcmTokenUseCase } from '../../../application/use-cases/interface/driver/save_driver_fcm_token_use_case.interface';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -47,6 +48,8 @@ export class DriverController {
     private readonly getDriverInfoUseCase: IGetDriverInfoUseCase,
     @inject(USE_CASE_TOKENS.GenerateDriverUploadUrlUseCase)
     private readonly generateDriverUploadUrlUseCase: IGenerateDriverUploadUrlUseCase,
+    @inject(USE_CASE_TOKENS.SaveDriverFcmTokenUseCase)
+    private readonly saveDriverFcmTokenUseCase: ISaveDriverFcmTokenUseCase,
   ) {}
 
   /**
@@ -348,6 +351,43 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error generating upload URL: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles saving driver FCM token for push notifications
+   */
+  async saveFcmToken(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Save FCM token attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Save FCM token attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request = req.body as SaveFcmTokenRequest;
+      logger.info(`FCM token save request for driver: ${driverId}`);
+
+      const response = await this.saveDriverFcmTokenUseCase.execute({
+        driverId,
+        fcmToken: request.fcmToken,
+        deviceId: request.deviceId,
+        platform: request.platform,
+      });
+
+      logger.info(`FCM token saved successfully for driver: ${driverId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response, 'FCM token saved successfully');
+    } catch (error) {
+      logger.error(`Error saving FCM token: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

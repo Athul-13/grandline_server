@@ -1,13 +1,13 @@
 import { injectable } from 'tsyringe';
-import { IReservationModificationRepository } from '../../domain/repositories/reservation_modification_repository.interface';
-import { ReservationModification } from '../../domain/entities/reservation_modification.entity';
+import { IReservationModificationRepository } from '../../../domain/repositories/reservation_modification_repository.interface';
+import { ReservationModification } from '../../../domain/entities/reservation_modification.entity';
 import {
   IReservationModificationModel,
   createReservationModificationModel,
-} from '../database/mongodb/models/reservation_modification.model';
-import { ReservationModificationRepositoryMapper } from '../mappers/reservation_modification_repository.mapper';
-import { MongoBaseRepository } from './base/mongo_base.repository';
-import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
+} from '../../database/mongodb/models/reservation_modification.model';
+import { ReservationModificationRepositoryMapper } from '../../mappers/reservation_modification_repository.mapper';
+import { MongoBaseRepository } from '../base/mongo_base.repository';
+import { IDatabaseModel } from '../../../domain/services/mongodb_model.interface';
 
 /**
  * ReservationModification repository implementation

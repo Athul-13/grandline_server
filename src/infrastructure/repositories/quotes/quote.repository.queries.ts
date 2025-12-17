@@ -1,125 +1,96 @@
-import { injectable } from 'tsyringe';
-import { IQuoteRepository } from '../../domain/repositories/quote_repository.interface';
-import { Quote } from '../../domain/entities/quote.entity';
-import { IQuoteModel, createQuoteModel } from '../database/mongodb/models/quote.model';
-import { QuoteRepositoryMapper } from '../mappers/quote_repository.mapper';
-import { MongoBaseRepository } from './base/mongo_base.repository';
-import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
-import { QuoteStatus, TripType } from '../../shared/constants';
+import { QuoteStatus } from '../../../shared/constants';
+import { DateRange } from '../../../application/dtos/dashboard.dto';
 
 /**
- * Quote repository implementation
- * Handles data persistence operations for Quote entity using MongoDB
- * Depends on IDatabaseModel interface for abstraction (DIP)
+ * Query builders for Quote Repository
+ * Handles: Basic filters, Admin queries, Vehicle/Driver availability checks
+ * 
+ * ORGANIZATION:
+ * - Basic Query Builders: Date range filters, admin filters
+ * - Vehicle Availability: Complex aggregation pipelines for finding booked/reserved vehicles
+ * - Driver Availability: Complex aggregation pipeline for finding booked drivers
  */
-@injectable()
-export class QuoteRepositoryImpl
-  extends MongoBaseRepository<IQuoteModel, Quote>
-  implements IQuoteRepository {
-  private readonly quoteModel: IDatabaseModel<IQuoteModel>;
-
-  constructor() {
-    const model = createQuoteModel();
-    super(model, 'quoteId');
-    this.quoteModel = model;
+export class QuoteQueryBuilder {
+  /**
+   * Builds date range filter for queries
+   * @param timeRange Optional date range to filter by
+   * @param dateField Field name to apply date filter to (default: 'createdAt')
+   * @returns MongoDB filter object with date range
+   */
+  static buildDateRangeFilter(
+    timeRange?: DateRange,
+    dateField: string = 'createdAt'
+  ): Record<string, unknown> {
+    const filter: Record<string, unknown> = {};
+    
+    if (timeRange?.startDate || timeRange?.endDate) {
+      const dateFilter: Record<string, unknown> = {};
+      if (timeRange.startDate) {
+        dateFilter.$gte = timeRange.startDate;
+      }
+      if (timeRange.endDate) {
+        dateFilter.$lte = timeRange.endDate;
+      }
+      filter[dateField] = dateFilter;
+    }
+    
+    return filter;
   }
 
-  protected toEntity(doc: IQuoteModel): Quote {
-    return QuoteRepositoryMapper.toEntity(doc);
-  }
-
-  protected toPersistence(entity: Quote): Partial<IQuoteModel> {
-    return {
-      quoteId: entity.quoteId,
-      userId: entity.userId,
-      tripType: entity.tripType,
-      tripName: entity.tripName,
-      eventType: entity.eventType,
-      customEventType: entity.customEventType,
-      passengerCount: entity.passengerCount,
-      status: entity.status,
-      currentStep: entity.currentStep,
-      selectedVehicles: entity.selectedVehicles,
-      selectedAmenities: entity.selectedAmenities,
-      pricing: entity.pricing,
-      routeData: entity.routeData,
-      assignedDriverId: entity.assignedDriverId,
-      actualDriverRate: entity.actualDriverRate,
-      pricingLastUpdatedAt: entity.pricingLastUpdatedAt,
-      quotedAt: entity.quotedAt,
-      isDeleted: entity.isDeleted,
-    };
-  }
-
-  async findByUserId(userId: string): Promise<Quote[]> {
-    const docs = await this.quoteModel.find({ userId, isDeleted: false });
-    return QuoteRepositoryMapper.toEntities(docs);
-  }
-
-  async findByStatus(status: QuoteStatus): Promise<Quote[]> {
-    const docs = await this.quoteModel.find({ status, isDeleted: false });
-    return QuoteRepositoryMapper.toEntities(docs);
-  }
-
-  async findByUserIdAndStatus(userId: string, status: QuoteStatus): Promise<Quote[]> {
-    const docs = await this.quoteModel.find({ userId, status, isDeleted: false });
-    return QuoteRepositoryMapper.toEntities(docs);
-  }
-
-  async findActiveQuotesByUserId(userId: string): Promise<Quote[]> {
-    const docs = await this.quoteModel.find({ userId, isDeleted: false });
-    return QuoteRepositoryMapper.toEntities(docs);
-  }
-
-  async findAllQuotesByUserId(userId: string): Promise<Quote[]> {
-    const docs = await this.quoteModel.find({ userId });
-    return QuoteRepositoryMapper.toEntities(docs);
-  }
-
-  async softDelete(quoteId: string): Promise<void> {
-    await this.quoteModel.updateOne({ quoteId }, { $set: { isDeleted: true } });
-  }
-
-  async findByTripType(tripType: TripType): Promise<Quote[]> {
-    const docs = await this.quoteModel.find({ tripType, isDeleted: false });
-    return QuoteRepositoryMapper.toEntities(docs);
-  }
-
-  async findAllForAdmin(
-    includeDeleted: boolean,
-    statuses?: QuoteStatus[],
-    userIds?: string[]
-  ): Promise<Quote[]> {
+  /**
+   * Builds admin filter with statuses and userIds
+   * @param params Filter parameters
+   * @returns MongoDB filter object for admin queries
+   */
+  static buildAdminFilter(params: {
+    includeDeleted: boolean;
+    statuses?: QuoteStatus[];
+    userIds?: string[];
+  }): Record<string, unknown> {
     const filter: Record<string, unknown> = {};
 
     // Handle deleted filter
-    if (!includeDeleted) {
+    if (!params.includeDeleted) {
       filter.isDeleted = false;
     }
 
     // Handle status filter
-    if (statuses && statuses.length > 0) {
-      filter.status = { $in: statuses };
+    if (params.statuses && params.statuses.length > 0) {
+      filter.status = { $in: params.statuses };
     }
 
     // Handle user IDs filter
-    if (userIds && userIds.length > 0) {
-      filter.userId = { $in: userIds };
+    if (params.userIds && params.userIds.length > 0) {
+      filter.userId = { $in: params.userIds };
     }
 
-    const docs = await this.quoteModel.find(filter);
-    return QuoteRepositoryMapper.toEntities(docs);
+    return filter;
   }
 
   /**
-   * Finds vehicle IDs that are booked during the specified date range
-   * Uses MongoDB aggregation pipeline for efficient querying
+   * Builds base filter with isDeleted check
    */
-  async findBookedVehicleIdsInDateRange(
+  static buildBaseFilter(includeDeleted: boolean = false): Record<string, unknown> {
+    const filter: Record<string, unknown> = {};
+    if (!includeDeleted) {
+      filter.isDeleted = false;
+    }
+    return filter;
+  }
+
+  /**
+   * Builds aggregation pipeline to find booked vehicle IDs in date range
+   * Uses complex aggregation with lookup to check itinerary overlaps
+   * @param startDate Start date of the range
+   * @param endDate End date of the range
+   * @param excludeQuoteId Optional quote ID to exclude from results
+   * @returns MongoDB aggregation pipeline
+   */
+  static buildBookedVehicleIdsPipeline(
     startDate: Date,
     endDate: Date,
     excludeQuoteId?: string
-  ): Promise<Set<string>> {
+  ): Record<string, unknown>[] {
     // Statuses that block vehicle availability
     const blockingStatuses = [
       QuoteStatus.PAID,
@@ -134,12 +105,12 @@ export class QuoteRepositoryImpl
       'selectedVehicles.0': { $exists: true }, // Has at least one vehicle
     };
 
-    // Exclude specific quote if provided (useful when updating existing quote)
+    // Exclude specific quote if provided
     if (excludeQuoteId) {
       matchStage.quoteId = { $ne: excludeQuoteId };
     }
 
-    const pipeline = [
+    return [
       // 1. Match quotes with blocking statuses that have vehicles
       { $match: matchStage },
 
@@ -235,21 +206,21 @@ export class QuoteRepositoryImpl
         },
       },
     ];
-
-    const result = (await this.quoteModel.aggregate(pipeline)) as Array<{ _id: string }>;
-    return new Set<string>(result.map((r: { _id: string }) => r._id));
   }
 
   /**
-   * Finds driver IDs that are booked during the specified date range
-   * Uses MongoDB aggregation pipeline for efficient querying
+   * Builds aggregation pipeline to find booked driver IDs in date range
    * Excludes expired QUOTED quotes (more than 24 hours old)
+   * @param startDate Start date of the range
+   * @param endDate End date of the range
+   * @param excludeQuoteId Optional quote ID to exclude from results
+   * @returns MongoDB aggregation pipeline
    */
-  async findBookedDriverIdsInDateRange(
+  static buildBookedDriverIdsPipeline(
     startDate: Date,
     endDate: Date,
     excludeQuoteId?: string
-  ): Promise<Set<string>> {
+  ): Record<string, unknown>[] {
     // Statuses that block driver availability
     const blockingStatuses = [
       QuoteStatus.PAID,
@@ -281,7 +252,7 @@ export class QuoteRepositoryImpl
       matchStage.quoteId = { $ne: excludeQuoteId };
     }
 
-    const pipeline = [
+    return [
       // 1. Match quotes with blocking statuses that have assigned drivers
       { $match: matchStage },
 
@@ -374,20 +345,21 @@ export class QuoteRepositoryImpl
         },
       },
     ];
-
-    const result = (await this.quoteModel.aggregate(pipeline)) as Array<{ _id: string }>;
-    return new Set<string>(result.map((r: { _id: string }) => r._id));
   }
 
   /**
-   * Finds vehicle IDs that are temporarily reserved in DRAFT quotes
+   * Builds aggregation pipeline to find reserved vehicle IDs in date range
    * Only includes DRAFT quotes created within the last 30 minutes
+   * @param startDate Start date of the range
+   * @param endDate End date of the range
+   * @param excludeQuoteId Optional quote ID to exclude from results
+   * @returns MongoDB aggregation pipeline
    */
-  async findReservedVehicleIdsInDateRange(
+  static buildReservedVehicleIdsPipeline(
     startDate: Date,
     endDate: Date,
     excludeQuoteId?: string
-  ): Promise<Set<string>> {
+  ): Record<string, unknown>[] {
     const thirtyMinutesAgo = new Date(Date.now() - 30 * 60 * 1000);
 
     const matchStage: Record<string, unknown> = {
@@ -402,7 +374,7 @@ export class QuoteRepositoryImpl
       matchStage.quoteId = { $ne: excludeQuoteId };
     }
 
-    const pipeline = [
+    return [
       // 1. Match recent DRAFT quotes with vehicles
       { $match: matchStage },
 
@@ -498,9 +470,6 @@ export class QuoteRepositoryImpl
         },
       },
     ];
-
-    const result = (await this.quoteModel.aggregate(pipeline)) as Array<{ _id: string }>;
-    return new Set<string>(result.map((r: { _id: string }) => r._id));
   }
 }
 

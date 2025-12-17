@@ -3,13 +3,15 @@ import { IUpdateReservationStatusUseCase } from '../../../interface/admin/reserv
 import { IReservationRepository } from '../../../../../domain/repositories/reservation_repository.interface';
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
 import { ReservationStatus, NotificationType, ERROR_MESSAGES } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 import { randomUUID } from 'crypto';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for updating reservation status
@@ -123,6 +125,15 @@ export class UpdateReservationStatusUseCase implements IUpdateReservationStatusU
     const updatedReservation = await this.reservationRepository.findById(reservationId);
     if (!updatedReservation) {
       throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
+    }
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitReservationStatusChanged(updatedReservation, currentStatus);
+    } catch (error) {
+      // Don't fail reservation status update if socket emission fails
+      logger.error('Error emitting reservation status changed event:', error);
     }
 
     logger.info(

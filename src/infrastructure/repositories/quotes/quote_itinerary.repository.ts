@@ -1,13 +1,13 @@
 import { injectable } from 'tsyringe';
-import { IQuoteItineraryRepository } from '../../domain/repositories/quote_itinerary_repository.interface';
-import { QuoteItinerary } from '../../domain/entities/quote_itinerary.entity';
+import { IQuoteItineraryRepository } from '../../../domain/repositories/quote_itinerary_repository.interface';
+import { QuoteItinerary } from '../../../domain/entities/quote_itinerary.entity';
 import {
   IQuoteItineraryModel,
   createQuoteItineraryModel,
-} from '../database/mongodb/models/quote_itinerary.model';
-import { QuoteItineraryRepositoryMapper } from '../mappers/quote_itinerary_repository.mapper';
-import { MongoBaseRepository } from './base/mongo_base.repository';
-import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
+} from '../../database/mongodb/models/quote_itinerary.model';
+import { QuoteItineraryRepositoryMapper } from '../../mappers/quote_itinerary_repository.mapper';
+import { MongoBaseRepository } from '../base/mongo_base.repository';
+import { IDatabaseModel } from '../../../domain/services/mongodb_model.interface';
 
 /**
  * QuoteItinerary repository implementation

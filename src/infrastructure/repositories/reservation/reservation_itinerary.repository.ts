@@ -1,13 +1,13 @@
 import { injectable } from 'tsyringe';
-import { IReservationItineraryRepository } from '../../domain/repositories/reservation_itinerary_repository.interface';
-import { ReservationItinerary } from '../../domain/entities/reservation_itinerary.entity';
+import { IReservationItineraryRepository } from '../../../domain/repositories/reservation_itinerary_repository.interface';
+import { ReservationItinerary } from '../../../domain/entities/reservation_itinerary.entity';
 import {
   IReservationItineraryModel,
   createReservationItineraryModel,
-} from '../database/mongodb/models/reservation_itinerary.model';
-import { ReservationItineraryRepositoryMapper } from '../mappers/reservation_itinerary_repository.mapper';
-import { MongoBaseRepository } from './base/mongo_base.repository';
-import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
+} from '../../database/mongodb/models/reservation_itinerary.model';
+import { ReservationItineraryRepositoryMapper } from '../../mappers/reservation_itinerary_repository.mapper';
+import { MongoBaseRepository } from '../base/mongo_base.repository';
+import { IDatabaseModel } from '../../../domain/services/mongodb_model.interface';
 
 /**
  * ReservationItinerary repository implementation

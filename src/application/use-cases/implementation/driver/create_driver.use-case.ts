@@ -7,9 +7,11 @@ import { Driver } from '../../../../domain/entities/driver.entity';
 import { DriverStatus, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { hashPassword } from '../../../../shared/utils/password.util';
 import { DriverMapper } from '../../../mapper/driver.mapper';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for creating a driver
@@ -97,6 +99,15 @@ export class CreateDriverUseCase implements ICreateDriverUseCase {
 
     // Save to repository
     await this.driverRepository.createDriver(driver, passwordHash);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitDriverCreated(driver);
+    } catch (error) {
+      // Don't fail driver creation if socket emission fails
+      logger.error('Error emitting driver created event:', error);
+    }
 
     logger.info(`Driver created successfully: ${driver.email} (${driverId})`);
 

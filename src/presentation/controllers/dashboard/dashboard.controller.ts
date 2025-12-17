@@ -2,11 +2,13 @@ import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { IGetDashboardStatsUseCase } from '../../../application/use-cases/interface/dashboard/get_dashboard_stats_use_case.interface';
 import { IGetRecentActivityUseCase } from '../../../application/use-cases/interface/dashboard/get_recent_activity_use_case.interface';
+import { IGetAdminDashboardAnalyticsUseCase } from '../../../application/use-cases/interface/dashboard/get_admin_dashboard_analytics_use_case.interface';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
+import { AdminDashboardAnalyticsRequest } from '../../../application/dtos/dashboard.dto';
 
 /**
  * Dashboard controller
@@ -18,7 +20,9 @@ export class DashboardController {
     @inject(USE_CASE_TOKENS.GetDashboardStatsUseCase)
     private readonly getDashboardStatsUseCase: IGetDashboardStatsUseCase,
     @inject(USE_CASE_TOKENS.GetRecentActivityUseCase)
-    private readonly getRecentActivityUseCase: IGetRecentActivityUseCase
+    private readonly getRecentActivityUseCase: IGetRecentActivityUseCase,
+    @inject(USE_CASE_TOKENS.GetAdminDashboardAnalyticsUseCase)
+    private readonly getAdminDashboardAnalyticsUseCase: IGetAdminDashboardAnalyticsUseCase
   ) {}
 
   /**
@@ -75,6 +79,34 @@ export class DashboardController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error fetching recent activity: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting admin dashboard analytics
+   */
+  async getAdminDashboardAnalytics(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get admin dashboard analytics attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract query parameters
+      const request: AdminDashboardAnalyticsRequest = {
+        timeRange: (req.query.timeRange as 'all_time' | '7_days' | '30_days' | 'custom') || 'all_time',
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined,
+      };
+
+      logger.info(`Admin dashboard analytics fetch request for admin: ${req.user.userId}`, { request });
+      const response = await this.getAdminDashboardAnalyticsUseCase.execute(request);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error fetching admin dashboard analytics: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

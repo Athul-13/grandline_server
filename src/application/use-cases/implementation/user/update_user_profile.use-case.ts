@@ -9,6 +9,8 @@ import { CLOUDINARY_CONFIG } from '../../../../shared/config';
 import { UserMapper } from '../../../mapper/user.mapper';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for updating user profile
@@ -110,6 +112,15 @@ export class UpdateUserProfileUseCase implements IUpdateUserProfileUseCase {
     try {
       // Update user profile
       const updatedUser = await this.userRepository.updateUserProfile(userId, updates);
+
+      // Emit socket event for admin dashboard
+      try {
+        const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+        socketEventService.emitUserUpdated(updatedUser);
+      } catch (error) {
+        // Don't fail profile update if socket emission fails
+        logger.error('Error emitting user updated event:', error);
+      }
 
       const updatedFields = Object.keys(updates);
       logger.info(`User profile updated successfully: ${updatedUser.email}, fields updated: ${updatedFields.join(', ')}`);

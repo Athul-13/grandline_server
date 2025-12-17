@@ -27,6 +27,8 @@ import { IAutoDriverAssignmentService } from '../../domain/services/auto_driver_
 import { AutoDriverAssignmentServiceImpl } from '../service/auto_driver_assignment.service';
 import { IQueueService } from '../../domain/services/queue_service.interface';
 import { QueueServiceImpl } from '../service/queue.service';
+import { IExpoPushNotificationService } from '../../domain/services/expo_push_notification_service.interface';
+import { ExpoPushNotificationService } from '../service/expo_push_notification.service';
 
 /**
  * Registers all service dependencies in the DI container
@@ -106,5 +108,11 @@ export function registerServices(): void {
   container.register<IQueueService>(
     SERVICE_TOKENS.IQueueService,
     { useClass: QueueServiceImpl }
+  );
+
+  // Push notification service
+  container.register<IExpoPushNotificationService>(
+    SERVICE_TOKENS.IExpoPushNotificationService,
+    { useClass: ExpoPushNotificationService }
   );
 }

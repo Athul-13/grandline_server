@@ -2,11 +2,13 @@ import { injectable, inject } from 'tsyringe';
 import { ICreateQuoteDraftUseCase } from '../../interface/quote/create_quote_draft_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { CreateQuoteDraftRequest, CreateQuoteDraftResponse } from '../../../dtos/quote.dto';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { Quote } from '../../../../domain/entities/quote.entity';
 import { QuoteStatus, ERROR_MESSAGES } from '../../../../shared/constants';
 import { randomUUID } from 'crypto';
 import { AppError } from '../../../../shared/utils/app_error.util';
+import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for creating a quote draft
@@ -48,10 +50,23 @@ export class CreateQuoteDraftUseCase implements ICreateQuoteDraftUseCase {
       undefined, // selectedAmenities
       undefined, // pricing
       undefined, // routeData
+      undefined, // assignedDriverId
+      undefined, // actualDriverRate
+      undefined, // pricingLastUpdatedAt
+      undefined, // quotedAt
       false // isDeleted
     );
 
     await this.quoteRepository.create(quote);
+
+    // Emit socket event for admin dashboard
+    try {
+      const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+      socketEventService.emitQuoteCreated(quote);
+    } catch (error) {
+      // Don't fail quote creation if socket emission fails
+      console.error('Error emitting quote created event:', error);
+    }
 
     return {
       quoteId,
