@@ -13,6 +13,7 @@ import { IGetDriverInfoUseCase } from '../../../application/use-cases/interface/
 import { IGenerateDriverUploadUrlUseCase } from '../../../application/use-cases/interface/driver/generate_driver_upload_url_use_case.interface';
 import { ISaveDriverFcmTokenUseCase } from '../../../application/use-cases/interface/driver/save_driver_fcm_token_use_case.interface';
 import { IGetDriverDashboardUseCase } from '../../../application/use-cases/interface/driver/get_driver_dashboard_use_case.interface';
+import { IGetDriverReservationUseCase } from '../../../application/use-cases/interface/driver/get_driver_reservation_use_case.interface';
 import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -54,6 +55,8 @@ export class DriverController {
     private readonly saveDriverFcmTokenUseCase: ISaveDriverFcmTokenUseCase,
     @inject(USE_CASE_TOKENS.GetDriverDashboardUseCase)
     private readonly getDriverDashboardUseCase: IGetDriverDashboardUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverReservationUseCase)
+    private readonly getDriverReservationUseCase: IGetDriverReservationUseCase,
   ) {}
 
   /**
@@ -425,6 +428,40 @@ export class DriverController {
     } catch (error) {
       logger.error(
         `Error fetching driver dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Get Driver Reservation Details
+   * GET /api/v1/driver/reservations/:id
+   */
+  async getReservation(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver reservation attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Get driver reservation attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const { id: reservationId } = req.params;
+
+      logger.info(`Driver reservation details request: driver=${driverId}, reservation=${reservationId}`);
+
+      const response = await this.getDriverReservationUseCase.execute(driverId, reservationId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error fetching driver reservation details: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       sendErrorResponse(res, error);
     }
