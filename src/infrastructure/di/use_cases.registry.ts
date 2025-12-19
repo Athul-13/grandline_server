@@ -40,6 +40,7 @@ import { CompleteDriverOnboardingUseCase } from '../../application/use-cases/imp
 import { GetDriverInfoUseCase } from '../../application/use-cases/implementation/driver/get_driver_info.use-case';
 import { GenerateDriverUploadUrlUseCase } from '../../application/use-cases/implementation/driver/generate_driver_upload_url.use-case';
 import { SaveDriverFcmTokenUseCase } from '../../application/use-cases/implementation/driver/save_driver_fcm_token.use-case';
+import { GetDriverDashboardUseCase } from '../../application/use-cases/implementation/driver/get_driver_dashboard.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -166,6 +167,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetDriverInfoUseCase, GetDriverInfoUseCase);
   container.register(USE_CASE_TOKENS.GenerateDriverUploadUrlUseCase, GenerateDriverUploadUrlUseCase);
   container.register(USE_CASE_TOKENS.SaveDriverFcmTokenUseCase, SaveDriverFcmTokenUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverDashboardUseCase, GetDriverDashboardUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);

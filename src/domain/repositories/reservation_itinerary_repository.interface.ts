@@ -28,5 +28,11 @@ export interface IReservationItineraryRepository extends IBaseRepository<Reserva
    * Finds itinerary stops ordered by stopOrder
    */
   findByReservationIdOrdered(reservationId: string): Promise<ReservationItinerary[]>;
+
+  /**
+   * Finds itinerary stops for multiple reservations, ordered by stopOrder
+   * Returns a map keyed by reservationId for efficient lookups.
+   */
+  findByReservationIdsOrdered(reservationIds: string[]): Promise<Map<string, ReservationItinerary[]>>;
 }
 

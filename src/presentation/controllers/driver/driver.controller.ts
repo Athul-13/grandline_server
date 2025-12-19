@@ -12,12 +12,14 @@ import { ICompleteDriverOnboardingUseCase } from '../../../application/use-cases
 import { IGetDriverInfoUseCase } from '../../../application/use-cases/interface/driver/get_driver_info_use_case.interface';
 import { IGenerateDriverUploadUrlUseCase } from '../../../application/use-cases/interface/driver/generate_driver_upload_url_use_case.interface';
 import { ISaveDriverFcmTokenUseCase } from '../../../application/use-cases/interface/driver/save_driver_fcm_token_use_case.interface';
+import { IGetDriverDashboardUseCase } from '../../../application/use-cases/interface/driver/get_driver_dashboard_use_case.interface';
 import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
+import { DriverDashboardRequestDto } from '../../../application/dtos/driver_dashboard.dto';
 
 /**
  * Driver controller (mobile app)
@@ -50,6 +52,8 @@ export class DriverController {
     private readonly generateDriverUploadUrlUseCase: IGenerateDriverUploadUrlUseCase,
     @inject(USE_CASE_TOKENS.SaveDriverFcmTokenUseCase)
     private readonly saveDriverFcmTokenUseCase: ISaveDriverFcmTokenUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverDashboardUseCase)
+    private readonly getDriverDashboardUseCase: IGetDriverDashboardUseCase,
   ) {}
 
   /**
@@ -388,6 +392,40 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, 'FCM token saved successfully');
     } catch (error) {
       logger.error(`Error saving FCM token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Driver Dashboard (Trips)
+   * GET /api/v1/driver/dashboard
+   */
+  async getDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Driver dashboard attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Driver dashboard attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request: DriverDashboardRequestDto = {
+        pastCursor: typeof req.query.pastCursor === 'string' ? req.query.pastCursor : undefined,
+        pastLimit: typeof req.query.pastLimit === 'string' ? Number(req.query.pastLimit) : undefined,
+      };
+
+      const response = await this.getDriverDashboardUseCase.execute(driverId, request);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error fetching driver dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       sendErrorResponse(res, error);
     }
   }

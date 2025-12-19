@@ -50,6 +50,11 @@ export interface IReservationRepository extends IBaseRepository<Reservation> {
   ): Promise<Reservation[]>;
 
   /**
+   * Finds all reservations assigned to a driver (driver dashboard / driver app)
+   */
+  findByAssignedDriverId(driverId: string): Promise<Reservation[]>;
+
+  /**
    * Finds all reservations for admin view with pagination and filters
    */
   findAllForAdmin(

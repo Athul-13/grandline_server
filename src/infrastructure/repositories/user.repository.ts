@@ -89,6 +89,23 @@ export class UserRepositoryImpl
     return UserRepositoryMapper.toEntities(docs);
   }
 
+  async findByIds(userIds: string[]): Promise<Map<string, User>> {
+    const map = new Map<string, User>();
+    if (!userIds || userIds.length === 0) {
+      return map;
+    }
+
+    const docs = await this.userModel.find({
+      userId: { $in: userIds },
+      isDeleted: { $ne: true },
+    });
+    const entities = UserRepositoryMapper.toEntities(docs);
+    for (const user of entities) {
+      map.set(user.userId, user);
+    }
+    return map;
+  }
+
   async updateVerificationStatus(userId: string, isVerified: boolean): Promise<User> {
     await this.userModel.updateOne(
       { userId },

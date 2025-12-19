@@ -113,6 +113,14 @@ export class ReservationRepositoryImpl
     return ReservationRepositoryMapper.toEntities(docs);
   }
 
+  async findByAssignedDriverId(driverId: string): Promise<Reservation[]> {
+    const docs = await this.reservationModel.find(
+      { assignedDriverId: driverId },
+      { sort: { createdAt: -1 } }
+    );
+    return ReservationRepositoryMapper.toEntities(docs);
+  }
+
   async findAllForAdmin(
     page: number,
     limit: number,

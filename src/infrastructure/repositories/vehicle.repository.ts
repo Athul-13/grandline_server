@@ -220,4 +220,18 @@ export class VehicleRepositoryImpl
     const docs = await this.vehicleModel.find(mongoQuery);
     return VehicleRepositoryMapper.toEntities(docs);
   }
+
+  async findByIds(vehicleIds: string[]): Promise<Map<string, Vehicle>> {
+    const map = new Map<string, Vehicle>();
+    if (!vehicleIds || vehicleIds.length === 0) {
+      return map;
+    }
+
+    const docs = await this.vehicleModel.find({ vehicleId: { $in: vehicleIds } });
+    const entities = VehicleRepositoryMapper.toEntities(docs);
+    for (const vehicle of entities) {
+      map.set(vehicle.vehicleId, vehicle);
+    }
+    return map;
+  }
 }

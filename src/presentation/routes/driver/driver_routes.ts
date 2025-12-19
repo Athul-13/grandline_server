@@ -153,6 +153,17 @@ export function createDriverRoutesWithDI(): Router {
     (req, res) => void driverController.saveFcmToken(req, res)
   );
 
+  /**
+   * Driver Dashboard (Trips)
+   * GET /api/v1/driver/dashboard
+   * Requires authentication
+   */
+  router.get(
+    '/dashboard',
+    authenticate,
+    (req, res) => void driverController.getDashboard(req, res)
+  );
+
   return router;
 }
 
