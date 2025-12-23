@@ -15,7 +15,7 @@ import { MessageDeliveryStatus, ERROR_MESSAGES, ERROR_CODES, ParticipantType, Us
 import { randomUUID } from 'crypto';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
-import { deriveTripWindow, isWithin24HoursOfStart } from '../../../mapper/driver_dashboard.mapper';
+import { deriveTripWindow, isWithin24HoursOfStart, deriveTripState } from '../../../mapper/driver_dashboard.mapper';
 
 /**
  * Use case for sending a message
@@ -514,6 +514,7 @@ export class SendMessageUseCase implements ISendMessageUseCase {
   /**
    * Validates that reservation chat is within 24-hour window
    * Used when sending messages to existing reservation chats
+   * Also blocks messaging if trip is in PAST state
    */
   private async validateReservationChatWindow(reservationId: string, senderId: string): Promise<void> {
     // Fetch reservation
@@ -546,9 +547,27 @@ export class SendMessageUseCase implements ISendMessageUseCase {
       );
     }
 
-    // Calculate trip start time from itinerary
-    const { tripStartAt } = deriveTripWindow(itineraryStops);
+    // Calculate trip window and state
+    const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops);
     const now = new Date();
+    const tripState = deriveTripState({
+      status: reservation.status,
+      tripStartAt,
+      tripEndAt,
+      now,
+    });
+
+    // Block messaging if trip is PAST
+    if (tripState === 'PAST') {
+      logger.warn(
+        `Message sending blocked for reservation ${reservationId}: trip is in PAST state (ended at ${tripEndAt.toISOString()})`
+      );
+      throw new AppError(
+        'This trip has ended. Messaging is disabled.',
+        'TRIP_ENDED',
+        403
+      );
+    }
 
     // Validate 24-hour window
     if (!isWithin24HoursOfStart(tripStartAt, now)) {
