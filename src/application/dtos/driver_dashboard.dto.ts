@@ -55,6 +55,7 @@ export interface DriverTripCardDto {
   status: ReservationStatus;
   tripType: TripType;
   tripState: DriverTripState;
+  tripName?: string;
   tripStartAt: string; // ISO
   tripEndAt: string; // ISO
   pickup: DriverTripStopDto;

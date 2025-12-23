@@ -5,6 +5,8 @@ import { IMessageRepository } from '../../../../domain/repositories/message_repo
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
+import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
+import { IReservationItineraryRepository } from '../../../../domain/repositories/reservation_itinerary_repository.interface';
 import { SendMessageRequest, MessageResponse } from '../../../dtos/message.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { Message } from '../../../../domain/entities/message.entity';
@@ -13,6 +15,7 @@ import { MessageDeliveryStatus, ERROR_MESSAGES, ERROR_CODES, ParticipantType, Us
 import { randomUUID } from 'crypto';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
+import { deriveTripWindow, isWithin24HoursOfStart } from '../../../mapper/driver_dashboard.mapper';
 
 /**
  * Use case for sending a message
@@ -30,7 +33,11 @@ export class SendMessageUseCase implements ISendMessageUseCase {
     @inject(REPOSITORY_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,
     @inject(REPOSITORY_TOKENS.IDriverRepository)
-    private readonly driverRepository: IDriverRepository
+    private readonly driverRepository: IDriverRepository,
+    @inject(REPOSITORY_TOKENS.IReservationRepository)
+    private readonly reservationRepository: IReservationRepository,
+    @inject(REPOSITORY_TOKENS.IReservationItineraryRepository)
+    private readonly reservationItineraryRepository: IReservationItineraryRepository
   ) {}
 
   async execute(request: SendMessageRequest, senderId: string): Promise<MessageResponse> {
@@ -69,6 +76,11 @@ export class SendMessageUseCase implements ISendMessageUseCase {
       if (!chat.hasParticipant(senderId)) {
         logger.warn(`User ${senderId} attempted to send message to chat ${chatId} without permission`);
         throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
+      }
+
+      // Validate 24-hour window for reservation chats
+      if (chat.contextType === 'reservation') {
+        await this.validateReservationChatWindow(chat.contextId, senderId);
       }
     } else {
       // Auto-create chat from context
@@ -143,9 +155,14 @@ export class SendMessageUseCase implements ISendMessageUseCase {
       return await this.createDriverBasedChat(contextId, senderId);
     }
 
+    // Handle reservation-based chat creation (bidirectional: user ↔ driver)
+    if (contextType === 'reservation') {
+      return await this.createReservationBasedChat(contextId, senderId);
+    }
+
     // Unsupported contextType
     throw new AppError(
-      `Unsupported contextType: ${contextType}. Supported types: 'quote', 'driver', 'admin', 'direct'`,
+      `Unsupported contextType: ${contextType}. Supported types: 'quote', 'driver', 'admin', 'direct', 'reservation'`,
       ERROR_CODES.INVALID_REQUEST,
       400
     );
@@ -372,6 +389,178 @@ export class SendMessageUseCase implements ISendMessageUseCase {
     logger.info(`Auto-created driver chat: ${chatId} for driver: ${driverId} with admin: ${adminId}, initiated by: ${senderId}`);
 
     return chatId;
+  }
+
+  /**
+   * Creates a reservation-based chat (bidirectional: user ↔ driver)
+   * Only allowed within 24 hours before trip start
+   * Either user or assigned driver can initiate the chat
+   */
+  private async createReservationBasedChat(reservationId: string, senderId: string): Promise<string> {
+    // Fetch reservation
+    const reservation = await this.reservationRepository.findById(reservationId);
+    if (!reservation) {
+      logger.warn(`Attempt to create chat for non-existent reservation: ${reservationId}`);
+      throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
+    }
+
+    // Verify reservation has assigned driver
+    if (!reservation.assignedDriverId) {
+      logger.warn(`Attempt to create chat for reservation ${reservationId} without assigned driver`);
+      throw new AppError(
+        'Reservation does not have an assigned driver',
+        'DRIVER_NOT_ASSIGNED',
+        400
+      );
+    }
+
+    // Verify sender is either the user or the assigned driver
+    const isUser = reservation.userId === senderId;
+    const isDriver = reservation.assignedDriverId === senderId;
+
+    if (!isUser && !isDriver) {
+      logger.warn(
+        `User ${senderId} attempted to create chat for reservation ${reservationId} without permission (not user or assigned driver)`
+      );
+      throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    // Fetch reservation itinerary to calculate trip start time
+    const itineraryStops = await this.reservationItineraryRepository.findByReservationId(reservationId);
+    
+    if (!itineraryStops || itineraryStops.length === 0) {
+      logger.warn(`Reservation ${reservationId} has no itinerary stops`);
+      throw new AppError(
+        'Reservation itinerary is required for chat',
+        'ITINERARY_REQUIRED',
+        400
+      );
+    }
+
+    // Calculate trip start time from itinerary
+    const { tripStartAt } = deriveTripWindow(itineraryStops);
+    const now = new Date();
+
+    // Validate 24-hour window: chat is only allowed within 24 hours before trip start
+    if (!isWithin24HoursOfStart(tripStartAt, now)) {
+      logger.warn(
+        `Chat creation blocked for reservation ${reservationId}: trip starts at ${tripStartAt.toISOString()}, current time: ${now.toISOString()}`
+      );
+      throw new AppError(
+        'Chat is only available within 24 hours before trip start',
+        'CHAT_WINDOW_EXPIRED',
+        403
+      );
+    }
+
+    // Check if chat already exists for this context
+    const existingChat = await this.chatRepository.findByContext('reservation', reservationId);
+
+    if (existingChat) {
+      // Verify sender has access to existing chat
+      if (!existingChat.hasParticipant(senderId)) {
+        throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
+      }
+
+      // Re-validate 24-hour window for existing chat (in case trip time changed)
+      if (!isWithin24HoursOfStart(tripStartAt, now)) {
+        logger.warn(
+          `Message sending blocked for existing chat ${existingChat.chatId}: trip starts at ${tripStartAt.toISOString()}, current time: ${now.toISOString()}`
+        );
+        throw new AppError(
+          'Chat is only available within 24 hours before trip start',
+          'CHAT_WINDOW_EXPIRED',
+          403
+        );
+      }
+
+      logger.info(`Using existing reservation chat: ${existingChat.chatId} for reservation: ${reservationId}`);
+      return existingChat.chatId;
+    }
+
+    // Create new chat with participants (user and driver)
+    const chatId = randomUUID();
+    const chatNow = new Date();
+    const participants: IChatParticipant[] = [
+      {
+        userId: reservation.userId,
+        participantType: ParticipantType.DRIVER_USER,
+      },
+      {
+        userId: reservation.assignedDriverId,
+        participantType: ParticipantType.DRIVER_USER,
+      },
+    ];
+
+    const chat = new Chat(
+      chatId,
+      'reservation',
+      reservationId,
+      ParticipantType.DRIVER_USER,
+      participants,
+      chatNow,
+      chatNow
+    );
+
+    await this.chatRepository.create(chat);
+
+    logger.info(
+      `Auto-created reservation chat: ${chatId} for reservation: ${reservationId} between user: ${reservation.userId} and driver: ${reservation.assignedDriverId}, initiated by: ${senderId}`
+    );
+
+    return chatId;
+  }
+
+  /**
+   * Validates that reservation chat is within 24-hour window
+   * Used when sending messages to existing reservation chats
+   */
+  private async validateReservationChatWindow(reservationId: string, senderId: string): Promise<void> {
+    // Fetch reservation
+    const reservation = await this.reservationRepository.findById(reservationId);
+    if (!reservation) {
+      logger.warn(`Reservation ${reservationId} not found during chat window validation`);
+      throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
+    }
+
+    // Verify sender is either the user or the assigned driver
+    const isUser = reservation.userId === senderId;
+    const isDriver = reservation.assignedDriverId === senderId;
+
+    if (!isUser && !isDriver) {
+      logger.warn(
+        `User ${senderId} attempted to send message to reservation chat ${reservationId} without permission`
+      );
+      throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
+    }
+
+    // Fetch reservation itinerary to calculate trip start time
+    const itineraryStops = await this.reservationItineraryRepository.findByReservationId(reservationId);
+
+    if (!itineraryStops || itineraryStops.length === 0) {
+      logger.warn(`Reservation ${reservationId} has no itinerary stops during chat window validation`);
+      throw new AppError(
+        'Reservation itinerary is required for chat',
+        'ITINERARY_REQUIRED',
+        400
+      );
+    }
+
+    // Calculate trip start time from itinerary
+    const { tripStartAt } = deriveTripWindow(itineraryStops);
+    const now = new Date();
+
+    // Validate 24-hour window
+    if (!isWithin24HoursOfStart(tripStartAt, now)) {
+      logger.warn(
+        `Message sending blocked for reservation ${reservationId}: trip starts at ${tripStartAt.toISOString()}, current time: ${now.toISOString()}`
+      );
+      throw new AppError(
+        'Chat is only available within 24 hours before trip start',
+        'CHAT_WINDOW_EXPIRED',
+        403
+      );
+    }
   }
 }
 

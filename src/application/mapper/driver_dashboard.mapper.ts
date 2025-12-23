@@ -167,6 +167,7 @@ export class DriverDashboardMapper {
       status: input.reservation.status,
       tripType: input.reservation.tripType,
       tripState,
+      tripName: input.reservation.tripName,
       tripStartAt: tripStartAt.toISOString(),
       tripEndAt: tripEndAt.toISOString(),
       pickup: {
