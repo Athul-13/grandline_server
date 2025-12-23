@@ -98,7 +98,16 @@ export function deriveTripState(args: {
   tripStartAt: Date;
   tripEndAt: Date;
   now: Date;
+  startedAt?: Date;
+  completedAt?: Date;
 }): DriverTripState {
+  // Priority 1: Explicit lifecycle (completedAt) → PAST
+  if (args.completedAt) return 'PAST';
+  
+  // Priority 2: Explicit lifecycle (startedAt) → CURRENT
+  if (args.startedAt) return 'CURRENT';
+  
+  // Priority 3: Fallback to time-based logic (backward compatibility)
   if (TERMINAL_STATUSES.has(args.status)) return 'PAST';
   if (args.tripEndAt.getTime() < args.now.getTime()) return 'PAST';
   if (args.tripStartAt.getTime() > args.now.getTime()) return 'UPCOMING';
@@ -149,6 +158,8 @@ export class DriverDashboardMapper {
       tripStartAt,
       tripEndAt,
       now: input.now,
+      startedAt: input.reservation.startedAt,
+      completedAt: input.reservation.completedAt,
     });
     const privacy = derivePrivacy(tripStartAt, input.now);
     const chatEnabled = deriveChatEnabled(tripStartAt, input.now, tripState);

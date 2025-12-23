@@ -33,7 +33,9 @@ export class ReservationRepositoryMapper {
       doc.refundedAmount,
       doc.refundedAt,
       doc.cancellationReason,
-      doc.cancelledAt
+      doc.cancelledAt,
+      doc.startedAt,
+      doc.completedAt
     );
   }
 

@@ -189,6 +189,8 @@ export class GetReservationUseCase implements IGetReservationUseCase {
           tripStartAt,
           tripEndAt,
           now,
+          startedAt: reservation.startedAt,
+          completedAt: reservation.completedAt,
         });
         chatEnabled = deriveChatEnabled(tripStartAt, now, tripState);
       } catch (error) {

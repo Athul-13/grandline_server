@@ -138,6 +138,14 @@ export const ReservationSchema: Schema = new Schema(
       type: Date,
       required: false,
     },
+    startedAt: {
+      type: Date,
+      required: false,
+    },
+    completedAt: {
+      type: Date,
+      required: false,
+    },
   },
   {
     timestamps: true,

@@ -64,7 +64,9 @@ export class Reservation {
     public readonly refundedAmount?: number,
     public readonly refundedAt?: Date,
     public readonly cancellationReason?: string,
-    public readonly cancelledAt?: Date
+    public readonly cancelledAt?: Date,
+    public readonly startedAt?: Date,
+    public readonly completedAt?: Date
   ) {}
 
   /**

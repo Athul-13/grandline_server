@@ -111,5 +111,29 @@ export interface ISocketEventService {
    * Emits driver deleted event to admin dashboard room
    */
   emitDriverDeleted(driverId: string): void;
+
+  /**
+   * Emits trip started event to admin dashboard, user, and driver rooms
+   */
+  emitTripStarted(reservationId: string, driverId: string): Promise<void>;
+
+  /**
+   * Emits trip ended event to admin dashboard, user, and driver rooms
+   */
+  emitTripEnded(reservationId: string, driverId: string): Promise<void>;
+
+  /**
+   * Emits location update event to admin dashboard, user, and driver rooms
+   */
+  emitLocationUpdate(locationData: {
+    reservationId: string;
+    driverId: string;
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    heading?: number;
+    speed?: number;
+    timestamp: string;
+  }): Promise<void>;
 }
 

@@ -555,6 +555,8 @@ export class SendMessageUseCase implements ISendMessageUseCase {
       tripStartAt,
       tripEndAt,
       now,
+      startedAt: reservation.startedAt,
+      completedAt: reservation.completedAt,
     });
 
     // Block messaging if trip is PAST

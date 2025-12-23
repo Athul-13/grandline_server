@@ -37,6 +37,8 @@ export class DriverReservationMapper {
       tripStartAt,
       tripEndAt,
       now: input.now,
+      startedAt: input.reservation.startedAt,
+      completedAt: input.reservation.completedAt,
     });
     const privacy = derivePrivacy(tripStartAt, input.now);
     const chatEnabled = deriveChatEnabled(tripStartAt, input.now, tripState);

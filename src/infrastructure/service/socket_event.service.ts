@@ -10,6 +10,7 @@ import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
+import { IReservationRepository } from '../../domain/repositories/reservation_repository.interface';
 import { MessageDeliveryStatus, NotificationType, QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus } from '../../shared/constants';
 import { User } from '../../domain/entities/user.entity';
 import { Driver } from '../../domain/entities/driver.entity';
@@ -55,6 +56,9 @@ export const ADMIN_DASHBOARD_SOCKET_EVENTS = {
   DRIVER_UPDATED: 'admin:driver-updated',
   DRIVER_STATUS_CHANGED: 'admin:driver-status-changed',
   DRIVER_DELETED: 'admin:driver-deleted',
+  TRIP_STARTED: 'trip:started',
+  TRIP_ENDED: 'trip:ended',
+  LOCATION_UPDATE: 'location:update',
 } as const;
 
 /**
@@ -823,6 +827,131 @@ export class SocketEventService implements ISocketEventService {
       logger.debug(`Driver deleted event emitted to admin dashboard: ${driverId}`);
     } catch (error) {
       logger.error(`Error emitting driver deleted event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits trip started event to admin dashboard, user, and driver rooms
+   */
+  async emitTripStarted(reservationId: string, driverId: string): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit trip started event. ` +
+        `Method: emitTripStarted, ReservationId: ${reservationId}, DriverId: ${driverId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch reservation to get userId for targeted user room emission
+      const reservationRepository = container.resolve<IReservationRepository>(REPOSITORY_TOKENS.IReservationRepository);
+      const reservation = await reservationRepository.findById(reservationId);
+      
+      const tripData = {
+        reservationId,
+        driverId,
+        userId: reservation?.userId,
+        startedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_STARTED, tripData);
+      
+      // Emit to driver room
+      this.io.to(`driver:${driverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_STARTED, tripData);
+      
+      // Emit to user room if reservation exists
+      if (reservation?.userId) {
+        this.io.to(`user:${reservation.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_STARTED, tripData);
+      }
+      
+      logger.debug(`Trip started event emitted: reservation=${reservationId}, driver=${driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting trip started event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits trip ended event to admin dashboard, user, and driver rooms
+   */
+  async emitTripEnded(reservationId: string, driverId: string): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit trip ended event. ` +
+        `Method: emitTripEnded, ReservationId: ${reservationId}, DriverId: ${driverId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch reservation to get userId for targeted user room emission
+      const reservationRepository = container.resolve<IReservationRepository>(REPOSITORY_TOKENS.IReservationRepository);
+      const reservation = await reservationRepository.findById(reservationId);
+      
+      const tripData = {
+        reservationId,
+        driverId,
+        userId: reservation?.userId,
+        completedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_ENDED, tripData);
+      
+      // Emit to driver room
+      this.io.to(`driver:${driverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_ENDED, tripData);
+      
+      // Emit to user room if reservation exists
+      if (reservation?.userId) {
+        this.io.to(`user:${reservation.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_ENDED, tripData);
+      }
+      
+      logger.debug(`Trip ended event emitted: reservation=${reservationId}, driver=${driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting trip ended event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits location update event to admin dashboard, user, and driver rooms
+   */
+  async emitLocationUpdate(locationData: {
+    reservationId: string;
+    driverId: string;
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    heading?: number;
+    speed?: number;
+    timestamp: string;
+  }): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit location update event. ` +
+        `Method: emitLocationUpdate, ReservationId: ${locationData.reservationId}, DriverId: ${locationData.driverId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch reservation to get userId for targeted user room emission
+      const reservationRepository = container.resolve<IReservationRepository>(REPOSITORY_TOKENS.IReservationRepository);
+      const reservation = await reservationRepository.findById(locationData.reservationId);
+      
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.LOCATION_UPDATE, locationData);
+      
+      // Emit to driver room
+      this.io.to(`driver:${locationData.driverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.LOCATION_UPDATE, locationData);
+      
+      // Emit to user room if reservation exists
+      if (reservation?.userId) {
+        this.io.to(`user:${reservation.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.LOCATION_UPDATE, locationData);
+      }
+      
+      logger.debug(`Location update event emitted: reservation=${locationData.reservationId}, driver=${locationData.driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting location update event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }
