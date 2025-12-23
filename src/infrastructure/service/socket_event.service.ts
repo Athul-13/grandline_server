@@ -10,6 +10,7 @@ import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
+import { IDriverRepository } from '../../domain/repositories/driver_repository.interface';
 import { IReservationRepository } from '../../domain/repositories/reservation_repository.interface';
 import { MessageDeliveryStatus, NotificationType, QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus } from '../../shared/constants';
 import { User } from '../../domain/entities/user.entity';
