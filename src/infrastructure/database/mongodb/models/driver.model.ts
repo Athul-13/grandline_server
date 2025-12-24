@@ -21,6 +21,7 @@ export interface IDriverModel extends Document {
   salary: number;
   isOnboarded: boolean;
   isDeleted: boolean;
+  lastAssignedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

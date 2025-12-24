@@ -406,8 +406,19 @@ export class DriverRepositoryImpl
       status: DriverStatus.AVAILABLE,
       isOnboarded: true,
       isDeleted: { $ne: true },
-    });
+    }).sort({ lastAssignedAt: 1 }); // Sort by least recently assigned (nulls first = highest priority)
     return DriverRepositoryMapper.toEntities(docs);
+  }
+
+  async updateLastAssignedAt(driverId: string, lastAssignedAt: Date): Promise<void> {
+    const result = await this.driverModel.updateOne(
+      { driverId },
+      { $set: { lastAssignedAt, updatedAt: new Date() } }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error(`Driver with id ${driverId} not found`);
+    }
   }
 }
 

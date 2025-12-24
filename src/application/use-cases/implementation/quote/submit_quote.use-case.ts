@@ -234,6 +234,16 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
                 quotedAt,
               } as Partial<Quote>);
 
+              // Update driver's lastAssignedAt for fair assignment
+              try {
+                await this.driverRepository.updateLastAssignedAt(driver.driverId, quotedAt);
+              } catch (updateError) {
+                // Log error but don't fail assignment
+                logger.error(
+                  `Error updating lastAssignedAt for driver ${driver.driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+                );
+              }
+
               driverAssigned = true;
               finalStatus = QuoteStatus.QUOTED;
 
@@ -282,6 +292,23 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
                       `Failed to send quote email for quote ${quoteId}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
                     );
                     // Don't fail the assignment if email fails
+                  }
+
+                  // Emit driver assigned notification
+                  try {
+                    const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+                    socketEventService.emitDriverAssigned({
+                      quoteId,
+                      tripName: updatedQuote.tripName || 'Trip',
+                      driverId: driver.driverId,
+                      driverName: driver.fullName,
+                      userId,
+                    });
+                  } catch (notificationError) {
+                    // Don't fail assignment if notification fails
+                    logger.error(
+                      `Error emitting driver assigned notification: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+                    );
                   }
                 }
               }

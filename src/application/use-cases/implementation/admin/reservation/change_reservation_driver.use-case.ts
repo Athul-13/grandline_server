@@ -5,13 +5,14 @@ import { IDriverRepository } from '../../../../../domain/repositories/driver_rep
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
 import { IReservationItineraryRepository } from '../../../../../domain/repositories/reservation_itinerary_repository.interface';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
 import { NotificationType, ERROR_MESSAGES, ReservationStatus } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 import { canAssignDriverToReservation } from '../../../../../shared/utils/driver_assignment.util';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
 import { randomUUID } from 'crypto';
 
 /**
@@ -30,7 +31,9 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
     @inject(REPOSITORY_TOKENS.IReservationItineraryRepository)
     private readonly itineraryRepository: IReservationItineraryRepository,
     @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
-    private readonly createNotificationUseCase: ICreateNotificationUseCase
+    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    @inject(SERVICE_TOKENS.ISocketEventService)
+    private readonly socketEventService: ISocketEventService
   ) {}
 
   async execute(
@@ -125,6 +128,16 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
       status: reservation.status === ReservationStatus.CONFIRMED ? ReservationStatus.MODIFIED : reservation.status,
     } as Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel>);
 
+    // Update driver's lastAssignedAt for fair assignment
+    try {
+      await this.driverRepository.updateLastAssignedAt(driverId, now);
+    } catch (updateError: unknown) {
+      // Log error but don't fail assignment
+      logger.error(
+        `Error updating lastAssignedAt for driver ${driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+      );
+    }
+
     // Create modification record
     const modificationId = randomUUID();
     const modification = new ReservationModification(
@@ -159,7 +172,7 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
           reason,
         },
       });
-    } catch (notificationError) {
+    } catch (notificationError: unknown) {
       logger.error(
         `Failed to send notification for driver change: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
       );
@@ -169,6 +182,22 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
     const updatedReservation = await this.reservationRepository.findById(reservationId);
     if (!updatedReservation) {
       throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
+    }
+
+    // Emit driver assigned notification
+    try {
+      this.socketEventService.emitDriverAssigned({
+        reservationId,
+        tripName: updatedReservation.tripName || 'Trip',
+        driverId,
+        driverName: driver.fullName,
+        userId: reservation.userId,
+      });
+    } catch (socketError: unknown) {
+      // Don't fail assignment if notification fails
+      logger.error(
+        `Error emitting driver assigned notification: ${socketError instanceof Error ? socketError.message : 'Unknown error'}`
+      );
     }
 
     logger.info(

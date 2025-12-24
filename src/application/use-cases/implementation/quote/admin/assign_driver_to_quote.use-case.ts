@@ -241,6 +241,16 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         quotedAt,
       } as Partial<Quote>);
 
+      // Update driver's lastAssignedAt for fair assignment
+      try {
+        await this.driverRepository.updateLastAssignedAt(request.driverId, new Date());
+      } catch (updateError) {
+        // Log error but don't fail assignment
+        logger.error(
+          `Error updating lastAssignedAt for driver ${request.driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+        );
+      }
+
       // Fetch updated quote
       const updatedQuote = await this.quoteRepository.findById(quoteId);
       if (!updatedQuote) {
@@ -298,13 +308,22 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
       const itineraryStops = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
       const passengers = await this.passengerRepository.findByQuoteId(quoteId);
 
-      // Emit socket event for admin dashboard
+      // Emit socket events for admin dashboard and notifications
       try {
         const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
         socketEventService.emitQuoteUpdated(updatedQuote);
+        
+        // Emit driver assigned notification
+        socketEventService.emitDriverAssigned({
+          quoteId,
+          tripName: updatedQuote.tripName || 'Trip',
+          driverId: request.driverId,
+          driverName: driver.fullName,
+          userId: quote.userId,
+        });
       } catch (error) {
         // Don't fail driver assignment if socket emission fails
-        logger.error('Error emitting quote updated event:', error);
+        logger.error('Error emitting socket events:', error);
       }
 
       logger.info(`Driver ${request.driverId} assigned successfully to quote: ${quoteId}`);

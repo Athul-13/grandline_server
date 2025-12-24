@@ -97,4 +97,9 @@ export interface IDriverRepository extends IBaseRepository<Driver> {
      * Find available drivers (for trip assignment)
      */
     findAvailableDrivers(): Promise<Driver[]>;
+
+    /**
+     * Update driver's last assigned timestamp (for fair assignment)
+     */
+    updateLastAssignedAt(driverId: string, lastAssignedAt: Date): Promise<void>;
 }

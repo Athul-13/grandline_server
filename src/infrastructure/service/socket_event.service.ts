@@ -57,6 +57,7 @@ export const ADMIN_DASHBOARD_SOCKET_EVENTS = {
   DRIVER_UPDATED: 'admin:driver-updated',
   DRIVER_STATUS_CHANGED: 'admin:driver-status-changed',
   DRIVER_DELETED: 'admin:driver-deleted',
+  DRIVER_ASSIGNED: 'driver:assigned',
   TRIP_STARTED: 'trip:started',
   TRIP_ENDED: 'trip:ended',
   LOCATION_UPDATE: 'location:update',
@@ -828,6 +829,50 @@ export class SocketEventService implements ISocketEventService {
       logger.debug(`Driver deleted event emitted to admin dashboard: ${driverId}`);
     } catch (error) {
       logger.error(`Error emitting driver deleted event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits driver assigned event to admin dashboard and user rooms
+   */
+  emitDriverAssigned(payload: {
+    reservationId?: string;
+    quoteId?: string;
+    tripName: string;
+    driverId: string;
+    driverName: string;
+    userId: string;
+  }): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit driver assigned event. ` +
+        `Method: emitDriverAssigned, DriverId: ${payload.driverId}.`
+      );
+      return;
+    }
+
+    try {
+      const eventData = {
+        reservationId: payload.reservationId,
+        quoteId: payload.quoteId,
+        tripName: payload.tripName,
+        driverId: payload.driverId,
+        driverName: payload.driverName,
+        userId: payload.userId,
+        assignedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_ASSIGNED, eventData);
+      
+      // Emit to user room
+      this.io.to(`user:${payload.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_ASSIGNED, eventData);
+      
+      logger.debug(
+        `Driver assigned event emitted: Driver ${payload.driverName} (${payload.driverId}) assigned to ${payload.tripName}`
+      );
+    } catch (error) {
+      logger.error(`Error emitting driver assigned event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

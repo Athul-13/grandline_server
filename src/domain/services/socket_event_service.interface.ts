@@ -113,6 +113,18 @@ export interface ISocketEventService {
   emitDriverDeleted(driverId: string): void;
 
   /**
+   * Emits driver assigned event to admin dashboard and user rooms
+   */
+  emitDriverAssigned(payload: {
+    reservationId?: string;
+    quoteId?: string;
+    tripName: string;
+    driverId: string;
+    driverName: string;
+    userId: string;
+  }): void;
+
+  /**
    * Emits trip started event to admin dashboard, user, and driver rooms
    */
   emitTripStarted(reservationId: string, driverId: string): Promise<void>;

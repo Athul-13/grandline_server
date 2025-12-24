@@ -24,6 +24,8 @@ import { Vehicle } from '../../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../../domain/entities/amenity.entity';
 import { Driver } from '../../../../../domain/entities/driver.entity';
 import { canAssignDriverToQuote } from '../../../../../shared/utils/driver_assignment.util';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for recalculating quote pricing
@@ -311,6 +313,9 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
       const tax = this.pricingCalculationService.calculateTax(subtotal, pricingConfig.taxPercentage);
       const total = subtotal + tax;
 
+      // Check if driver changed (new assignment)
+      const driverChanged = quote.assignedDriverId !== driverIdToAssign;
+
       // Update quote with new pricing and driver (if changed)
       const quotedAt = new Date();
       await this.quoteRepository.updateById(quoteId, {
@@ -333,6 +338,18 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
         pricingLastUpdatedAt: quotedAt,
         quotedAt, // Reset quotedAt to extend payment window
       } as Partial<Quote>);
+
+      // Update driver's lastAssignedAt for fair assignment (only if driver changed)
+      if (driverChanged) {
+        try {
+          await this.driverRepository.updateLastAssignedAt(driverIdToAssign, quotedAt);
+        } catch (updateError) {
+          // Log error but don't fail recalculation
+          logger.error(
+            `Error updating lastAssignedAt for driver ${driverIdToAssign}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+          );
+        }
+      }
 
       // Fetch updated quote
       const updatedQuote = await this.quoteRepository.findById(quoteId);
@@ -385,6 +402,25 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
           `Failed to send recalculated quote email for quote ${quoteId}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
         );
         // Don't fail the recalculation if email fails
+      }
+
+      // Emit driver assigned notification (only if driver changed)
+      if (driverChanged) {
+        try {
+          const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+          socketEventService.emitDriverAssigned({
+            quoteId,
+            tripName: updatedQuote.tripName || 'Trip',
+            driverId: driverIdToAssign,
+            driverName: driverToUse.fullName,
+            userId: quote.userId,
+          });
+        } catch (notificationError) {
+          // Don't fail recalculation if notification fails
+          logger.error(
+            `Error emitting driver assigned notification: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+          );
+        }
       }
 
       // Fetch itinerary and passengers for response

@@ -19,6 +19,8 @@ import { FRONTEND_CONFIG } from '../../shared/config';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { Amenity } from '../../domain/entities/amenity.entity';
 import { canAssignDriverToQuote } from '../../shared/utils/driver_assignment.util';
+import { ISocketEventService } from '../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Auto Driver Assignment Service Implementation
@@ -230,6 +232,16 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         quotedAt,
       } as Partial<Quote>);
 
+      // Update driver's lastAssignedAt for fair assignment
+      try {
+        await this.driverRepository.updateLastAssignedAt(driver.driverId, quotedAt);
+      } catch (updateError) {
+        // Log error but don't fail assignment
+        logger.error(
+          `Error updating lastAssignedAt for driver ${driver.driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+        );
+      }
+
       // Fetch updated quote for PDF generation
       const updatedQuote = await this.quoteRepository.findById(quoteId);
       if (!updatedQuote) {
@@ -283,6 +295,23 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
           `Failed to send quote email for quote ${quoteId}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
         );
         // Don't fail the assignment if email fails - driver is already assigned
+      }
+
+      // Emit driver assigned notification
+      try {
+        const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+        socketEventService.emitDriverAssigned({
+          quoteId,
+          tripName: updatedQuote.tripName || 'Trip',
+          driverId: driver.driverId,
+          driverName: driver.fullName,
+          userId: quote.userId,
+        });
+      } catch (notificationError) {
+        // Don't fail assignment if notification fails
+        logger.error(
+          `Error emitting driver assigned notification: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+        );
       }
 
       logger.info(`Successfully auto-assigned driver ${driver.driverId} to quote ${quoteId}`);

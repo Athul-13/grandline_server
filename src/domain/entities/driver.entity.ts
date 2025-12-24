@@ -18,7 +18,8 @@ export class Driver {
     public readonly salary: number,
     public readonly isOnboarded: boolean,
     public readonly createdAt: Date,
-    public readonly updatedAt: Date
+    public readonly updatedAt: Date,
+    public readonly lastAssignedAt?: Date
   ) {}
 
   canLogin(): boolean {
