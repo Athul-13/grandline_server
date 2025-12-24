@@ -17,6 +17,7 @@ import { SocketEventService } from './infrastructure/service/socket_event.servic
 import { DriverAssignmentWorker } from './infrastructure/queue/workers/driver_assignment.worker';
 import { DriverAssignmentScheduler } from './infrastructure/queue/scheduler/driver_assignment.scheduler';
 import { driverAssignmentQueue } from './infrastructure/queue/driver_assignment.queue';
+import { initializeDriverCooldownWorker } from './infrastructure/queue/workers/driver_cooldown.worker';
 
 /**
  * Starts the Express server with database connection, Socket.io, and error handling
@@ -87,6 +88,10 @@ const startServer = async (): Promise<void> => {
     const driverAssignmentWorker = new DriverAssignmentWorker();
     driverAssignmentWorker.initialize();
     console.log('[Server] Driver assignment worker initialized');
+
+    // Initialize driver cooldown worker
+    initializeDriverCooldownWorker();
+    console.log('[Server] Driver cooldown worker initialized');
 
     // Initialize scheduler for periodic pending quotes processing
     const driverAssignmentScheduler = new DriverAssignmentScheduler();

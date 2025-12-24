@@ -18,6 +18,7 @@ import { EmailType, QuoteEmailData } from '../../shared/types/email.types';
 import { FRONTEND_CONFIG } from '../../shared/config';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { Amenity } from '../../domain/entities/amenity.entity';
+import { canAssignDriverToQuote } from '../../shared/utils/driver_assignment.util';
 
 /**
  * Auto Driver Assignment Service Implementation
@@ -102,10 +103,23 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         quoteId
       );
 
-      // Filter out booked drivers
-      const trulyAvailableDrivers = availableDrivers.filter(
-        (driver) => !bookedDriverIds.has(driver.driverId)
-      );
+      // Filter out booked drivers and check eligibility using the guard
+      const now = new Date();
+      const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+        // Skip if driver is booked in date range
+        if (bookedDriverIds.has(driver.driverId)) {
+          return false;
+        }
+        
+        // Check eligibility using the guard
+        const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+        if (!eligibility.canAssign) {
+          logger.debug(`Driver ${driver.driverId} not eligible: ${eligibility.reason}`);
+          return false;
+        }
+        
+        return true;
+      });
 
       if (trulyAvailableDrivers.length === 0) {
         logger.info(`No truly available drivers for quote ${quoteId} date range`);

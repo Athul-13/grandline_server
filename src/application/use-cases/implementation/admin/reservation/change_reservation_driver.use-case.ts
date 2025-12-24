@@ -11,6 +11,7 @@ import { ReservationModification } from '../../../../../domain/entities/reservat
 import { NotificationType, ERROR_MESSAGES, ReservationStatus } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
+import { canAssignDriverToReservation } from '../../../../../shared/utils/driver_assignment.util';
 import { randomUUID } from 'crypto';
 
 /**
@@ -78,45 +79,46 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
       throw new AppError('Driver not found', 'DRIVER_NOT_FOUND', 404);
     }
 
-    // Check driver availability (simplified - can be enhanced with date range checking)
-    // For now, we'll just check if driver is available
-    if (!driver.isAvailable()) {
+    // Get itinerary for eligibility check and date range validation
+    const itinerary = await this.itineraryRepository.findByReservationId(reservationId);
+    if (itinerary.length === 0) {
+      throw new AppError('Reservation itinerary not found', 'ITINERARY_NOT_FOUND', 404);
+    }
+
+    // Check driver assignment eligibility using the guard
+    const now = new Date();
+    const eligibility = canAssignDriverToReservation(driver, itinerary, now);
+    if (!eligibility.canAssign) {
       throw new AppError(
-        'Driver is not available',
+        eligibility.reason || 'Driver cannot be assigned',
         'DRIVER_NOT_AVAILABLE',
         400
       );
     }
 
-    // Get itinerary to check date conflicts
-    const itinerary = await this.itineraryRepository.findByReservationId(reservationId);
-    if (itinerary.length > 0) {
-      // Check if driver is booked during reservation dates
-      const arrivalTimes = itinerary.map((stop) => stop.arrivalTime);
-      const minDate = new Date(Math.min(...arrivalTimes.map((d) => d.getTime())));
-      const maxDate = new Date(Math.max(...arrivalTimes.map((d) => d.getTime())));
+    // Check for conflicts with other reservations (planning check)
+    const arrivalTimes = itinerary.map((stop) => stop.arrivalTime);
+    const minDate = new Date(Math.min(...arrivalTimes.map((d) => d.getTime())));
+    const maxDate = new Date(Math.max(...arrivalTimes.map((d) => d.getTime())));
 
-      // Check for conflicts with other reservations
-      const bookedDriverIds = await this.reservationRepository.findBookedDriverIdsInDateRange(
-        minDate,
-        maxDate,
-        reservationId
+    const bookedDriverIds = await this.reservationRepository.findBookedDriverIdsInDateRange(
+      minDate,
+      maxDate,
+      reservationId
+    );
+
+    if (bookedDriverIds.has(driverId)) {
+      throw new AppError(
+        'Driver is already booked during this reservation period',
+        'DRIVER_BOOKED',
+        400
       );
-
-      if (bookedDriverIds.has(driverId)) {
-        throw new AppError(
-          'Driver is already booked during this reservation period',
-          'DRIVER_BOOKED',
-          400
-        );
-      }
     }
 
     // Store previous driver
     const previousDriverId = reservation.assignedDriverId;
 
-    // Update reservation
-    const now = new Date();
+    // Update reservation (reuse 'now' from eligibility check above)
     await this.reservationRepository.updateById(reservationId, {
       assignedDriverId: driverId,
       driverChangedAt: now,

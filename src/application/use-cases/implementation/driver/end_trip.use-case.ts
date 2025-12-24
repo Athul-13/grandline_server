@@ -3,12 +3,13 @@ import { IEndTripUseCase } from '../../interface/driver/end_trip_use_case.interf
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
 import { Reservation } from '../../../../domain/entities/reservation.entity';
-import { ReservationStatus, ERROR_MESSAGES } from '../../../../shared/constants';
+import { ReservationStatus, ERROR_MESSAGES, DRIVER_ASSIGNMENT_CONFIG } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
 import { IRedisConnection } from '../../../../domain/services/redis_connection.interface';
 import { CONFIG_TOKENS } from '../../../../infrastructure/di/tokens';
+import { driverCooldownQueue } from '../../../../infrastructure/queue/driver_cooldown.queue';
 import { container } from 'tsyringe';
 
 /**
@@ -88,6 +89,30 @@ export class EndTripUseCase implements IEndTripUseCase {
       logger.error('Error clearing location data:', error);
     }
 
+    // Schedule driver cooldown job (24 hours delay)
+    // Driver status remains ON_TRIP during cooldown, then becomes AVAILABLE
+    try {
+      await driverCooldownQueue.add(
+        'driver-cooldown',
+        {
+          jobType: 'driver-cooldown',
+          driverId,
+          reservationId,
+        },
+        {
+          delay: DRIVER_ASSIGNMENT_CONFIG.COOLDOWN_PERIOD_MS,
+          jobId: `cooldown-${driverId}-${reservationId}`, // Unique job ID to prevent duplicates
+          removeOnComplete: true,
+        }
+      );
+      logger.info(`Scheduled driver cooldown job for driver ${driverId} (reservation ${reservationId}) - will execute in 24 hours`);
+    } catch (cooldownError) {
+      // Don't fail trip end if job scheduling fails
+      logger.error(
+        `Error scheduling driver cooldown job for driver ${driverId}: ${cooldownError instanceof Error ? cooldownError.message : 'Unknown error'}`
+      );
+    }
+
     // Emit socket event
     try {
       const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
@@ -97,7 +122,7 @@ export class EndTripUseCase implements IEndTripUseCase {
       logger.error('Error emitting trip ended event:', error);
     }
 
-    logger.info(`Driver ${driverId} ended trip: ${reservationId}`);
+    logger.info(`Driver ${driverId} ended trip: ${reservationId}. Cooldown period started (24 hours)`);
 
     return updatedReservation;
   }

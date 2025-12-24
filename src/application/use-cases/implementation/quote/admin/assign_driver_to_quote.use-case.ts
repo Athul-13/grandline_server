@@ -23,6 +23,7 @@ import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Vehicle } from '../../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../../domain/entities/amenity.entity';
 import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { canAssignDriverToQuote } from '../../../../../shared/utils/driver_assignment.util';
 import { container } from 'tsyringe';
 
 /**
@@ -99,18 +100,29 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         throw new AppError(ERROR_MESSAGES.DRIVER_NOT_FOUND, ERROR_CODES.DRIVER_NOT_FOUND, 404);
       }
 
-      // Check driver availability (check if driver is already assigned to another quote within 24 hours)
+      // Get itinerary for eligibility check and date range validation
       const itinerary = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
       if (itinerary.length === 0) {
         throw new AppError(ERROR_MESSAGES.ITINERARY_REQUIRED, 'ITINERARY_NOT_FOUND', 404);
       }
 
-      // Get date range from itinerary
+      // Check driver assignment eligibility using the guard
+      const now = new Date();
+      const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+      if (!eligibility.canAssign) {
+        throw new AppError(
+          eligibility.reason || 'Driver cannot be assigned',
+          'DRIVER_NOT_AVAILABLE',
+          400
+        );
+      }
+
+      // Get date range from itinerary for conflict checking
       const arrivalTimes = itinerary.map((stop) => stop.arrivalTime);
       const minDate = new Date(Math.min(...arrivalTimes.map((d) => d.getTime())));
       const maxDate = new Date(Math.max(...arrivalTimes.map((d) => d.getTime())));
 
-      // Check if driver is available for this date range
+      // Check if driver is available for this date range (planning check)
       const bookedDriverIds = await this.quoteRepository.findBookedDriverIdsInDateRange(
         minDate,
         maxDate,

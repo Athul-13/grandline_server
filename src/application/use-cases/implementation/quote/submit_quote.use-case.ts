@@ -23,6 +23,7 @@ import { FRONTEND_CONFIG } from '../../../../shared/config';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../domain/entities/amenity.entity';
 import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { canAssignDriverToQuote } from '../../../../shared/utils/driver_assignment.util';
 import { container } from 'tsyringe';
 
 /**
@@ -121,10 +122,18 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
             quoteId
           );
 
-          // Filter out booked drivers
-          const trulyAvailableDrivers = availableDrivers.filter(
-            (driver) => !bookedDriverIds.has(driver.driverId)
-          );
+          // Filter out booked drivers and check eligibility using the guard
+          const now = new Date();
+          const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+            // Skip if driver is booked in date range
+            if (bookedDriverIds.has(driver.driverId)) {
+              return false;
+            }
+            
+            // Check eligibility using the guard
+            const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+            return eligibility.canAssign;
+          });
 
           if (trulyAvailableDrivers.length > 0 && quote.selectedVehicles && quote.selectedVehicles.length > 0) {
             // Assign first available driver

@@ -23,6 +23,7 @@ import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Vehicle } from '../../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../../domain/entities/amenity.entity';
 import { Driver } from '../../../../../domain/entities/driver.entity';
+import { canAssignDriverToQuote } from '../../../../../shared/utils/driver_assignment.util';
 
 /**
  * Use case for recalculating quote pricing
@@ -138,10 +139,17 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
           );
 
           if (!bookedDriverIds.has(quote.assignedDriverId)) {
-            // Current driver is still available
+            // Current driver is still available - check eligibility
             driverToUse = await this.driverRepository.findById(quote.assignedDriverId);
             if (driverToUse) {
-              driverIdToAssign = quote.assignedDriverId;
+              const now = new Date();
+              const eligibility = canAssignDriverToQuote(driverToUse, itinerary, now);
+              if (eligibility.canAssign) {
+                driverIdToAssign = quote.assignedDriverId;
+              } else {
+                logger.info(`Quote ${quoteId}: Current driver ${quote.assignedDriverId} not eligible: ${eligibility.reason}`);
+                driverToUse = null; // Driver not eligible, need to find new one
+              }
             }
           }
         }
@@ -155,10 +163,18 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
             quoteId
           );
 
-          // Filter out booked drivers
-          const trulyAvailableDrivers = availableDrivers.filter(
-            (driver) => !bookedDriverIds.has(driver.driverId)
-          );
+          // Filter out booked drivers and check eligibility using the guard
+          const now = new Date();
+          const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+            // Skip if driver is booked in date range
+            if (bookedDriverIds.has(driver.driverId)) {
+              return false;
+            }
+            
+            // Check eligibility using the guard
+            const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+            return eligibility.canAssign;
+          });
 
           if (trulyAvailableDrivers.length > 0) {
             // Use first available driver
@@ -186,9 +202,18 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
           quoteId
         );
 
-        const trulyAvailableDrivers = availableDrivers.filter(
-          (driver) => !bookedDriverIds.has(driver.driverId)
-        );
+        // Filter out booked drivers and check eligibility using the guard
+        const now = new Date();
+        const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+          // Skip if driver is booked in date range
+          if (bookedDriverIds.has(driver.driverId)) {
+            return false;
+          }
+          
+          // Check eligibility using the guard
+          const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+          return eligibility.canAssign;
+        });
 
         if (trulyAvailableDrivers.length > 0) {
           driverToUse = trulyAvailableDrivers[0];

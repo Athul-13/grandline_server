@@ -2,11 +2,13 @@ import { inject, injectable } from 'tsyringe';
 import { IStartTripUseCase } from '../../interface/driver/start_trip_use_case.interface';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
+import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { Reservation } from '../../../../domain/entities/reservation.entity';
-import { ReservationStatus, ERROR_MESSAGES } from '../../../../shared/constants';
+import { ReservationStatus, ERROR_MESSAGES, DriverStatus } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { driverCooldownQueue } from '../../../../infrastructure/queue/driver_cooldown.queue';
 import { container } from 'tsyringe';
 
 const TERMINAL_STATUSES = new Set<ReservationStatus>([
@@ -23,7 +25,9 @@ const TERMINAL_STATUSES = new Set<ReservationStatus>([
 export class StartTripUseCase implements IStartTripUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IReservationRepository)
-    private readonly reservationRepository: IReservationRepository
+    private readonly reservationRepository: IReservationRepository,
+    @inject(REPOSITORY_TOKENS.IDriverRepository)
+    private readonly driverRepository: IDriverRepository
   ) {}
 
   async execute(driverId: string, reservationId: string): Promise<Reservation> {
@@ -88,6 +92,49 @@ export class StartTripUseCase implements IStartTripUseCase {
     const updatedReservation = await this.reservationRepository.findById(reservationId);
     if (!updatedReservation) {
       throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
+    }
+
+    // Update driver status to ON_TRIP
+    try {
+      const driver = await this.driverRepository.findById(driverId);
+      if (!driver) {
+        logger.warn(`Driver ${driverId} not found when updating status to ON_TRIP`);
+      } else {
+        const oldStatus = driver.status;
+        await this.driverRepository.updateDriverStatus(driverId, DriverStatus.ON_TRIP);
+        
+        // Cancel any pending cooldown jobs for this driver
+        // If driver starts a new trip during cooldown, the cooldown is no longer needed
+        try {
+          const jobs = await driverCooldownQueue.getJobs(['delayed', 'waiting']);
+          for (const job of jobs) {
+            if (job.data.driverId === driverId) {
+              await job.remove();
+              logger.info(`Cancelled pending cooldown job for driver ${driverId} (job ${job.id}) - driver started new trip`);
+            }
+          }
+        } catch (cancelError) {
+          // Don't fail trip start if job cancellation fails
+          logger.error(`Error cancelling cooldown jobs for driver ${driverId}: ${cancelError instanceof Error ? cancelError.message : 'Unknown error'}`);
+        }
+        
+        // Emit driver status changed event for admin visibility
+        try {
+          const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+          const updatedDriver = await this.driverRepository.findById(driverId);
+          if (updatedDriver) {
+            socketEventService.emitDriverStatusChanged(updatedDriver, oldStatus);
+          }
+        } catch (socketError) {
+          // Don't fail trip start if socket emission fails
+          logger.error('Error emitting driver status changed event:', socketError);
+        }
+        
+        logger.info(`Driver ${driverId} status updated to ON_TRIP`);
+      }
+    } catch (driverStatusError) {
+      // Log error but don't fail trip start
+      logger.error(`Error updating driver status to ON_TRIP: ${driverStatusError instanceof Error ? driverStatusError.message : 'Unknown error'}`);
     }
 
     // Emit socket event
