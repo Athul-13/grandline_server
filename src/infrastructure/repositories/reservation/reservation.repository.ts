@@ -244,5 +244,13 @@ export class ReservationRepositoryImpl
 
     return ReservationAnalyticsBuilder.aggregateRefundAnalytics(result, totalReservations);
   }
+
+  async findActiveTrips(): Promise<Reservation[]> {
+    const docs = await this.reservationModel.find({
+      startedAt: { $exists: true, $ne: null },
+      completedAt: null,
+    });
+    return ReservationRepositoryMapper.toEntities(docs);
+  }
 }
 

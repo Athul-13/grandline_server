@@ -27,6 +27,18 @@ export function createAdminTripRoutesWithDI(): Router {
     (req, res) => void adminTripController.getTripsList(req, res)
   );
 
+  /**
+   * @route   GET /api/v1/admin/trips/active/locations
+   * @desc    Get all active trip locations from Redis (admin only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/active/locations',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminTripController.getActiveTripLocations(req, res)
+  );
+
   return router;
 }
 

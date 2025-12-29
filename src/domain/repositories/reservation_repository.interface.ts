@@ -119,5 +119,11 @@ export interface IReservationRepository extends IBaseRepository<Reservation> {
    * Gets refund analytics for reservations
    */
   getRefundAnalytics(timeRange?: DateRange): Promise<RefundAnalytics>;
+
+  /**
+   * Finds all active trips (started but not completed)
+   * Active trips are those with startedAt set and completedAt null
+   */
+  findActiveTrips(): Promise<Reservation[]>;
 }
 

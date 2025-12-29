@@ -119,6 +119,7 @@ import { MarkChargeAsPaidUseCase } from '../../application/use-cases/implementat
 import { ExportReservationPDFUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_pdf.use-case';
 import { ExportReservationCSVUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_csv.use-case';
 import { GetAdminTripsListUseCase } from '../../application/use-cases/implementation/admin/trip/get_admin_trips_list.use-case';
+import { GetActiveTripLocationsUseCase } from '../../application/use-cases/implementation/admin/trip/get_active_trip_locations.use-case';
 import { CreateChargePaymentIntentUseCase } from '../../application/use-cases/implementation/reservation/create_charge_payment_intent.use-case';
 import { GetDashboardStatsUseCase } from '../../application/use-cases/implementation/dashboard/get_dashboard_stats.use-case';
 import { GetRecentActivityUseCase } from '../../application/use-cases/implementation/dashboard/get_recent_activity.use-case';
@@ -266,6 +267,7 @@ export function registerUseCases(): void {
     container.register(USE_CASE_TOKENS.CreateChargePaymentIntentUseCase, CreateChargePaymentIntentUseCase);
   // Admin Trip use cases
   container.register(USE_CASE_TOKENS.GetAdminTripsListUseCase, GetAdminTripsListUseCase);
+  container.register(USE_CASE_TOKENS.GetActiveTripLocationsUseCase, GetActiveTripLocationsUseCase);
   // Dashboard use cases
   container.register(USE_CASE_TOKENS.GetDashboardStatsUseCase, GetDashboardStatsUseCase);
   container.register(USE_CASE_TOKENS.GetRecentActivityUseCase, GetRecentActivityUseCase);

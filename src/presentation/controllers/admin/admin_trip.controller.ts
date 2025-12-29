@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { IGetAdminTripsListUseCase } from '../../../application/use-cases/interface/admin/trip/get_admin_trips_list_use_case.interface';
+import { IGetActiveTripLocationsUseCase } from '../../../application/use-cases/interface/admin/trip/get_active_trip_locations_use_case.interface';
 import { TripState } from '../../../application/dtos/trip.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS } from '../../../shared/constants';
@@ -16,7 +17,9 @@ import { logger } from '../../../shared/logger';
 export class AdminTripController {
   constructor(
     @inject(USE_CASE_TOKENS.GetAdminTripsListUseCase)
-    private readonly getAdminTripsListUseCase: IGetAdminTripsListUseCase
+    private readonly getAdminTripsListUseCase: IGetAdminTripsListUseCase,
+    @inject(USE_CASE_TOKENS.GetActiveTripLocationsUseCase)
+    private readonly getActiveTripLocationsUseCase: IGetActiveTripLocationsUseCase
   ) {}
 
   /**
@@ -48,6 +51,24 @@ export class AdminTripController {
     } catch (error) {
       logger.error(
         `Error fetching admin trips list: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Handles getting active trip locations
+   */
+  async getActiveTripLocations(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      logger.info('Admin active trip locations request');
+
+      const locations = await this.getActiveTripLocationsUseCase.execute();
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, { locations });
+    } catch (error) {
+      logger.error(
+        `Error fetching active trip locations: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       sendErrorResponse(res, error);
     }

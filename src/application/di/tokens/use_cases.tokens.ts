@@ -139,6 +139,7 @@ export const USE_CASE_TOKENS = {
   ExportReservationCSVUseCase: Symbol.for('ExportReservationCSVUseCase'),
   // Admin Trip use cases
   GetAdminTripsListUseCase: Symbol.for('GetAdminTripsListUseCase'),
+  GetActiveTripLocationsUseCase: Symbol.for('GetActiveTripLocationsUseCase'),
   CreateChargePaymentIntentUseCase: Symbol.for('CreateChargePaymentIntentUseCase'),
   // Dashboard use cases
   GetDashboardStatsUseCase: Symbol.for('GetDashboardStatsUseCase'),
