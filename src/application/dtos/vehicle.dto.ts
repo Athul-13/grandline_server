@@ -183,9 +183,14 @@ export class UpdateVehicleRequest {
   @IsOptional()
   @ValidateIf((o: UpdateVehicleRequest) => o.imageUrls !== undefined)
   @IsArray()
-  @ArrayMinSize(1, { message: 'Image URLs array must contain at least one URL if provided' })
   @IsUrl({}, { each: true, message: 'Each image URL must be a valid URL' })
   imageUrls?: string[];
+
+  @IsOptional()
+  @ValidateIf((o: UpdateVehicleRequest) => o.removedImageUrls !== undefined)
+  @IsArray()
+  @IsUrl({}, { each: true, message: 'Each removed image URL must be a valid URL' })
+  removedImageUrls?: string[];
 
   @IsOptional()
   @ValidateIf((o: UpdateVehicleRequest) => o.amenityIds !== undefined)
