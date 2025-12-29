@@ -2,6 +2,7 @@ import { inject, injectable } from 'tsyringe';
 import { IEndTripUseCase } from '../../interface/driver/end_trip_use_case.interface';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
+import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';
 import { Reservation } from '../../../../domain/entities/reservation.entity';
 import { ReservationStatus, ERROR_MESSAGES, DRIVER_ASSIGNMENT_CONFIG } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
@@ -20,7 +21,9 @@ import { container } from 'tsyringe';
 export class EndTripUseCase implements IEndTripUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IReservationRepository)
-    private readonly reservationRepository: IReservationRepository
+    private readonly reservationRepository: IReservationRepository,
+    @inject(REPOSITORY_TOKENS.IReservationChargeRepository)
+    private readonly chargeRepository: IReservationChargeRepository
   ) {}
 
   async execute(driverId: string, reservationId: string): Promise<Reservation> {
@@ -53,6 +56,17 @@ export class EndTripUseCase implements IEndTripUseCase {
     // Validate trip is not already completed
     if (reservation.completedAt) {
       throw new AppError('Trip has already been completed', 'TRIP_ALREADY_COMPLETED', 400);
+    }
+
+    // Check for unpaid charges - block completion if any exist
+    const unpaidCharges = await this.chargeRepository.findUnpaidByReservationId(reservationId);
+    if (unpaidCharges.length > 0) {
+      const totalUnpaid = unpaidCharges.reduce((sum, charge) => sum + charge.amount, 0);
+      throw new AppError(
+        `Cannot complete trip with unpaid balance of ${totalUnpaid} ${unpaidCharges[0]?.currency || 'INR'}. Please ensure all charges are paid before completing the trip.`,
+        'UNPAID_CHARGES_BLOCK_COMPLETION',
+        400
+      );
     }
 
     // Update reservation with completedAt and optionally status to COMPLETED

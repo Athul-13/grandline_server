@@ -7,6 +7,7 @@ import { AdminReservationsListResponse, AdminReservationListItemResponse } from 
 import { REPOSITORY_TOKENS } from '../../../../di/tokens';
 import { ReservationMapper } from '../../../../mapper/reservation.mapper';
 import { ReservationStatus, TripType, StopType } from '../../../../../shared/constants';
+import { deriveTripWindow } from '../../../../mapper/driver_dashboard.mapper';
 import { logger } from '../../../../../shared/logger';
 
 /**
@@ -103,7 +104,7 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
         }
       }
 
-      // Fetch itinerary for start/end locations
+      // Fetch itinerary for start/end locations and tripEndAt filtering
       const reservationIds = filteredReservations.map((r) => r.reservationId);
       const allItineraryStops = await Promise.all(
         reservationIds.map((id) => this.itineraryRepository.findByReservationIdOrdered(id))
@@ -113,6 +114,18 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
       const itineraryMap = new Map<string, typeof allItineraryStops[0]>();
       reservationIds.forEach((id, index) => {
         itineraryMap.set(id, allItineraryStops[index]);
+      });
+
+      // Filter out past trips: exclude reservations where tripEndAt < now
+      const now = new Date();
+      filteredReservations = filteredReservations.filter((reservation) => {
+        const itineraryStops = itineraryMap.get(reservation.reservationId);
+        if (!itineraryStops || itineraryStops.length === 0) {
+          return true; // Keep reservations without itinerary (shouldn't happen, but safe)
+        }
+        const { tripEndAt } = deriveTripWindow(itineraryStops);
+        // Exclude if tripEndAt < now (legacy expired trips)
+        return tripEndAt >= now;
       });
 
       // Fetch user information for all reservations

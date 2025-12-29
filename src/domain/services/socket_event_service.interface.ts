@@ -135,6 +135,30 @@ export interface ISocketEventService {
   emitTripEnded(reservationId: string, driverId: string): Promise<void>;
 
   /**
+   * Emits driver changed event when admin changes driver for a reservation
+   * Targets: old driver, new driver, and admin dashboard
+   */
+  emitDriverChanged(payload: {
+    reservationId: string;
+    oldDriverId: string | undefined;
+    newDriverId: string;
+    tripState: 'UPCOMING' | 'CURRENT' | 'PAST';
+  }): Promise<void>;
+
+  /**
+   * Emits vehicle changed event when admin adjusts vehicles for a reservation
+   * Targets: assigned driver (if any) and admin dashboard
+   */
+  emitVehicleChanged(payload: {
+    reservationId: string;
+    assignedDriverId: string | undefined;
+    vehicles: Array<{
+      vehicleId: string;
+      quantity: number;
+    }>;
+  }): Promise<void>;
+
+  /**
    * Emits location update event to admin dashboard, user, and driver rooms
    */
   emitLocationUpdate(locationData: {

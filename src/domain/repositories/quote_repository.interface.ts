@@ -53,11 +53,14 @@ export interface IQuoteRepository extends IBaseRepository<Quote> {
 
   /**
    * Finds all quotes for admin view
+   * @param excludePaid If true, excludes quotes with status PAID (default: true)
+   * Paid quotes appear only when filter explicitly selected
    */
   findAllForAdmin(
     includeDeleted: boolean,
     statuses?: QuoteStatus[],
-    userIds?: string[]
+    userIds?: string[],
+    excludePaid?: boolean
   ): Promise<Quote[]>;
 
   /**

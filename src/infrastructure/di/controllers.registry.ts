@@ -21,6 +21,7 @@ import { MessageController } from '../../presentation/controllers/message/messag
 import { NotificationController } from '../../presentation/controllers/notification/notification.controller';
 import { ReservationController } from '../../presentation/controllers/reservation/reservation.controller';
 import { AdminReservationController } from '../../presentation/controllers/admin/admin_reservation.controller';
+import { AdminTripController } from '../../presentation/controllers/admin/admin_trip.controller';
 import { ChargePaymentController } from '../../presentation/controllers/reservation/charge_payment.controller';
 
 /**
@@ -56,6 +57,7 @@ export function registerControllers(): void {
   // Reservation controllers
   container.register(CONTROLLER_TOKENS.ReservationController, ReservationController);
   container.register(CONTROLLER_TOKENS.AdminReservationController, AdminReservationController);
+  container.register(CONTROLLER_TOKENS.AdminTripController, AdminTripController);
   container.register(CONTROLLER_TOKENS.ChargePaymentController, ChargePaymentController);
 }
 

@@ -99,12 +99,14 @@ export class QuoteRepositoryImpl
   async findAllForAdmin(
     includeDeleted: boolean,
     statuses?: QuoteStatus[],
-    userIds?: string[]
+    userIds?: string[],
+    excludePaid: boolean = true
   ): Promise<Quote[]> {
     const filter = QuoteQueryBuilder.buildAdminFilter({
       includeDeleted,
       statuses,
       userIds,
+      excludePaid,
     });
 
     const docs = await this.quoteModel.find(filter);

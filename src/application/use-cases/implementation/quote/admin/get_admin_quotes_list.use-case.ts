@@ -64,7 +64,9 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
       );
 
       // Step 1: Get quotes based on filters
-      let quotes = await this.quoteRepository.findAllForAdmin(includeDeleted, status);
+      // Exclude paid quotes by default (unless explicitly included in status filter)
+      const excludePaid = !status || !status.includes(QuoteStatus.PAID);
+      let quotes = await this.quoteRepository.findAllForAdmin(includeDeleted, status, undefined, excludePaid);
 
       // Step 2: If search is provided, filter by user name/email
       let matchingUserIds: string[] = [];
@@ -85,7 +87,8 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
           const quotesByUsers = await this.quoteRepository.findAllForAdmin(
             includeDeleted,
             status,
-            matchingUserIds
+            matchingUserIds,
+            excludePaid
           );
           // Combine and deduplicate by quoteId
           const existingQuoteIds = new Set(quotes.map((q) => q.quoteId));

@@ -46,6 +46,7 @@ export class QuoteQueryBuilder {
     includeDeleted: boolean;
     statuses?: QuoteStatus[];
     userIds?: string[];
+    excludePaid?: boolean;
   }): Record<string, unknown> {
     const filter: Record<string, unknown> = {};
 
@@ -57,6 +58,10 @@ export class QuoteQueryBuilder {
     // Handle status filter
     if (params.statuses && params.statuses.length > 0) {
       filter.status = { $in: params.statuses };
+    } else if (params.excludePaid !== false) {
+      // Default: exclude paid quotes unless explicitly requested
+      // If statuses are provided, they override this default
+      filter.status = { $ne: QuoteStatus.PAID };
     }
 
     // Handle user IDs filter

@@ -127,12 +127,14 @@ export class ReservationRepositoryImpl
     _includeDeleted: boolean = false,
     statuses?: ReservationStatus[],
     userIds?: string[],
-    searchQuery?: string
+    searchQuery?: string,
+    excludePastTrips: boolean = true
   ): Promise<{ reservations: Reservation[]; total: number }> {
     const filter = ReservationQueryBuilder.buildAdminFilter({
       statuses,
       userIds,
       searchQuery,
+      excludePastTrips,
     });
 
     const allDocs = await this.reservationModel.find(filter, {

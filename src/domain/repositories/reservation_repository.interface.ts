@@ -56,6 +56,8 @@ export interface IReservationRepository extends IBaseRepository<Reservation> {
 
   /**
    * Finds all reservations for admin view with pagination and filters
+   * @param excludePastTrips If true, excludes reservations with completedAt != null (default: true)
+   * Note: tripEndAt < now filtering is done in use case after deriving from itinerary
    */
   findAllForAdmin(
     page: number,
@@ -63,7 +65,8 @@ export interface IReservationRepository extends IBaseRepository<Reservation> {
     includeDeleted?: boolean,
     statuses?: ReservationStatus[],
     userIds?: string[],
-    searchQuery?: string
+    searchQuery?: string,
+    excludePastTrips?: boolean
   ): Promise<{ reservations: Reservation[]; total: number }>;
 
   /**

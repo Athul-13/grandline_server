@@ -13,6 +13,7 @@ import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 import { canAssignDriverToReservation } from '../../../../../shared/utils/driver_assignment.util';
 import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { deriveTripWindow, deriveTripState } from '../../../../mapper/driver_dashboard.mapper';
 import { randomUUID } from 'crypto';
 
 /**
@@ -184,7 +185,7 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
       throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
     }
 
-    // Emit driver assigned notification
+    // Emit driver assigned notification (for backward compatibility)
     try {
       this.socketEventService.emitDriverAssigned({
         reservationId,
@@ -197,6 +198,34 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
       // Don't fail assignment if notification fails
       logger.error(
         `Error emitting driver assigned notification: ${socketError instanceof Error ? socketError.message : 'Unknown error'}`
+      );
+    }
+
+    // Emit driver changed event for real-time updates
+    try {
+      // Derive trip state for the event
+      const itineraryStops = await this.itineraryRepository.findByReservationId(reservationId);
+      const now = new Date();
+      const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops);
+      const tripState = deriveTripState({
+        status: updatedReservation.status,
+        tripStartAt,
+        tripEndAt,
+        now,
+        startedAt: updatedReservation.startedAt,
+        completedAt: updatedReservation.completedAt,
+      });
+
+      await this.socketEventService.emitDriverChanged({
+        reservationId,
+        oldDriverId: previousDriverId,
+        newDriverId: driverId,
+        tripState,
+      });
+    } catch (socketError: unknown) {
+      // Don't fail assignment if socket event fails
+      logger.error(
+        `Error emitting driver changed event: ${socketError instanceof Error ? socketError.message : 'Unknown error'}`
       );
     }
 
