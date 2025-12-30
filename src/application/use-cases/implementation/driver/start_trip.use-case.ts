@@ -3,13 +3,18 @@ import { IStartTripUseCase } from '../../interface/driver/start_trip_use_case.in
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
+import { IReservationItineraryRepository } from '../../../../domain/repositories/reservation_itinerary_repository.interface';
 import { Reservation } from '../../../../domain/entities/reservation.entity';
 import { ReservationStatus, ERROR_MESSAGES, DriverStatus } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
 import { driverCooldownQueue } from '../../../../infrastructure/queue/driver_cooldown.queue';
+import { tripAutoCompleteQueue } from '../../../../infrastructure/queue/trip_auto_complete.queue';
+import { deriveTripWindow } from '../../../mapper/driver_dashboard.mapper';
 import { container } from 'tsyringe';
+
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
 const TERMINAL_STATUSES = new Set<ReservationStatus>([
   ReservationStatus.CANCELLED,
@@ -27,7 +32,9 @@ export class StartTripUseCase implements IStartTripUseCase {
     @inject(REPOSITORY_TOKENS.IReservationRepository)
     private readonly reservationRepository: IReservationRepository,
     @inject(REPOSITORY_TOKENS.IDriverRepository)
-    private readonly driverRepository: IDriverRepository
+    private readonly driverRepository: IDriverRepository,
+    @inject(REPOSITORY_TOKENS.IReservationItineraryRepository)
+    private readonly itineraryRepository: IReservationItineraryRepository
   ) {}
 
   async execute(driverId: string, reservationId: string): Promise<Reservation> {
@@ -144,6 +151,43 @@ export class StartTripUseCase implements IStartTripUseCase {
     } catch (error) {
       // Don't fail trip start if socket emission fails
       logger.error('Error emitting trip started event:', error);
+    }
+
+    // Schedule auto-complete job (tripEndAt + 24 hours grace period)
+    try {
+      const itineraryStops = await this.itineraryRepository.findByReservationIdOrdered(reservationId);
+      if (itineraryStops.length > 0) {
+        const { tripEndAt } = deriveTripWindow(itineraryStops);
+        const graceEnd = tripEndAt.getTime() + ONE_DAY_MS;
+        const delay = graceEnd - Date.now();
+
+        if (delay > 0) {
+          await tripAutoCompleteQueue.add(
+            { reservationId },
+            {
+              delay,
+              jobId: `auto-complete-${reservationId}`,
+            }
+          );
+          logger.debug(`Scheduled auto-complete job for reservation ${reservationId} (delay: ${delay}ms)`);
+        } else {
+          // Grace period already passed - enqueue immediate job
+          await tripAutoCompleteQueue.add(
+            { reservationId },
+            {
+              jobId: `auto-complete-${reservationId}`,
+            }
+          );
+          logger.debug(`Scheduled immediate auto-complete job for reservation ${reservationId} (grace period already passed)`);
+        }
+      } else {
+        logger.warn(`Reservation ${reservationId} has no itinerary, cannot schedule auto-complete job`);
+      }
+    } catch (scheduleError) {
+      // Don't fail trip start if job scheduling fails
+      logger.error(
+        `Error scheduling auto-complete job for reservation ${reservationId}: ${scheduleError instanceof Error ? scheduleError.message : 'Unknown error'}`
+      );
     }
 
     logger.info(`Driver ${driverId} started trip: ${reservationId}`);

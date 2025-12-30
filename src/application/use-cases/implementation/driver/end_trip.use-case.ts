@@ -11,6 +11,7 @@ import { ISocketEventService } from '../../../../domain/services/socket_event_se
 import { IRedisConnection } from '../../../../domain/services/redis_connection.interface';
 import { CONFIG_TOKENS } from '../../../../infrastructure/di/tokens';
 import { driverCooldownQueue } from '../../../../infrastructure/queue/driver_cooldown.queue';
+import { tripAutoCompleteQueue } from '../../../../infrastructure/queue/trip_auto_complete.queue';
 import { container } from 'tsyringe';
 
 /**
@@ -56,6 +57,23 @@ export class EndTripUseCase implements IEndTripUseCase {
     // Validate trip is not already completed
     if (reservation.completedAt) {
       throw new AppError('Trip has already been completed', 'TRIP_ALREADY_COMPLETED', 400);
+    }
+
+    // Cancel auto-complete job if it exists (driver is ending trip manually)
+    try {
+      const jobs = await tripAutoCompleteQueue.getJobs(['delayed', 'waiting', 'active']);
+      for (const job of jobs) {
+        if (job.data.reservationId === reservationId) {
+          await job.remove();
+          logger.debug(`Cancelled auto-complete job for reservation ${reservationId} (driver ended trip manually)`);
+          break; // Only one job per reservation
+        }
+      }
+    } catch (cancelError) {
+      // Don't fail trip end if job cancellation fails
+      logger.error(
+        `Error cancelling auto-complete job for reservation ${reservationId}: ${cancelError instanceof Error ? cancelError.message : 'Unknown error'}`
+      );
     }
 
     // Check for unpaid charges - block completion if any exist

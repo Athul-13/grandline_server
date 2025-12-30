@@ -17,10 +17,13 @@ import { SocketEventService } from './infrastructure/service/socket_event.servic
 import { IQueueService } from './domain/services/queue_service.interface';
 import { DriverAssignmentWorker } from './infrastructure/queue/workers/driver_assignment.worker';
 import { QuoteExpiryWorker } from './infrastructure/queue/workers/quote_expiry.worker';
+import { TripAutoCompleteWorker } from './infrastructure/queue/workers/trip_auto_complete.worker';
 import { driverAssignmentQueue } from './infrastructure/queue/driver_assignment.queue';
 import { quoteExpiryQueue } from './infrastructure/queue/quote_expiry.queue';
 import { driverCooldownQueue } from './infrastructure/queue/driver_cooldown.queue';
+import { tripAutoCompleteQueue } from './infrastructure/queue/trip_auto_complete.queue';
 import { initializeDriverCooldownWorker } from './infrastructure/queue/workers/driver_cooldown.worker';
+import { backfillTripAutoCompleteJobs } from './application/startup/backfill_trip_auto_complete';
 
 /**
  * Starts the Express server with database connection, Socket.io, and error handling
@@ -101,6 +104,15 @@ const startServer = async (): Promise<void> => {
     initializeDriverCooldownWorker();
     console.log('[Server] Driver cooldown worker initialized');
 
+    // Initialize trip auto-complete worker
+    const tripAutoCompleteWorker = new TripAutoCompleteWorker();
+    tripAutoCompleteWorker.initialize();
+    console.log('[Server] Trip auto-complete worker initialized');
+
+    // Backfill existing ongoing trips (one-time at startup)
+    await backfillTripAutoCompleteJobs();
+    console.log('[Server] Trip auto-complete backfill completed');
+
     // Initialize repeatable process-pending-quotes job (replaces setInterval scheduler)
     // Type assertion needed due to tsyringe Symbol type inference
     const queueService: IQueueService = container.resolve(SERVICE_TOKENS.IQueueService);
@@ -115,6 +127,7 @@ const startServer = async (): Promise<void> => {
       await driverCooldownQueue.close();
       await driverAssignmentQueue.close();
       await quoteExpiryQueue.close();
+      await tripAutoCompleteQueue.close();
       console.log('[Server] Queue connections closed');
 
       // Close database connections
