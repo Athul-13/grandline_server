@@ -38,7 +38,7 @@ export class QuoteQueryBuilder {
   }
 
   /**
-   * Builds admin filter with statuses and userIds
+   * Builds admin filter with statuses, userIds, and search query
    * @param params Filter parameters
    * @returns MongoDB filter object for admin queries
    */
@@ -47,6 +47,7 @@ export class QuoteQueryBuilder {
     statuses?: QuoteStatus[];
     userIds?: string[];
     excludePaid?: boolean;
+    searchQuery?: string;
   }): Record<string, unknown> {
     const filter: Record<string, unknown> = {};
 
@@ -67,6 +68,16 @@ export class QuoteQueryBuilder {
     // Handle user IDs filter
     if (params.userIds && params.userIds.length > 0) {
       filter.userId = { $in: params.userIds };
+    }
+
+    // Handle search query (searches quoteId, tripName, eventType, customEventType)
+    if (params.searchQuery && params.searchQuery.trim().length > 0) {
+      filter.$or = [
+        { quoteId: { $regex: params.searchQuery.trim(), $options: 'i' } },
+        { tripName: { $regex: params.searchQuery.trim(), $options: 'i' } },
+        { eventType: { $regex: params.searchQuery.trim(), $options: 'i' } },
+        { customEventType: { $regex: params.searchQuery.trim(), $options: 'i' } },
+      ];
     }
 
     return filter;

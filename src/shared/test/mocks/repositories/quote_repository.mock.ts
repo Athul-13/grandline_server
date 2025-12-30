@@ -20,7 +20,7 @@ export class MockQuoteRepository implements IQuoteRepository {
   softDelete = vi.fn<[string], Promise<void>>().mockResolvedValue(undefined);
   findByTripType = vi.fn<[TripType], Promise<Quote[]>>().mockResolvedValue([]);
   findAllForAdmin = vi.fn<
-    [boolean, QuoteStatus[]?, string[]?],
+    [boolean, QuoteStatus[]?, string[]?, boolean?, string?],
     Promise<Quote[]>
   >().mockResolvedValue([]);
   findBookedVehicleIdsInDateRange = vi.fn<

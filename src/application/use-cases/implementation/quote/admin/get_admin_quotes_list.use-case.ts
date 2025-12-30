@@ -66,15 +66,22 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
       // Step 1: Get quotes based on filters
       // Exclude paid quotes by default (unless explicitly included in status filter)
       const excludePaid = !status || !status.includes(QuoteStatus.PAID);
-      let quotes = await this.quoteRepository.findAllForAdmin(includeDeleted, status, undefined, excludePaid);
+      
+      // Step 2: Search quotes by ID, tripName, eventType, customEventType (if search provided)
+      let quotes = await this.quoteRepository.findAllForAdmin(
+        includeDeleted,
+        status,
+        undefined,
+        excludePaid,
+        normalizedSearch // Search quoteId, tripName, eventType, customEventType
+      );
 
-      // Step 2: If search is provided, filter by user name/email
-      let matchingUserIds: string[] = [];
+      // Step 3: If search is provided, also search by user name/email and combine results
       if (normalizedSearch) {
         const searchLower = normalizedSearch.toLowerCase();
         const allUsersResult = await this.userRepository.findAll();
         const allUsers = allUsersResult;
-        matchingUserIds = allUsers
+        const matchingUserIds = allUsers
           .filter(
             (user) =>
               user.fullName.toLowerCase().includes(searchLower) ||
@@ -82,13 +89,14 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
           )
           .map((user) => user.userId);
 
-        // If we found matching users, get their quotes and combine
+        // If we found matching users, get their quotes and combine with existing results
         if (matchingUserIds.length > 0) {
           const quotesByUsers = await this.quoteRepository.findAllForAdmin(
             includeDeleted,
             status,
             matchingUserIds,
-            excludePaid
+            excludePaid,
+            undefined // Don't search quote fields again, we already have those
           );
           // Combine and deduplicate by quoteId
           const existingQuoteIds = new Set(quotes.map((q) => q.quoteId));
@@ -96,10 +104,8 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
             (quote) => !existingQuoteIds.has(quote.quoteId)
           );
           quotes = [...quotes, ...additionalQuotes];
-        } else {
-          // No matching users, return empty result
-          quotes = [];
         }
+        // If no matching users found, keep the quotes that matched by ID/tripName (don't return empty)
       }
 
       // Step 3: Fetch user information for all quotes
@@ -138,31 +144,14 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
       }
 
       // Step 5: Map quotes to admin response DTOs with user information
+      // Note: Search filtering is already done at repository level (quoteId, tripName, eventType, customEventType)
+      // and user level (user name/email), so no additional filtering needed here
       const quotesWithUsers: AdminQuoteListItemResponse[] = [];
       for (const quote of quotes) {
         const user = usersMap.get(quote.userId);
         if (!user) {
           logger.warn(`Skipping quote ${quote.quoteId} - user ${quote.userId} not found`);
           continue;
-        }
-
-        // If search is provided, do final in-memory filter for quote fields
-        if (normalizedSearch) {
-          const searchLower = normalizedSearch.toLowerCase();
-          const quoteMatches =
-            quote.quoteId.toLowerCase().includes(searchLower) ||
-            (quote.tripName && quote.tripName.toLowerCase().includes(searchLower)) ||
-            (quote.eventType && quote.eventType.toLowerCase().includes(searchLower)) ||
-            (quote.customEventType && quote.customEventType.toLowerCase().includes(searchLower));
-
-          const userMatches =
-            user.fullName.toLowerCase().includes(searchLower) ||
-            user.email.toLowerCase().includes(searchLower);
-
-          // Skip if neither quote fields nor user fields match
-          if (!quoteMatches && !userMatches) {
-            continue;
-          }
         }
 
         const quoteListItem = QuoteMapper.toQuoteListItemResponse(quote);

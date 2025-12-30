@@ -100,13 +100,15 @@ export class QuoteRepositoryImpl
     includeDeleted: boolean,
     statuses?: QuoteStatus[],
     userIds?: string[],
-    excludePaid: boolean = true
+    excludePaid: boolean = true,
+    searchQuery?: string
   ): Promise<Quote[]> {
     const filter = QuoteQueryBuilder.buildAdminFilter({
       includeDeleted,
       statuses,
       userIds,
       excludePaid,
+      searchQuery,
     });
 
     const docs = await this.quoteModel.find(filter);

@@ -62,6 +62,7 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
       );
 
       // Get reservations with filters
+      // Repository searches: reservationId, tripName
       const { reservations } = await this.reservationRepository.findAllForAdmin(
         normalizedPage,
         normalizedLimit,
@@ -71,7 +72,7 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
         normalizedSearch
       );
 
-      // If search is provided, also filter by user name/email
+      // If search is provided, also search by user name/email and combine results
       let filteredReservations = reservations;
       if (normalizedSearch && normalizedSearch.length > 0) {
         const searchLower = normalizedSearch.toLowerCase();
@@ -92,16 +93,14 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
             false,
             status,
             matchingUserIds,
-            undefined // Don't search again
+            undefined // Don't search reservationId/tripName again, we already have those
           );
           // Combine and deduplicate
           const existingIds = new Set(filteredReservations.map((r) => r.reservationId));
           const additional = userReservations.filter((r) => !existingIds.has(r.reservationId));
           filteredReservations = [...filteredReservations, ...additional];
-        } else {
-          // No matching users, return empty
-          filteredReservations = [];
         }
+        // If no matching users found, keep the reservations that matched by reservationId/tripName (don't return empty)
       }
 
       // Fetch itinerary for start/end locations and tripEndAt filtering
