@@ -49,10 +49,10 @@ export class DriverAssignmentWorker {
       const assigned = await this.autoAssignmentService.tryAssignDriverToQuote(quoteId);
 
       if (assigned) {
-        logger.info(`Successfully assigned driver to quote ${quoteId} (Job ID: ${job.id})`);
+        logger.info(`Driver assigned to quote ${quoteId} (Job ID: ${job.id})`);
         return true;
       } else {
-        logger.info(`No driver available for quote ${quoteId} (Job ID: ${job.id})`);
+        // No driver available - this is expected, not an error
         return false;
       }
     } catch (error) {
@@ -72,7 +72,7 @@ export class DriverAssignmentWorker {
 
       const assignedCount = await this.autoAssignmentService.processPendingQuotes();
 
-      logger.info(`Processed pending quotes job: ${assignedCount} quotes assigned (Job ID: ${job.id})`);
+      logger.info(`Pending quotes processed: ${assignedCount} quotes assigned (Job ID: ${job.id})`);
       return assignedCount;
     } catch (error) {
       logger.error(

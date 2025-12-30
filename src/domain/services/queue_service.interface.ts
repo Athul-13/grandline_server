@@ -13,4 +13,10 @@ export interface IQueueService {
    * Adds a job to process all pending SUBMITTED quotes
    */
   addProcessPendingQuotesJob(): Promise<void>;
+
+  /**
+   * Initializes the repeatable process-pending-quotes job
+   * This creates a persistent scheduled job that runs every 10 minutes
+   */
+  initializeProcessPendingQuotesRepeatJob(): Promise<void>;
 }

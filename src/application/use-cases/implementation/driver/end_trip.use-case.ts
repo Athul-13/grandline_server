@@ -119,7 +119,7 @@ export class EndTripUseCase implements IEndTripUseCase {
           removeOnComplete: true,
         }
       );
-      logger.info(`Scheduled driver cooldown job for driver ${driverId} (reservation ${reservationId}) - will execute in 24 hours`);
+      // No log - delayed jobs don't need enqueue confirmation
     } catch (cooldownError) {
       // Don't fail trip end if job scheduling fails
       logger.error(

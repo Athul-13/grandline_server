@@ -14,9 +14,10 @@ import { NotificationSocketHandler } from './presentation/socket_handlers/notifi
 import { AdminSocketHandler } from './presentation/socket_handlers/admin_socket.handler';
 import { LocationSocketHandler } from './presentation/socket_handlers/location_socket.handler';
 import { SocketEventService } from './infrastructure/service/socket_event.service';
+import { IQueueService } from './domain/services/queue_service.interface';
 import { DriverAssignmentWorker } from './infrastructure/queue/workers/driver_assignment.worker';
-import { DriverAssignmentScheduler } from './infrastructure/queue/scheduler/driver_assignment.scheduler';
 import { driverAssignmentQueue } from './infrastructure/queue/driver_assignment.queue';
+import { driverCooldownQueue } from './infrastructure/queue/driver_cooldown.queue';
 import { initializeDriverCooldownWorker } from './infrastructure/queue/workers/driver_cooldown.worker';
 
 /**
@@ -93,19 +94,18 @@ const startServer = async (): Promise<void> => {
     initializeDriverCooldownWorker();
     console.log('[Server] Driver cooldown worker initialized');
 
-    // Initialize scheduler for periodic pending quotes processing
-    const driverAssignmentScheduler = new DriverAssignmentScheduler();
-    driverAssignmentScheduler.start();
-    console.log('[Server] Driver assignment scheduler started');
+    // Initialize repeatable process-pending-quotes job (replaces setInterval scheduler)
+    // Type assertion needed due to tsyringe Symbol type inference
+    const queueService: IQueueService = container.resolve(SERVICE_TOKENS.IQueueService);
+    await queueService.initializeProcessPendingQuotesRepeatJob();
+    console.log('[Server] Process pending quotes repeat job initialized');
 
     // Graceful shutdown handler
     const gracefulShutdown = async (signal: string): Promise<void> => {
       console.log(`\n${signal} received. Starting graceful shutdown...`);
       
-      // Stop scheduler
-      driverAssignmentScheduler.stop();
-      
       // Close queue connections
+      await driverCooldownQueue.close();
       await driverAssignmentQueue.close();
       console.log('[Server] Queue connections closed');
 

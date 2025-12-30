@@ -24,8 +24,7 @@ export class QueueServiceImpl implements IQueueService {
         },
         timeout: 30000, // 30 seconds
       });
-
-      logger.info(`Added driver assignment job for quote: ${quoteId}`);
+      // No log - event-driven jobs don't need enqueue confirmation
     } catch (error) {
       logger.error(
         `Failed to add driver assignment job for quote ${quoteId}: ${error instanceof Error ? error.message : 'Unknown error'}`
@@ -40,12 +39,8 @@ export class QueueServiceImpl implements IQueueService {
         jobType: 'process-pending-quotes',
       };
 
-      // Use jobId to prevent duplicate jobs
-      // If a job with this ID already exists, it won't be added again
-      const jobId = 'process-pending-quotes';
-
       await driverAssignmentQueue.add(jobData, {
-        jobId,
+        jobId: 'process-pending-quotes', // Fixed jobId for repeatable job
         removeOnComplete: true, // Remove completed jobs immediately
         removeOnFail: false, // Keep failed jobs for debugging
         attempts: 2,
@@ -55,13 +50,50 @@ export class QueueServiceImpl implements IQueueService {
         },
         timeout: 60000, // 60 seconds for processing multiple quotes
       });
-
-      logger.info('Added process pending quotes job');
+      // No log - repeatable jobs don't need enqueue confirmation
     } catch (error) {
       logger.error(
         `Failed to add process pending quotes job: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       // Don't throw - job addition failure shouldn't break the flow
+    }
+  }
+
+  /**
+   * Initialize the repeatable process-pending-quotes job
+   * This replaces the setInterval-based scheduler
+   * The job will run every 10 minutes and persist across server restarts
+   */
+  async initializeProcessPendingQuotesRepeatJob(): Promise<void> {
+    try {
+      const jobData: ProcessPendingQuotesJobData = {
+        jobType: 'process-pending-quotes',
+      };
+
+      await driverAssignmentQueue.add(
+        jobData,
+        {
+          jobId: 'process-pending-quotes',
+          repeat: {
+            every: 10 * 60 * 1000, // 10 minutes in milliseconds
+          },
+          removeOnComplete: true,
+          removeOnFail: false,
+          attempts: 2,
+          backoff: {
+            type: 'exponential',
+            delay: 5000,
+          },
+          timeout: 60000, // 60 seconds for processing multiple quotes
+        }
+      );
+
+      logger.info('Process pending quotes repeat job initialized (runs every 10 minutes)');
+    } catch (error) {
+      logger.error(
+        `Failed to initialize process pending quotes repeat job: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      throw error; // This is a critical initialization failure
     }
   }
 }
