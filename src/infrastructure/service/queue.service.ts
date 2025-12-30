@@ -1,6 +1,7 @@
 import { injectable } from 'tsyringe';
 import { IQueueService } from '../../domain/services/queue_service.interface';
 import { driverAssignmentQueue, AssignDriverJobData, ProcessPendingQuotesJobData } from '../queue/driver_assignment.queue';
+import { quoteExpiryQueue, QuoteExpiryJobData } from '../queue/quote_expiry.queue';
 import { logger } from '../../shared/logger';
 
 /**
@@ -94,6 +95,42 @@ export class QueueServiceImpl implements IQueueService {
         `Failed to initialize process pending quotes repeat job: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
       throw error; // This is a critical initialization failure
+    }
+  }
+
+  /**
+   * Adds a delayed job to expire a quote after 24 hours
+   * @param quoteId - The quote ID to expire
+   * @param quotedAt - The timestamp when the quote was quoted (24 hours from this)
+   */
+  async addQuoteExpiryJob(quoteId: string, quotedAt: Date): Promise<void> {
+    try {
+      const jobData: QuoteExpiryJobData = {
+        quoteId,
+      };
+
+      // Calculate delay: 24 hours from quotedAt
+      const delay = quotedAt.getTime() + 24 * 60 * 60 * 1000 - Date.now();
+
+      // Only schedule if delay is positive (not in the past)
+      if (delay > 0) {
+        await quoteExpiryQueue.add(jobData, {
+          jobId: `quote-expiry:${quoteId}`, // Fixed jobId per quote
+          delay, // Delay in milliseconds
+          removeOnComplete: true,
+          removeOnFail: false,
+          attempts: 1, // Only attempt once - idempotent check handles edge cases
+          timeout: 10000, // 10 seconds timeout
+        });
+        logger.info(`Quote expiry job scheduled for quote ${quoteId}, will expire in ${Math.round(delay / 1000 / 60)} minutes`);
+      } else {
+        logger.warn(`Quote ${quoteId} quotedAt is in the past or too close, skipping expiry job`);
+      }
+    } catch (error) {
+      logger.error(
+        `Failed to add quote expiry job for quote ${quoteId}: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      // Don't throw - job addition failure shouldn't break the flow
     }
   }
 }

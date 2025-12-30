@@ -76,6 +76,7 @@ export enum QuoteStatus {
   REJECTED = 'rejected',        // Quote has been rejected
   PAID = 'paid',                // Quote has been paid (becomes reservation)
   QUOTED = 'quoted',            // Quote has been quoted with actual driver pricing
+  EXPIRED = 'expired',          // Quote expired after 24-hour payment window
 }
 
 /**

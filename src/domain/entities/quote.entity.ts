@@ -93,9 +93,11 @@ export class Quote {
 
   /**
    * Checks if the quote can be edited
+   * EXPIRED quotes cannot be edited (user must resubmit)
    */
   canBeEdited(): boolean {
-    return this.status === QuoteStatus.DRAFT || this.status === QuoteStatus.SUBMITTED;
+    return (this.status === QuoteStatus.DRAFT || this.status === QuoteStatus.SUBMITTED) && 
+           this.status !== QuoteStatus.EXPIRED;
   }
 
   /**
@@ -138,6 +140,13 @@ export class Quote {
    */
   isQuoted(): boolean {
     return this.status === QuoteStatus.QUOTED;
+  }
+
+  /**
+   * Checks if the quote has expired
+   */
+  isExpired(): boolean {
+    return this.status === QuoteStatus.EXPIRED;
   }
 
   /**

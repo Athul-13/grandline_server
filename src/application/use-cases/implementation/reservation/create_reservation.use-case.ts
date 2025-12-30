@@ -70,6 +70,15 @@ export class CreateReservationUseCase implements ICreateReservationUseCase {
         throw new AppError('Quote not found', 'QUOTE_NOT_FOUND', 404);
       }
 
+      // Explicitly block EXPIRED quotes from creating reservations
+      if (quote.status === QuoteStatus.EXPIRED) {
+        throw new AppError(
+          'Cannot create reservation from an expired quote',
+          'QUOTE_EXPIRED',
+          400
+        );
+      }
+
       // Get payment
       const payment = await this.paymentRepository.findById(paymentId);
       if (!payment) {

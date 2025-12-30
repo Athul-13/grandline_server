@@ -48,6 +48,14 @@ export interface ISocketEventService {
   emitQuoteStatusChanged(quote: Quote, oldStatus: QuoteStatus): void;
 
   /**
+   * Emits quote expired event to admin dashboard and user rooms
+   */
+  emitQuoteExpired(payload: {
+    quoteId: string;
+    expiredAt: Date;
+  }): Promise<void>;
+
+  /**
    * Emits reservation created event to admin dashboard room
    */
   emitReservationCreated(reservation: Reservation): void;

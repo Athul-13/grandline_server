@@ -247,6 +247,17 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
               driverAssigned = true;
               finalStatus = QuoteStatus.QUOTED;
 
+              // Schedule expiry job for 24 hours from now
+              try {
+                await this.queueService.addQuoteExpiryJob(quoteId, quotedAt);
+                logger.info(`Quote expiry job scheduled for quote: ${quoteId}`);
+              } catch (expiryJobError) {
+                // Log error but don't fail quote submission
+                logger.error(
+                  `Failed to schedule expiry job for quote ${quoteId}: ${expiryJobError instanceof Error ? expiryJobError.message : 'Unknown error'}`
+                );
+              }
+
               // Fetch updated quote for PDF generation
               const updatedQuote = await this.quoteRepository.findById(quoteId);
               if (updatedQuote) {

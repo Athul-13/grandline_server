@@ -16,7 +16,9 @@ import { LocationSocketHandler } from './presentation/socket_handlers/location_s
 import { SocketEventService } from './infrastructure/service/socket_event.service';
 import { IQueueService } from './domain/services/queue_service.interface';
 import { DriverAssignmentWorker } from './infrastructure/queue/workers/driver_assignment.worker';
+import { QuoteExpiryWorker } from './infrastructure/queue/workers/quote_expiry.worker';
 import { driverAssignmentQueue } from './infrastructure/queue/driver_assignment.queue';
+import { quoteExpiryQueue } from './infrastructure/queue/quote_expiry.queue';
 import { driverCooldownQueue } from './infrastructure/queue/driver_cooldown.queue';
 import { initializeDriverCooldownWorker } from './infrastructure/queue/workers/driver_cooldown.worker';
 
@@ -90,6 +92,11 @@ const startServer = async (): Promise<void> => {
     driverAssignmentWorker.initialize();
     console.log('[Server] Driver assignment worker initialized');
 
+    // Initialize quote expiry worker
+    const quoteExpiryWorker = new QuoteExpiryWorker();
+    quoteExpiryWorker.initialize();
+    console.log('[Server] Quote expiry worker initialized');
+
     // Initialize driver cooldown worker
     initializeDriverCooldownWorker();
     console.log('[Server] Driver cooldown worker initialized');
@@ -107,6 +114,7 @@ const startServer = async (): Promise<void> => {
       // Close queue connections
       await driverCooldownQueue.close();
       await driverAssignmentQueue.close();
+      await quoteExpiryQueue.close();
       console.log('[Server] Queue connections closed');
 
       // Close database connections

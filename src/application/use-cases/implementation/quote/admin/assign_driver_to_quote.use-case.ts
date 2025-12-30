@@ -23,6 +23,7 @@ import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Vehicle } from '../../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../../domain/entities/amenity.entity';
 import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { IQueueService } from '../../../../../domain/services/queue_service.interface';
 import { canAssignDriverToQuote } from '../../../../../shared/utils/driver_assignment.util';
 import { container } from 'tsyringe';
 
@@ -76,8 +77,16 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         throw new AppError(ERROR_MESSAGES.QUOTE_NOT_FOUND, ERROR_CODES.QUOTE_NOT_FOUND, 404);
       }
 
-      // Verify quote is in a valid state for driver assignment
+      // Verify quote is in a valid state for driver assignment (exclude EXPIRED and other terminal states)
       if (quote.status !== QuoteStatus.SUBMITTED && quote.status !== QuoteStatus.QUOTED) {
+        // Explicitly block EXPIRED quotes with a clear error message
+        if (quote.status === QuoteStatus.EXPIRED) {
+          throw new AppError(
+            'Cannot assign driver to an expired quote. Please have the user submit a new quote.',
+            'QUOTE_EXPIRED',
+            400
+          );
+        }
         throw new AppError(
           'Quote must be in SUBMITTED or QUOTED status to assign driver',
           'INVALID_QUOTE_STATUS',
@@ -241,6 +250,18 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         quotedAt,
       } as Partial<Quote>);
 
+      // Schedule expiry job for 24 hours from now
+      try {
+        const queueService = container.resolve<IQueueService>(SERVICE_TOKENS.IQueueService);
+        await queueService.addQuoteExpiryJob(quoteId, quotedAt);
+        logger.info(`Quote expiry job scheduled for quote: ${quoteId}`);
+      } catch (expiryJobError) {
+        // Log error but don't fail driver assignment
+        logger.error(
+          `Failed to schedule expiry job for quote ${quoteId}: ${expiryJobError instanceof Error ? expiryJobError.message : 'Unknown error'}`
+        );
+      }
+
       // Update driver's lastAssignedAt for fair assignment
       try {
         await this.driverRepository.updateLastAssignedAt(request.driverId, new Date());
@@ -272,8 +293,8 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
       });
 
       // Prepare email data
-      const paymentLink = `${FRONTEND_CONFIG.URL}/payment/${quoteId}`;
-      const viewQuoteLink = `${FRONTEND_CONFIG.URL}/quotes/${quoteId}`;
+      // Both links point to quote details page where user can view and pay
+      const quoteDetailsLink = `${FRONTEND_CONFIG.URL}/quotes/${quoteId}`;
 
       const emailData: QuoteEmailData = {
         email: user.email,
@@ -283,8 +304,8 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         tripType: updatedQuote.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way',
         totalPrice: total,
         quoteDate: quotedAt,
-        viewQuoteLink,
-        paymentLink,
+        viewQuoteLink: quoteDetailsLink,
+        paymentLink: quoteDetailsLink, // Points to quote details page where Pay Now button is available
       };
 
       // Send email with PDF attachment

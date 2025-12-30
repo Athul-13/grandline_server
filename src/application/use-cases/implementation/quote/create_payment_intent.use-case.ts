@@ -50,8 +50,16 @@ export class CreatePaymentIntentUseCase implements ICreatePaymentIntentUseCase {
         throw new AppError(ERROR_MESSAGES.QUOTE_NOT_FOUND, ERROR_CODES.QUOTE_NOT_FOUND, 404);
       }
 
-      // Verify quote is in QUOTED status
+      // Verify quote is in QUOTED status (exclude EXPIRED and other states)
       if (quote.status !== QuoteStatus.QUOTED) {
+        // Explicitly block EXPIRED quotes with a clear error message
+        if (quote.status === QuoteStatus.EXPIRED) {
+          throw new AppError(
+            'This quote has expired. Please submit a new quote.',
+            'QUOTE_EXPIRED',
+            400
+          );
+        }
         throw new AppError(
           'Quote must be in QUOTED status to proceed with payment',
           'INVALID_QUOTE_STATUS',

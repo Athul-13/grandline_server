@@ -12,6 +12,7 @@ import { IMessageRepository } from '../../domain/repositories/message_repository
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
 import { IDriverRepository } from '../../domain/repositories/driver_repository.interface';
 import { IReservationRepository } from '../../domain/repositories/reservation_repository.interface';
+import { IQuoteRepository } from '../../domain/repositories/quote_repository.interface';
 import { MessageDeliveryStatus, NotificationType, QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus } from '../../shared/constants';
 import { User } from '../../domain/entities/user.entity';
 import { Driver } from '../../domain/entities/driver.entity';
@@ -43,6 +44,7 @@ export const ADMIN_DASHBOARD_SOCKET_EVENTS = {
   QUOTE_CREATED: 'admin:quote-created',
   QUOTE_UPDATED: 'admin:quote-updated',
   QUOTE_STATUS_CHANGED: 'admin:quote-status-changed',
+  QUOTE_EXPIRED: 'quote:expired',
   RESERVATION_CREATED: 'admin:reservation-created',
   RESERVATION_UPDATED: 'admin:reservation-updated',
   RESERVATION_STATUS_CHANGED: 'admin:reservation-status-changed',
@@ -481,6 +483,46 @@ export class SocketEventService implements ISocketEventService {
       logger.debug(`Quote status changed event emitted to admin dashboard: ${quote.quoteId}, ${oldStatus} -> ${quote.status}`);
     } catch (error) {
       logger.error(`Error emitting quote status changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits quote expired event to admin dashboard and user rooms
+   */
+  async emitQuoteExpired(payload: { quoteId: string; expiredAt: Date }): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit quote expired event. ` +
+        `Method: emitQuoteExpired, QuoteId: ${payload.quoteId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch quote to get userId
+      const quoteRepository = container.resolve<IQuoteRepository>(REPOSITORY_TOKENS.IQuoteRepository);
+      const quote = await quoteRepository.findById(payload.quoteId);
+
+      const eventData = {
+        quoteId: payload.quoteId,
+        expiredAt: payload.expiredAt.toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit('quote:expired', eventData);
+      
+      // Emit to user room if quote exists
+      if (quote) {
+        const userRoom = `user:${quote.userId}`;
+        this.io.to(userRoom).emit('quote:expired', eventData);
+        logger.debug(`Quote expired event emitted to user room: ${userRoom}, quote: ${payload.quoteId}`);
+      } else {
+        // Fallback: emit globally if quote not found (shouldn't happen, but safe)
+        this.io.emit('quote:expired', eventData);
+        logger.warn(`Quote not found for expiry event, emitted globally: ${payload.quoteId}`);
+      }
+    } catch (error) {
+      logger.error(`Error emitting quote expired event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 

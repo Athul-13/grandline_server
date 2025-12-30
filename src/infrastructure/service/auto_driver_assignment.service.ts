@@ -62,7 +62,7 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         return false;
       }
 
-      // Only process SUBMITTED quotes
+      // Only process SUBMITTED quotes (exclude EXPIRED and other terminal states)
       if (quote.status !== QuoteStatus.SUBMITTED) {
         logger.info(`Quote ${quoteId} is not in SUBMITTED status (current: ${quote.status}), skipping auto-assignment`);
         return false;
@@ -328,7 +328,7 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
     try {
       logger.info('Processing pending quotes for driver assignment');
 
-      // Find all SUBMITTED quotes without assigned drivers
+      // Find all SUBMITTED quotes without assigned drivers (exclude EXPIRED)
       const submittedQuotes = await this.quoteRepository.findByStatus(QuoteStatus.SUBMITTED);
       
       if (submittedQuotes.length === 0) {
@@ -336,8 +336,10 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         return 0;
       }
 
-      // Filter quotes without assigned drivers
-      const quotesNeedingDrivers = submittedQuotes.filter((quote) => !quote.assignedDriverId);
+      // Filter quotes without assigned drivers and exclude EXPIRED (shouldn't be in SUBMITTED, but double-check)
+      const quotesNeedingDrivers = submittedQuotes.filter(
+        (quote) => !quote.assignedDriverId && quote.status !== QuoteStatus.EXPIRED
+      );
 
       if (quotesNeedingDrivers.length === 0) {
         logger.info('No quotes needing driver assignment');
