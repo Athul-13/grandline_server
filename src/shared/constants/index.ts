@@ -121,6 +121,36 @@ export enum ParticipantType {
 }
 
 /**
+ * Actor type enumeration
+ * Defines the type of actor in a ticket
+ */
+export enum ActorType {
+  ADMIN = 'admin',
+  USER = 'user',
+  DRIVER = 'driver',
+}
+
+/**
+ * Linked entity type enumeration
+ * Defines the type of linked entity in a ticket
+ */
+export enum LinkedEntityType {
+  QUOTE = 'quote',
+  RESERVATION = 'reservation',
+}
+
+/**
+ * Ticket status enumeration
+ * Defines the status of a ticket
+ */
+export enum TicketStatus {
+  OPEN = 'open',
+  IN_PROGRESS = 'in_progress',
+  RESOLVED = 'resolved',
+  REJECTED = 'rejected',
+}
+
+/**
  * Message delivery status enumeration
  * Tracks the delivery and read status of messages
  */
