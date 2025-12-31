@@ -64,14 +64,8 @@ export class CreateTicketUseCase implements ICreateTicketUseCase {
     }
 
     // Validate linkedEntityType and linkedEntityId consistency
-    if (request.linkedEntityType && !request.linkedEntityId) {
-      throw new AppError(
-        'linkedEntityId is required when linkedEntityType is provided',
-        'INVALID_LINKED_ENTITY',
-        400
-      );
-    }
-
+    // Allow linkedEntityType without linkedEntityId (category-only tickets)
+    // But require linkedEntityType if linkedEntityId is provided
     if (!request.linkedEntityType && request.linkedEntityId) {
       throw new AppError(
         'linkedEntityType is required when linkedEntityId is provided',

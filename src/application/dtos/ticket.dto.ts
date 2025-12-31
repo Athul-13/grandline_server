@@ -36,7 +36,6 @@ export class CreateTicketRequest {
 
   @IsOptional()
   @IsEnum(LinkedEntityType, { message: 'linkedEntityType must be one of: quote, reservation' })
-  @ValidateIf((o: CreateTicketRequest) => o.linkedEntityId !== undefined && o.linkedEntityId !== null)
   linkedEntityType?: LinkedEntityType | null;
 
   @IsOptional()

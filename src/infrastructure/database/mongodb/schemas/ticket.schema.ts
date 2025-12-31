@@ -30,9 +30,20 @@ export const TicketSchema: Schema = new Schema(
     },
     linkedEntityType: {
       type: String,
-      enum: Object.values(LinkedEntityType),
       required: false,
+      default: null,
       index: true,
+      validate: {
+        validator: function(value: string | null | undefined): boolean {
+          // Allow null/undefined for optional field
+          if (value === null || value === undefined) {
+            return true;
+          }
+          // If value is provided, it must be a valid enum value
+          return Object.values(LinkedEntityType).includes(value as LinkedEntityType);
+        },
+        message: 'linkedEntityType must be one of: quote, reservation, or null',
+      },
     },
     linkedEntityId: {
       type: String,
