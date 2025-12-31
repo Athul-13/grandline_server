@@ -152,5 +152,7 @@ export const USE_CASE_TOKENS = {
   GetTicketByIdUseCase: Symbol.for('GetTicketByIdUseCase'),
   GetMessagesByTicketUseCase: Symbol.for('GetMessagesByTicketUseCase'),
   GetTicketsByActorUseCase: Symbol.for('GetTicketsByActorUseCase'),
+  UpdateTicketStatusUseCase: Symbol.for('UpdateTicketStatusUseCase'),
+  AssignTicketToAdminUseCase: Symbol.for('AssignTicketToAdminUseCase'),
 } as const;
 

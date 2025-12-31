@@ -148,9 +148,12 @@ export class QuoteController {
       const sortBy = req.query.sortBy as string | undefined;
       const sortOrder = req.query.sortOrder as 'asc' | 'desc' | undefined;
 
-      logger.info(`Quotes list request by user: ${userId}, page: ${page}, limit: ${limit}, sortBy: ${sortBy}, sortOrder: ${sortOrder}`);
+      // Extract optional dropdown parameter for support modal
+      const forDropdown = req.query.forDropdown === 'true' || req.query.forDropdown === '1';
 
-      const response = await this.getQuotesListUseCase.execute(userId, page, limit, status, sortBy, sortOrder);
+      logger.info(`Quotes list request by user: ${userId}, page: ${page}, limit: ${limit}, sortBy: ${sortBy}, sortOrder: ${sortOrder}, forDropdown: ${forDropdown}`);
+
+      const response = await this.getQuotesListUseCase.execute(userId, page, limit, status, sortBy, sortOrder, forDropdown);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {

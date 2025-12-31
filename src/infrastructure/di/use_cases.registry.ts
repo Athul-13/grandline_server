@@ -130,6 +130,8 @@ import { GetTicketsByActorUseCase } from '../../application/use-cases/implementa
 import { GetTicketByIdUseCase } from '../../application/use-cases/implementation/support/get_ticket_by_id.use-case';
 import { GetMessagesByTicketUseCase } from '../../application/use-cases/implementation/support/get_messages_by_ticket.use-case';
 import { GetAllTicketsUseCase } from '../../application/use-cases/implementation/support/get_all_tickets.use-case';
+import { UpdateTicketStatusUseCase } from '../../application/use-cases/implementation/support/update_ticket_status.use-case';
+import { AssignTicketToAdminUseCase } from '../../application/use-cases/implementation/support/assign_ticket_to_admin.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -285,5 +287,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetMessagesByTicketUseCase, GetMessagesByTicketUseCase);
   container.register(USE_CASE_TOKENS.GetTicketByIdUseCase, GetTicketByIdUseCase);
   container.register(USE_CASE_TOKENS.GetTicketsByActorUseCase, GetTicketsByActorUseCase);
+  container.register(USE_CASE_TOKENS.UpdateTicketStatusUseCase, UpdateTicketStatusUseCase);
+  container.register(USE_CASE_TOKENS.AssignTicketToAdminUseCase, AssignTicketToAdminUseCase);
 }
 

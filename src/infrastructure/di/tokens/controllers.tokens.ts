@@ -33,5 +33,8 @@ export const CONTROLLER_TOKENS = {
   ChatController: Symbol.for('ChatController'),
   MessageController: Symbol.for('MessageController'),
   NotificationController: Symbol.for('NotificationController'),
+  // Support controllers
+  TicketController: Symbol.for('TicketController'),
+  TicketMessageController: Symbol.for('TicketMessageController'),
 } as const;
 
