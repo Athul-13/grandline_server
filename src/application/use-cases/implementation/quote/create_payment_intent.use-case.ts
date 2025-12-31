@@ -11,6 +11,7 @@ import { Payment } from '../../../../domain/entities/payment.entity';
 import { PaymentStatus, PaymentMethod } from '../../../../domain/entities/payment.entity';
 import { getStripeInstance } from '../../../../infrastructure/service/stripe.service';
 import { v4 as uuidv4 } from 'uuid';
+import Stripe from 'stripe';
 
 /**
  * Use case for creating a payment intent
@@ -49,8 +50,16 @@ export class CreatePaymentIntentUseCase implements ICreatePaymentIntentUseCase {
         throw new AppError(ERROR_MESSAGES.QUOTE_NOT_FOUND, ERROR_CODES.QUOTE_NOT_FOUND, 404);
       }
 
-      // Verify quote is in QUOTED status
+      // Verify quote is in QUOTED status (exclude EXPIRED and other states)
       if (quote.status !== QuoteStatus.QUOTED) {
+        // Explicitly block EXPIRED quotes with a clear error message
+        if (quote.status === QuoteStatus.EXPIRED) {
+          throw new AppError(
+            'This quote has expired. Please submit a new quote.',
+            'QUOTE_EXPIRED',
+            400
+          );
+        }
         throw new AppError(
           'Quote must be in QUOTED status to proceed with payment',
           'INVALID_QUOTE_STATUS',
@@ -81,16 +90,40 @@ export class CreatePaymentIntentUseCase implements ICreatePaymentIntentUseCase {
       const pendingPayment = existingPayments.find((p) => p.isPending());
 
       if (pendingPayment && pendingPayment.paymentIntentId) {
-        // Return existing payment intent
+        // Retrieve PaymentIntent from Stripe to check its status
         const stripe = getStripeInstance();
-        const paymentIntent = await stripe.paymentIntents.retrieve(pendingPayment.paymentIntentId);
+        let paymentIntent: Stripe.PaymentIntent | null = null;
+        let isTerminal = false;
 
-        logger.info(`Returning existing payment intent: ${pendingPayment.paymentIntentId}`);
-        return {
-          clientSecret: paymentIntent.client_secret as string,
-          paymentIntentId: paymentIntent.id,
-          paymentId: pendingPayment.paymentId,
-        };
+        try {
+          paymentIntent = await stripe.paymentIntents.retrieve(pendingPayment.paymentIntentId);
+          isTerminal = this.isPaymentIntentTerminal(paymentIntent.status);
+        } catch (error) {
+          // If retrieve fails (network error, invalid ID, etc.), treat as terminal
+          logger.warn(
+            `Failed to retrieve PaymentIntent ${pendingPayment.paymentIntentId} from Stripe: ${error instanceof Error ? error.message : 'Unknown error'}. Treating as terminal and creating new PaymentIntent.`
+          );
+          isTerminal = true;
+        }
+
+        if (isTerminal) {
+          // Mark the existing payment as FAILED
+          logger.warn(
+            `PaymentIntent ${pendingPayment.paymentIntentId} is terminal or unreachable, but DB payment is PENDING. Marking payment as FAILED and creating new PaymentIntent.`
+          );
+          await this.paymentRepository.updateById(pendingPayment.paymentId, {
+            status: PaymentStatus.FAILED,
+          } as Partial<Payment>);
+          // Continue to create a new PaymentIntent below (do not reuse any properties from failed payment)
+        } else if (paymentIntent) {
+          // PaymentIntent is still usable, return it immediately
+          logger.info(`Returning existing payment intent: ${pendingPayment.paymentIntentId}`);
+          return {
+            clientSecret: paymentIntent.client_secret as string,
+            paymentIntentId: paymentIntent.id,
+            paymentId: pendingPayment.paymentId,
+          };
+        }
       }
 
       // Create Stripe Payment Intent
@@ -145,5 +178,18 @@ export class CreatePaymentIntentUseCase implements ICreatePaymentIntentUseCase {
       );
       throw error;
     }
+  }
+
+  /**
+   * Checks if a Stripe PaymentIntent status is terminal (cannot be reused)
+   * Terminal states: succeeded, canceled
+   * Note: When payment fails, Stripe typically sets status to 'canceled'
+   */
+  private isPaymentIntentTerminal(status: Stripe.PaymentIntent.Status): boolean {
+    const terminalStates: Stripe.PaymentIntent.Status[] = [
+      'succeeded',
+      'canceled',
+    ];
+    return terminalStates.includes(status);
   }
 }

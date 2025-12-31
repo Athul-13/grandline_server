@@ -13,6 +13,7 @@ import { createQuoteRoutesWithDI } from '../../../presentation/routes/quote/quot
 import { createEventTypeRoutesWithDI } from '../../../presentation/routes/event_type/event_type_routes';
 import { createAdminQuoteRoutesWithDI } from '../../../presentation/routes/admin/admin_quote_routes';
 import { createAdminReservationRoutesWithDI } from '../../../presentation/routes/admin/admin_reservation_routes';
+import { createAdminTripRoutesWithDI } from '../../../presentation/routes/admin/admin_trip_routes';
 import { createAdminPricingConfigRoutesWithDI } from '../../../presentation/routes/admin/admin_pricing_config_routes';
 import { createAdminUserRoutesWithDI } from '../../../presentation/routes/admin/admin_user_routes';
 import { createAdminDriverRoutesWithDI } from '../../../presentation/routes/admin/admin_driver_routes';
@@ -121,6 +122,9 @@ export class App {
 
     const adminReservationRoutes = createAdminReservationRoutesWithDI();
     this.app.use(`/api/v1/admin/reservations`, adminReservationRoutes);
+
+    const adminTripRoutes = createAdminTripRoutesWithDI();
+    this.app.use(`/api/v1/admin/trips`, adminTripRoutes);
 
     const adminPricingConfigRoutes = createAdminPricingConfigRoutesWithDI();
     this.app.use(`/api/v1/admin/pricing-config`, adminPricingConfigRoutes);

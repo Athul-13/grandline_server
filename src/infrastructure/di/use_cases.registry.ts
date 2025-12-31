@@ -40,6 +40,11 @@ import { CompleteDriverOnboardingUseCase } from '../../application/use-cases/imp
 import { GetDriverInfoUseCase } from '../../application/use-cases/implementation/driver/get_driver_info.use-case';
 import { GenerateDriverUploadUrlUseCase } from '../../application/use-cases/implementation/driver/generate_driver_upload_url.use-case';
 import { SaveDriverFcmTokenUseCase } from '../../application/use-cases/implementation/driver/save_driver_fcm_token.use-case';
+import { GetDriverDashboardUseCase } from '../../application/use-cases/implementation/driver/get_driver_dashboard.use-case';
+import { GetDriverReservationUseCase } from '../../application/use-cases/implementation/driver/get_driver_reservation.use-case';
+import { StartTripUseCase } from '../../application/use-cases/implementation/driver/start_trip.use-case';
+import { EndTripUseCase } from '../../application/use-cases/implementation/driver/end_trip.use-case';
+import { UpdateLocationUseCase } from '../../application/use-cases/implementation/driver/update_location.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
 import { GetAllVehicleTypesUseCase } from '../../application/use-cases/implementation/vehicle_type/get_all_vehicle_types.use-case';
@@ -113,6 +118,8 @@ import { AddReservationChargeUseCase } from '../../application/use-cases/impleme
 import { MarkChargeAsPaidUseCase } from '../../application/use-cases/implementation/admin/reservation/mark_charge_as_paid.use-case';
 import { ExportReservationPDFUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_pdf.use-case';
 import { ExportReservationCSVUseCase } from '../../application/use-cases/implementation/admin/reservation/export_reservation_csv.use-case';
+import { GetAdminTripsListUseCase } from '../../application/use-cases/implementation/admin/trip/get_admin_trips_list.use-case';
+import { GetActiveTripLocationsUseCase } from '../../application/use-cases/implementation/admin/trip/get_active_trip_locations.use-case';
 import { CreateChargePaymentIntentUseCase } from '../../application/use-cases/implementation/reservation/create_charge_payment_intent.use-case';
 import { GetDashboardStatsUseCase } from '../../application/use-cases/implementation/dashboard/get_dashboard_stats.use-case';
 import { GetRecentActivityUseCase } from '../../application/use-cases/implementation/dashboard/get_recent_activity.use-case';
@@ -166,6 +173,11 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetDriverInfoUseCase, GetDriverInfoUseCase);
   container.register(USE_CASE_TOKENS.GenerateDriverUploadUrlUseCase, GenerateDriverUploadUrlUseCase);
   container.register(USE_CASE_TOKENS.SaveDriverFcmTokenUseCase, SaveDriverFcmTokenUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverDashboardUseCase, GetDriverDashboardUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverReservationUseCase, GetDriverReservationUseCase);
+  container.register(USE_CASE_TOKENS.StartTripUseCase, StartTripUseCase);
+  container.register(USE_CASE_TOKENS.EndTripUseCase, EndTripUseCase);
+  container.register(USE_CASE_TOKENS.UpdateLocationUseCase, UpdateLocationUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);
   container.register(USE_CASE_TOKENS.GetVehicleTypeUseCase, GetVehicleTypeUseCase);
@@ -253,6 +265,9 @@ export function registerUseCases(): void {
     container.register(USE_CASE_TOKENS.ExportReservationPDFUseCase, ExportReservationPDFUseCase);
     container.register(USE_CASE_TOKENS.ExportReservationCSVUseCase, ExportReservationCSVUseCase);
     container.register(USE_CASE_TOKENS.CreateChargePaymentIntentUseCase, CreateChargePaymentIntentUseCase);
+  // Admin Trip use cases
+  container.register(USE_CASE_TOKENS.GetAdminTripsListUseCase, GetAdminTripsListUseCase);
+  container.register(USE_CASE_TOKENS.GetActiveTripLocationsUseCase, GetActiveTripLocationsUseCase);
   // Dashboard use cases
   container.register(USE_CASE_TOKENS.GetDashboardStatsUseCase, GetDashboardStatsUseCase);
   container.register(USE_CASE_TOKENS.GetRecentActivityUseCase, GetRecentActivityUseCase);

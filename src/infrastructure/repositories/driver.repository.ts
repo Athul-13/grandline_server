@@ -402,12 +402,39 @@ export class DriverRepositoryImpl
   }
 
   async findAvailableDrivers(): Promise<Driver[]> {
+    // Fetch all available drivers
     const docs = await this.driverModel.find({
       status: DriverStatus.AVAILABLE,
       isOnboarded: true,
       isDeleted: { $ne: true },
     });
-    return DriverRepositoryMapper.toEntities(docs);
+    
+    // Convert to entities
+    const drivers = DriverRepositoryMapper.toEntities(docs);
+    
+    // Sort in memory: null/undefined lastAssignedAt first (most recently available), then by lastAssignedAt ascending
+    drivers.sort((a, b) => {
+      // Drivers with null/undefined lastAssignedAt should be prioritized (assigned first)
+      if (!a.lastAssignedAt && !b.lastAssignedAt) return 0;
+      if (!a.lastAssignedAt) return -1; // a has no assignment, prioritize it
+      if (!b.lastAssignedAt) return 1; // b has no assignment, prioritize it
+      
+      // Both have lastAssignedAt, sort by ascending (least recently assigned first)
+      return a.lastAssignedAt.getTime() - b.lastAssignedAt.getTime();
+    });
+    
+    return drivers;
+  }
+
+  async updateLastAssignedAt(driverId: string, lastAssignedAt: Date): Promise<void> {
+    const result = await this.driverModel.updateOne(
+      { driverId },
+      { $set: { lastAssignedAt, updatedAt: new Date() } }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new Error(`Driver with id ${driverId} not found`);
+    }
   }
 }
 

@@ -82,15 +82,23 @@ export class CloudinaryServiceImpl implements ICloudinaryService {
       }) as CloudinaryDestroyResult;
 
       if (result.result === 'not found') {
-        logger.warn(`File not found in Cloudinary: ${extractedPublicId}`);
-        // Don't throw error - file might already be deleted
+        // File doesn't exist - deletion is idempotent, treat as success
+        logger.info(`File not found in Cloudinary: ${extractedPublicId}`);
+        return;
       } else if (result.result !== 'ok') {
         throw new Error(`Failed to delete file from Cloudinary: ${result.result}`);
       }
 
       logger.info(`File deleted from Cloudinary: ${extractedPublicId}`);
     } catch (error) {
-      logger.error(`Error deleting file from Cloudinary: ${error instanceof Error ? error.message : String(error)}`);
+      // Handle "not found" errors gracefully for idempotent operations
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('not found') || errorMessage.includes('Not found')) {
+        logger.info(`File not found in Cloudinary: ${publicId}`);
+        return;
+      }
+      
+      logger.error(`Error deleting file from Cloudinary: ${errorMessage}`);
       throw new Error('Failed to delete file from Cloudinary');
     }
   }

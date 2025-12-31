@@ -7,6 +7,7 @@ import { AdminReservationsListResponse, AdminReservationListItemResponse } from 
 import { REPOSITORY_TOKENS } from '../../../../di/tokens';
 import { ReservationMapper } from '../../../../mapper/reservation.mapper';
 import { ReservationStatus, TripType, StopType } from '../../../../../shared/constants';
+import { deriveTripWindow } from '../../../../mapper/driver_dashboard.mapper';
 import { logger } from '../../../../../shared/logger';
 
 /**
@@ -61,6 +62,7 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
       );
 
       // Get reservations with filters
+      // Repository searches: reservationId, tripName
       const { reservations } = await this.reservationRepository.findAllForAdmin(
         normalizedPage,
         normalizedLimit,
@@ -70,7 +72,7 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
         normalizedSearch
       );
 
-      // If search is provided, also filter by user name/email
+      // If search is provided, also search by user name/email and combine results
       let filteredReservations = reservations;
       if (normalizedSearch && normalizedSearch.length > 0) {
         const searchLower = normalizedSearch.toLowerCase();
@@ -91,19 +93,17 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
             false,
             status,
             matchingUserIds,
-            undefined // Don't search again
+            undefined // Don't search reservationId/tripName again, we already have those
           );
           // Combine and deduplicate
           const existingIds = new Set(filteredReservations.map((r) => r.reservationId));
           const additional = userReservations.filter((r) => !existingIds.has(r.reservationId));
           filteredReservations = [...filteredReservations, ...additional];
-        } else {
-          // No matching users, return empty
-          filteredReservations = [];
         }
+        // If no matching users found, keep the reservations that matched by reservationId/tripName (don't return empty)
       }
 
-      // Fetch itinerary for start/end locations
+      // Fetch itinerary for start/end locations and tripEndAt filtering
       const reservationIds = filteredReservations.map((r) => r.reservationId);
       const allItineraryStops = await Promise.all(
         reservationIds.map((id) => this.itineraryRepository.findByReservationIdOrdered(id))
@@ -113,6 +113,18 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
       const itineraryMap = new Map<string, typeof allItineraryStops[0]>();
       reservationIds.forEach((id, index) => {
         itineraryMap.set(id, allItineraryStops[index]);
+      });
+
+      // Filter out past trips: exclude reservations where tripEndAt < now
+      const now = new Date();
+      filteredReservations = filteredReservations.filter((reservation) => {
+        const itineraryStops = itineraryMap.get(reservation.reservationId);
+        if (!itineraryStops || itineraryStops.length === 0) {
+          return true; // Keep reservations without itinerary (shouldn't happen, but safe)
+        }
+        const { tripEndAt } = deriveTripWindow(itineraryStops);
+        // Exclude if tripEndAt < now (legacy expired trips)
+        return tripEndAt >= now;
       });
 
       // Fetch user information for all reservations

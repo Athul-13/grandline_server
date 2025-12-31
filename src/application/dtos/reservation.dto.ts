@@ -71,6 +71,7 @@ export interface ReservationResponse {
     age: number;
   }>;
   charges?: ReservationChargeResponse[];
+  chatEnabled?: boolean;
 }
 
 /**

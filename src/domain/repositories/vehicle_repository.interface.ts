@@ -57,4 +57,10 @@ export interface IVehicleRepository extends IBaseRepository<Vehicle> {
    * Returns only vehicles matching all filter criteria
    */
   findWithFilters(filter: VehicleFilter): Promise<Vehicle[]>;
+
+  /**
+   * Finds vehicles by IDs (driver dashboard / batch loading)
+   * Returns a map keyed by vehicleId.
+   */
+  findByIds(vehicleIds: string[]): Promise<Map<string, Vehicle>>;
 }

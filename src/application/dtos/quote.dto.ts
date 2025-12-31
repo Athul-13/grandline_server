@@ -239,7 +239,7 @@ export interface RouteCalculationResponse {
  */
 export interface VehicleRecommendationOption {
   optionId: string;
-  vehicles: Array<{ vehicleId: string; vehicleTypeId: string; name: string; capacity: number; quantity: number }>;
+  vehicles: Array<{ vehicleId: string; vehicleTypeId: string; name: string; capacity: number; quantity: number; imageUrls?: string[] }>;
   totalCapacity: number;
   estimatedPrice: number;
   isExactMatch: boolean;
@@ -258,6 +258,7 @@ export interface VehicleRecommendationResponse {
     baseFare: number;
     isAvailable: boolean;
     availableQuantity: number;
+    imageUrls?: string[];
     includedAmenities: Array<{ amenityId: string; name: string }>;
   }>;
 }

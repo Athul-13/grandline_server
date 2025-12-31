@@ -46,6 +46,11 @@ export const USE_CASE_TOKENS = {
   GetDriverInfoUseCase: Symbol.for('GetDriverInfoUseCase'),
   GenerateDriverUploadUrlUseCase: Symbol.for('GenerateDriverUploadUrlUseCase'),
   SaveDriverFcmTokenUseCase: Symbol.for('SaveDriverFcmTokenUseCase'),
+  GetDriverDashboardUseCase: Symbol.for('GetDriverDashboardUseCase'),
+  GetDriverReservationUseCase: Symbol.for('GetDriverReservationUseCase'),
+  StartTripUseCase: Symbol.for('StartTripUseCase'),
+  EndTripUseCase: Symbol.for('EndTripUseCase'),
+  UpdateLocationUseCase: Symbol.for('UpdateLocationUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
   GetVehicleTypeUseCase: Symbol.for('GetVehicleTypeUseCase'),
@@ -132,6 +137,9 @@ export const USE_CASE_TOKENS = {
   MarkChargeAsPaidUseCase: Symbol.for('MarkChargeAsPaidUseCase'),
   ExportReservationPDFUseCase: Symbol.for('ExportReservationPDFUseCase'),
   ExportReservationCSVUseCase: Symbol.for('ExportReservationCSVUseCase'),
+  // Admin Trip use cases
+  GetAdminTripsListUseCase: Symbol.for('GetAdminTripsListUseCase'),
+  GetActiveTripLocationsUseCase: Symbol.for('GetActiveTripLocationsUseCase'),
   CreateChargePaymentIntentUseCase: Symbol.for('CreateChargePaymentIntentUseCase'),
   // Dashboard use cases
   GetDashboardStatsUseCase: Symbol.for('GetDashboardStatsUseCase'),

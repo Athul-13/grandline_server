@@ -21,7 +21,8 @@ export class DriverRepositoryMapper {
       doc.salary,
       doc.isOnboarded || false,
       doc.createdAt,
-      doc.updatedAt
+      doc.updatedAt,
+      doc.lastAssignedAt
     );
   }
 

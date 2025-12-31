@@ -113,18 +113,28 @@ export class ReservationRepositoryImpl
     return ReservationRepositoryMapper.toEntities(docs);
   }
 
+  async findByAssignedDriverId(driverId: string): Promise<Reservation[]> {
+    const docs = await this.reservationModel.find(
+      { assignedDriverId: driverId },
+      { sort: { createdAt: -1 } }
+    );
+    return ReservationRepositoryMapper.toEntities(docs);
+  }
+
   async findAllForAdmin(
     page: number,
     limit: number,
     _includeDeleted: boolean = false,
     statuses?: ReservationStatus[],
     userIds?: string[],
-    searchQuery?: string
+    searchQuery?: string,
+    excludePastTrips: boolean = true
   ): Promise<{ reservations: Reservation[]; total: number }> {
     const filter = ReservationQueryBuilder.buildAdminFilter({
       statuses,
       userIds,
       searchQuery,
+      excludePastTrips,
     });
 
     const allDocs = await this.reservationModel.find(filter, {
@@ -233,6 +243,14 @@ export class ReservationRepositoryImpl
     const totalReservations = allDocs.length;
 
     return ReservationAnalyticsBuilder.aggregateRefundAnalytics(result, totalReservations);
+  }
+
+  async findActiveTrips(): Promise<Reservation[]> {
+    const docs = await this.reservationModel.find({
+      startedAt: { $exists: true, $ne: null },
+      completedAt: null,
+    });
+    return ReservationRepositoryMapper.toEntities(docs);
   }
 }
 

@@ -5,12 +5,15 @@ import { IDriverRepository } from '../../../../../domain/repositories/driver_rep
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
 import { IReservationItineraryRepository } from '../../../../../domain/repositories/reservation_itinerary_repository.interface';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
 import { NotificationType, ERROR_MESSAGES, ReservationStatus } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
+import { canAssignDriverToReservation } from '../../../../../shared/utils/driver_assignment.util';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { deriveTripWindow, deriveTripState } from '../../../../mapper/driver_dashboard.mapper';
 import { randomUUID } from 'crypto';
 
 /**
@@ -29,7 +32,9 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
     @inject(REPOSITORY_TOKENS.IReservationItineraryRepository)
     private readonly itineraryRepository: IReservationItineraryRepository,
     @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
-    private readonly createNotificationUseCase: ICreateNotificationUseCase
+    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    @inject(SERVICE_TOKENS.ISocketEventService)
+    private readonly socketEventService: ISocketEventService
   ) {}
 
   async execute(
@@ -78,50 +83,61 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
       throw new AppError('Driver not found', 'DRIVER_NOT_FOUND', 404);
     }
 
-    // Check driver availability (simplified - can be enhanced with date range checking)
-    // For now, we'll just check if driver is available
-    if (!driver.isAvailable()) {
+    // Get itinerary for eligibility check and date range validation
+    const itinerary = await this.itineraryRepository.findByReservationId(reservationId);
+    if (itinerary.length === 0) {
+      throw new AppError('Reservation itinerary not found', 'ITINERARY_NOT_FOUND', 404);
+    }
+
+    // Check driver assignment eligibility using the guard
+    const now = new Date();
+    const eligibility = canAssignDriverToReservation(driver, itinerary, now);
+    if (!eligibility.canAssign) {
       throw new AppError(
-        'Driver is not available',
+        eligibility.reason || 'Driver cannot be assigned',
         'DRIVER_NOT_AVAILABLE',
         400
       );
     }
 
-    // Get itinerary to check date conflicts
-    const itinerary = await this.itineraryRepository.findByReservationId(reservationId);
-    if (itinerary.length > 0) {
-      // Check if driver is booked during reservation dates
-      const arrivalTimes = itinerary.map((stop) => stop.arrivalTime);
-      const minDate = new Date(Math.min(...arrivalTimes.map((d) => d.getTime())));
-      const maxDate = new Date(Math.max(...arrivalTimes.map((d) => d.getTime())));
+    // Check for conflicts with other reservations (planning check)
+    const arrivalTimes = itinerary.map((stop) => stop.arrivalTime);
+    const minDate = new Date(Math.min(...arrivalTimes.map((d) => d.getTime())));
+    const maxDate = new Date(Math.max(...arrivalTimes.map((d) => d.getTime())));
 
-      // Check for conflicts with other reservations
-      const bookedDriverIds = await this.reservationRepository.findBookedDriverIdsInDateRange(
-        minDate,
-        maxDate,
-        reservationId
+    const bookedDriverIds = await this.reservationRepository.findBookedDriverIdsInDateRange(
+      minDate,
+      maxDate,
+      reservationId
+    );
+
+    if (bookedDriverIds.has(driverId)) {
+      throw new AppError(
+        'Driver is already booked during this reservation period',
+        'DRIVER_BOOKED',
+        400
       );
-
-      if (bookedDriverIds.has(driverId)) {
-        throw new AppError(
-          'Driver is already booked during this reservation period',
-          'DRIVER_BOOKED',
-          400
-        );
-      }
     }
 
     // Store previous driver
     const previousDriverId = reservation.assignedDriverId;
 
-    // Update reservation
-    const now = new Date();
+    // Update reservation (reuse 'now' from eligibility check above)
     await this.reservationRepository.updateById(reservationId, {
       assignedDriverId: driverId,
       driverChangedAt: now,
       status: reservation.status === ReservationStatus.CONFIRMED ? ReservationStatus.MODIFIED : reservation.status,
     } as Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel>);
+
+    // Update driver's lastAssignedAt for fair assignment
+    try {
+      await this.driverRepository.updateLastAssignedAt(driverId, now);
+    } catch (updateError: unknown) {
+      // Log error but don't fail assignment
+      logger.error(
+        `Error updating lastAssignedAt for driver ${driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+      );
+    }
 
     // Create modification record
     const modificationId = randomUUID();
@@ -157,7 +173,7 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
           reason,
         },
       });
-    } catch (notificationError) {
+    } catch (notificationError: unknown) {
       logger.error(
         `Failed to send notification for driver change: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
       );
@@ -167,6 +183,50 @@ export class ChangeReservationDriverUseCase implements IChangeReservationDriverU
     const updatedReservation = await this.reservationRepository.findById(reservationId);
     if (!updatedReservation) {
       throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
+    }
+
+    // Emit driver assigned notification (for backward compatibility)
+    try {
+      this.socketEventService.emitDriverAssigned({
+        reservationId,
+        tripName: updatedReservation.tripName || 'Trip',
+        driverId,
+        driverName: driver.fullName,
+        userId: reservation.userId,
+      });
+    } catch (socketError: unknown) {
+      // Don't fail assignment if notification fails
+      logger.error(
+        `Error emitting driver assigned notification: ${socketError instanceof Error ? socketError.message : 'Unknown error'}`
+      );
+    }
+
+    // Emit driver changed event for real-time updates
+    try {
+      // Derive trip state for the event
+      const itineraryStops = await this.itineraryRepository.findByReservationId(reservationId);
+      const now = new Date();
+      const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops);
+      const tripState = deriveTripState({
+        status: updatedReservation.status,
+        tripStartAt,
+        tripEndAt,
+        now,
+        startedAt: updatedReservation.startedAt,
+        completedAt: updatedReservation.completedAt,
+      });
+
+      await this.socketEventService.emitDriverChanged({
+        reservationId,
+        oldDriverId: previousDriverId,
+        newDriverId: driverId,
+        tripState,
+      });
+    } catch (socketError: unknown) {
+      // Don't fail assignment if socket event fails
+      logger.error(
+        `Error emitting driver changed event: ${socketError instanceof Error ? socketError.message : 'Unknown error'}`
+      );
     }
 
     logger.info(

@@ -23,6 +23,8 @@ import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Vehicle } from '../../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../../domain/entities/amenity.entity';
 import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { IQueueService } from '../../../../../domain/services/queue_service.interface';
+import { canAssignDriverToQuote } from '../../../../../shared/utils/driver_assignment.util';
 import { container } from 'tsyringe';
 
 /**
@@ -75,8 +77,16 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         throw new AppError(ERROR_MESSAGES.QUOTE_NOT_FOUND, ERROR_CODES.QUOTE_NOT_FOUND, 404);
       }
 
-      // Verify quote is in a valid state for driver assignment
+      // Verify quote is in a valid state for driver assignment (exclude EXPIRED and other terminal states)
       if (quote.status !== QuoteStatus.SUBMITTED && quote.status !== QuoteStatus.QUOTED) {
+        // Explicitly block EXPIRED quotes with a clear error message
+        if (quote.status === QuoteStatus.EXPIRED) {
+          throw new AppError(
+            'Cannot assign driver to an expired quote. Please have the user submit a new quote.',
+            'QUOTE_EXPIRED',
+            400
+          );
+        }
         throw new AppError(
           'Quote must be in SUBMITTED or QUOTED status to assign driver',
           'INVALID_QUOTE_STATUS',
@@ -99,18 +109,29 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         throw new AppError(ERROR_MESSAGES.DRIVER_NOT_FOUND, ERROR_CODES.DRIVER_NOT_FOUND, 404);
       }
 
-      // Check driver availability (check if driver is already assigned to another quote within 24 hours)
+      // Get itinerary for eligibility check and date range validation
       const itinerary = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
       if (itinerary.length === 0) {
         throw new AppError(ERROR_MESSAGES.ITINERARY_REQUIRED, 'ITINERARY_NOT_FOUND', 404);
       }
 
-      // Get date range from itinerary
+      // Check driver assignment eligibility using the guard
+      const now = new Date();
+      const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+      if (!eligibility.canAssign) {
+        throw new AppError(
+          eligibility.reason || 'Driver cannot be assigned',
+          'DRIVER_NOT_AVAILABLE',
+          400
+        );
+      }
+
+      // Get date range from itinerary for conflict checking
       const arrivalTimes = itinerary.map((stop) => stop.arrivalTime);
       const minDate = new Date(Math.min(...arrivalTimes.map((d) => d.getTime())));
       const maxDate = new Date(Math.max(...arrivalTimes.map((d) => d.getTime())));
 
-      // Check if driver is available for this date range
+      // Check if driver is available for this date range (planning check)
       const bookedDriverIds = await this.quoteRepository.findBookedDriverIdsInDateRange(
         minDate,
         maxDate,
@@ -229,6 +250,28 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         quotedAt,
       } as Partial<Quote>);
 
+      // Schedule expiry job for 24 hours from now
+      try {
+        const queueService = container.resolve<IQueueService>(SERVICE_TOKENS.IQueueService);
+        await queueService.addQuoteExpiryJob(quoteId, quotedAt);
+        logger.info(`Quote expiry job scheduled for quote: ${quoteId}`);
+      } catch (expiryJobError) {
+        // Log error but don't fail driver assignment
+        logger.error(
+          `Failed to schedule expiry job for quote ${quoteId}: ${expiryJobError instanceof Error ? expiryJobError.message : 'Unknown error'}`
+        );
+      }
+
+      // Update driver's lastAssignedAt for fair assignment
+      try {
+        await this.driverRepository.updateLastAssignedAt(request.driverId, new Date());
+      } catch (updateError) {
+        // Log error but don't fail assignment
+        logger.error(
+          `Error updating lastAssignedAt for driver ${request.driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+        );
+      }
+
       // Fetch updated quote
       const updatedQuote = await this.quoteRepository.findById(quoteId);
       if (!updatedQuote) {
@@ -250,8 +293,8 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
       });
 
       // Prepare email data
-      const paymentLink = `${FRONTEND_CONFIG.URL}/payment/${quoteId}`;
-      const viewQuoteLink = `${FRONTEND_CONFIG.URL}/quotes/${quoteId}`;
+      // Both links point to quote details page where user can view and pay
+      const quoteDetailsLink = `${FRONTEND_CONFIG.URL}/quotes/${quoteId}`;
 
       const emailData: QuoteEmailData = {
         email: user.email,
@@ -261,8 +304,8 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
         tripType: updatedQuote.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way',
         totalPrice: total,
         quoteDate: quotedAt,
-        viewQuoteLink,
-        paymentLink,
+        viewQuoteLink: quoteDetailsLink,
+        paymentLink: quoteDetailsLink, // Points to quote details page where Pay Now button is available
       };
 
       // Send email with PDF attachment
@@ -286,13 +329,22 @@ export class AssignDriverToQuoteUseCase implements IAssignDriverToQuoteUseCase {
       const itineraryStops = await this.itineraryRepository.findByQuoteIdOrdered(quoteId);
       const passengers = await this.passengerRepository.findByQuoteId(quoteId);
 
-      // Emit socket event for admin dashboard
+      // Emit socket events for admin dashboard and notifications
       try {
         const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
         socketEventService.emitQuoteUpdated(updatedQuote);
+        
+        // Emit driver assigned notification
+        socketEventService.emitDriverAssigned({
+          quoteId,
+          tripName: updatedQuote.tripName || 'Trip',
+          driverId: request.driverId,
+          driverName: driver.fullName,
+          userId: quote.userId,
+        });
       } catch (error) {
         // Don't fail driver assignment if socket emission fails
-        logger.error('Error emitting quote updated event:', error);
+        logger.error('Error emitting socket events:', error);
       }
 
       logger.info(`Driver ${request.driverId} assigned successfully to quote: ${quoteId}`);

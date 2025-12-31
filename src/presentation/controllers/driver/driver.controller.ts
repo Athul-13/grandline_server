@@ -12,12 +12,17 @@ import { ICompleteDriverOnboardingUseCase } from '../../../application/use-cases
 import { IGetDriverInfoUseCase } from '../../../application/use-cases/interface/driver/get_driver_info_use_case.interface';
 import { IGenerateDriverUploadUrlUseCase } from '../../../application/use-cases/interface/driver/generate_driver_upload_url_use_case.interface';
 import { ISaveDriverFcmTokenUseCase } from '../../../application/use-cases/interface/driver/save_driver_fcm_token_use_case.interface';
+import { IGetDriverDashboardUseCase } from '../../../application/use-cases/interface/driver/get_driver_dashboard_use_case.interface';
+import { IGetDriverReservationUseCase } from '../../../application/use-cases/interface/driver/get_driver_reservation_use_case.interface';
+import { IStartTripUseCase } from '../../../application/use-cases/interface/driver/start_trip_use_case.interface';
+import { IEndTripUseCase } from '../../../application/use-cases/interface/driver/end_trip_use_case.interface';
 import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
+import { DriverDashboardRequestDto } from '../../../application/dtos/driver_dashboard.dto';
 
 /**
  * Driver controller (mobile app)
@@ -50,6 +55,14 @@ export class DriverController {
     private readonly generateDriverUploadUrlUseCase: IGenerateDriverUploadUrlUseCase,
     @inject(USE_CASE_TOKENS.SaveDriverFcmTokenUseCase)
     private readonly saveDriverFcmTokenUseCase: ISaveDriverFcmTokenUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverDashboardUseCase)
+    private readonly getDriverDashboardUseCase: IGetDriverDashboardUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverReservationUseCase)
+    private readonly getDriverReservationUseCase: IGetDriverReservationUseCase,
+    @inject(USE_CASE_TOKENS.StartTripUseCase)
+    private readonly startTripUseCase: IStartTripUseCase,
+    @inject(USE_CASE_TOKENS.EndTripUseCase)
+    private readonly endTripUseCase: IEndTripUseCase,
   ) {}
 
   /**
@@ -388,6 +401,144 @@ export class DriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response, 'FCM token saved successfully');
     } catch (error) {
       logger.error(`Error saving FCM token: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Driver Dashboard (Trips)
+   * GET /api/v1/driver/dashboard
+   */
+  async getDashboard(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Driver dashboard attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Driver dashboard attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request: DriverDashboardRequestDto = {
+        pastCursor: typeof req.query.pastCursor === 'string' ? req.query.pastCursor : undefined,
+        pastLimit: typeof req.query.pastLimit === 'string' ? Number(req.query.pastLimit) : undefined,
+      };
+
+      const response = await this.getDriverDashboardUseCase.execute(driverId, request);
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error fetching driver dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Get Driver Reservation Details
+   * GET /api/v1/driver/reservations/:id
+   */
+  async getReservation(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver reservation attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Get driver reservation attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const { id: reservationId } = req.params;
+
+      logger.info(`Driver reservation details request: driver=${driverId}, reservation=${reservationId}`);
+
+      const response = await this.getDriverReservationUseCase.execute(driverId, reservationId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(
+        `Error fetching driver reservation details: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Start Trip
+   * POST /api/v1/driver/trips/:reservationId/start
+   * Requires authentication
+   */
+  async startTrip(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Start trip attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Start trip attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const { reservationId } = req.params;
+
+      logger.info(`Start trip request: driver=${driverId}, reservation=${reservationId}`);
+
+      const reservation = await this.startTripUseCase.execute(driverId, reservationId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, { reservation }, 'Trip started successfully');
+    } catch (error) {
+      logger.error(
+        `Error starting trip: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * End Trip
+   * POST /api/v1/driver/trips/:reservationId/end
+   * Requires authentication
+   */
+  async endTrip(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('End trip attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('End trip attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const { reservationId } = req.params;
+
+      logger.info(`End trip request: driver=${driverId}, reservation=${reservationId}`);
+
+      const reservation = await this.endTripUseCase.execute(driverId, reservationId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, { reservation }, 'Trip ended successfully');
+    } catch (error) {
+      logger.error(
+        `Error ending trip: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
       sendErrorResponse(res, error);
     }
   }

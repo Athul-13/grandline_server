@@ -23,6 +23,7 @@ import { FRONTEND_CONFIG } from '../../../../shared/config';
 import { Vehicle } from '../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../domain/entities/amenity.entity';
 import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
+import { canAssignDriverToQuote } from '../../../../shared/utils/driver_assignment.util';
 import { container } from 'tsyringe';
 
 /**
@@ -121,10 +122,18 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
             quoteId
           );
 
-          // Filter out booked drivers
-          const trulyAvailableDrivers = availableDrivers.filter(
-            (driver) => !bookedDriverIds.has(driver.driverId)
-          );
+          // Filter out booked drivers and check eligibility using the guard
+          const now = new Date();
+          const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+            // Skip if driver is booked in date range
+            if (bookedDriverIds.has(driver.driverId)) {
+              return false;
+            }
+            
+            // Check eligibility using the guard
+            const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+            return eligibility.canAssign;
+          });
 
           if (trulyAvailableDrivers.length > 0 && quote.selectedVehicles && quote.selectedVehicles.length > 0) {
             // Assign first available driver
@@ -225,8 +234,29 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
                 quotedAt,
               } as Partial<Quote>);
 
+              // Update driver's lastAssignedAt for fair assignment
+              try {
+                await this.driverRepository.updateLastAssignedAt(driver.driverId, quotedAt);
+              } catch (updateError) {
+                // Log error but don't fail assignment
+                logger.error(
+                  `Error updating lastAssignedAt for driver ${driver.driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+                );
+              }
+
               driverAssigned = true;
               finalStatus = QuoteStatus.QUOTED;
+
+              // Schedule expiry job for 24 hours from now
+              try {
+                await this.queueService.addQuoteExpiryJob(quoteId, quotedAt);
+                logger.info(`Quote expiry job scheduled for quote: ${quoteId}`);
+              } catch (expiryJobError) {
+                // Log error but don't fail quote submission
+                logger.error(
+                  `Failed to schedule expiry job for quote ${quoteId}: ${expiryJobError instanceof Error ? expiryJobError.message : 'Unknown error'}`
+                );
+              }
 
               // Fetch updated quote for PDF generation
               const updatedQuote = await this.quoteRepository.findById(quoteId);
@@ -273,6 +303,23 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
                       `Failed to send quote email for quote ${quoteId}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
                     );
                     // Don't fail the assignment if email fails
+                  }
+
+                  // Emit driver assigned notification
+                  try {
+                    const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+                    socketEventService.emitDriverAssigned({
+                      quoteId,
+                      tripName: updatedQuote.tripName || 'Trip',
+                      driverId: driver.driverId,
+                      driverName: driver.fullName,
+                      userId,
+                    });
+                  } catch (notificationError) {
+                    // Don't fail assignment if notification fails
+                    logger.error(
+                      `Error emitting driver assigned notification: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+                    );
                   }
                 }
               }

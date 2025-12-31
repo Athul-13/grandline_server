@@ -21,6 +21,7 @@ import { ReservationCharge } from '../../../../../domain/entities/reservation_ch
 import { NotificationType, ERROR_MESSAGES, ReservationStatus } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
 import { randomUUID } from 'crypto';
 
 /**
@@ -53,7 +54,9 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
     @inject(REPOSITORY_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,
     @inject(SERVICE_TOKENS.IEmailService)
-    private readonly emailService: IEmailService
+    private readonly emailService: IEmailService,
+    @inject(SERVICE_TOKENS.ISocketEventService)
+    private readonly socketEventService: ISocketEventService
   ) {}
 
   async execute(
@@ -316,6 +319,23 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
     const updatedReservation = await this.reservationRepository.findById(reservationId);
     if (!updatedReservation) {
       throw new AppError('Reservation not found', 'RESERVATION_NOT_FOUND', 404);
+    }
+
+    // Emit vehicle changed event for real-time updates
+    try {
+      await this.socketEventService.emitVehicleChanged({
+        reservationId,
+        assignedDriverId: updatedReservation.assignedDriverId,
+        vehicles: vehicles.map((v) => ({
+          vehicleId: v.vehicleId,
+          quantity: v.quantity,
+        })),
+      });
+    } catch (socketError: unknown) {
+      // Don't fail vehicle adjustment if socket event fails
+      logger.error(
+        `Error emitting vehicle changed event: ${socketError instanceof Error ? socketError.message : 'Unknown error'}`
+      );
     }
 
     logger.info(`Admin adjusted vehicles for reservation: ${reservationId}`);

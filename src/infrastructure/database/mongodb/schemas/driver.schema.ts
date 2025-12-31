@@ -75,6 +75,11 @@ export const DriverSchema: Schema = new Schema(
       default: false,
       required: true,
     },
+    lastAssignedAt: {
+      type: Date,
+      required: false,
+      default: null,
+    },
   },
   {
     timestamps: true,
@@ -86,4 +91,5 @@ DriverSchema.index({ email: 1 });
 DriverSchema.index({ driverId: 1 });
 DriverSchema.index({ licenseNumber: 1 });
 DriverSchema.index({ createdAt: -1 });
+DriverSchema.index({ lastAssignedAt: 1 }); // For fair assignment sorting
 

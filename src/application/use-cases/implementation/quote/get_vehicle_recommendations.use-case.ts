@@ -100,6 +100,7 @@ export class GetVehicleRecommendationsUseCase implements IGetVehicleRecommendati
           name: v.vehicle.vehicleModel,
           capacity: v.vehicle.capacity,
           quantity: v.quantity,
+          imageUrls: v.vehicle.imageUrls,
         })),
         totalCapacity: rec.totalCapacity,
         estimatedPrice: rec.estimatedPrice,
@@ -115,6 +116,7 @@ export class GetVehicleRecommendationsUseCase implements IGetVehicleRecommendati
         baseFare: vehicle.baseFare,
         isAvailable: vehicle.isAvailable(),
         availableQuantity: 1, // For now, assume 1 per vehicle (can be enhanced with quantity checking)
+        imageUrls: vehicle.imageUrls,
         includedAmenities: vehicle.amenityIds
           .map((id) => {
             const amenity = amenityMap.get(id);

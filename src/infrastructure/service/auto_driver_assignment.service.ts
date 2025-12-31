@@ -18,6 +18,9 @@ import { EmailType, QuoteEmailData } from '../../shared/types/email.types';
 import { FRONTEND_CONFIG } from '../../shared/config';
 import { Vehicle } from '../../domain/entities/vehicle.entity';
 import { Amenity } from '../../domain/entities/amenity.entity';
+import { canAssignDriverToQuote } from '../../shared/utils/driver_assignment.util';
+import { ISocketEventService } from '../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Auto Driver Assignment Service Implementation
@@ -59,7 +62,7 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         return false;
       }
 
-      // Only process SUBMITTED quotes
+      // Only process SUBMITTED quotes (exclude EXPIRED and other terminal states)
       if (quote.status !== QuoteStatus.SUBMITTED) {
         logger.info(`Quote ${quoteId} is not in SUBMITTED status (current: ${quote.status}), skipping auto-assignment`);
         return false;
@@ -102,10 +105,23 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         quoteId
       );
 
-      // Filter out booked drivers
-      const trulyAvailableDrivers = availableDrivers.filter(
-        (driver) => !bookedDriverIds.has(driver.driverId)
-      );
+      // Filter out booked drivers and check eligibility using the guard
+      const now = new Date();
+      const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+        // Skip if driver is booked in date range
+        if (bookedDriverIds.has(driver.driverId)) {
+          return false;
+        }
+        
+        // Check eligibility using the guard
+        const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+        if (!eligibility.canAssign) {
+          logger.debug(`Driver ${driver.driverId} not eligible: ${eligibility.reason}`);
+          return false;
+        }
+        
+        return true;
+      });
 
       if (trulyAvailableDrivers.length === 0) {
         logger.info(`No truly available drivers for quote ${quoteId} date range`);
@@ -216,6 +232,16 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         quotedAt,
       } as Partial<Quote>);
 
+      // Update driver's lastAssignedAt for fair assignment
+      try {
+        await this.driverRepository.updateLastAssignedAt(driver.driverId, quotedAt);
+      } catch (updateError) {
+        // Log error but don't fail assignment
+        logger.error(
+          `Error updating lastAssignedAt for driver ${driver.driverId}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+        );
+      }
+
       // Fetch updated quote for PDF generation
       const updatedQuote = await this.quoteRepository.findById(quoteId);
       if (!updatedQuote) {
@@ -271,6 +297,23 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         // Don't fail the assignment if email fails - driver is already assigned
       }
 
+      // Emit driver assigned notification
+      try {
+        const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+        socketEventService.emitDriverAssigned({
+          quoteId,
+          tripName: updatedQuote.tripName || 'Trip',
+          driverId: driver.driverId,
+          driverName: driver.fullName,
+          userId: quote.userId,
+        });
+      } catch (notificationError) {
+        // Don't fail assignment if notification fails
+        logger.error(
+          `Error emitting driver assigned notification: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+        );
+      }
+
       logger.info(`Successfully auto-assigned driver ${driver.driverId} to quote ${quoteId}`);
       return true;
     } catch (error) {
@@ -285,7 +328,7 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
     try {
       logger.info('Processing pending quotes for driver assignment');
 
-      // Find all SUBMITTED quotes without assigned drivers
+      // Find all SUBMITTED quotes without assigned drivers (exclude EXPIRED)
       const submittedQuotes = await this.quoteRepository.findByStatus(QuoteStatus.SUBMITTED);
       
       if (submittedQuotes.length === 0) {
@@ -293,8 +336,10 @@ export class AutoDriverAssignmentServiceImpl implements IAutoDriverAssignmentSer
         return 0;
       }
 
-      // Filter quotes without assigned drivers
-      const quotesNeedingDrivers = submittedQuotes.filter((quote) => !quote.assignedDriverId);
+      // Filter quotes without assigned drivers and exclude EXPIRED (shouldn't be in SUBMITTED, but double-check)
+      const quotesNeedingDrivers = submittedQuotes.filter(
+        (quote) => !quote.assignedDriverId && quote.status !== QuoteStatus.EXPIRED
+      );
 
       if (quotesNeedingDrivers.length === 0) {
         logger.info('No quotes needing driver assignment');

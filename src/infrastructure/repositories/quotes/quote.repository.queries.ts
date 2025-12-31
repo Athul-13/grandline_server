@@ -38,7 +38,7 @@ export class QuoteQueryBuilder {
   }
 
   /**
-   * Builds admin filter with statuses and userIds
+   * Builds admin filter with statuses, userIds, and search query
    * @param params Filter parameters
    * @returns MongoDB filter object for admin queries
    */
@@ -46,6 +46,8 @@ export class QuoteQueryBuilder {
     includeDeleted: boolean;
     statuses?: QuoteStatus[];
     userIds?: string[];
+    excludePaid?: boolean;
+    searchQuery?: string;
   }): Record<string, unknown> {
     const filter: Record<string, unknown> = {};
 
@@ -57,11 +59,25 @@ export class QuoteQueryBuilder {
     // Handle status filter
     if (params.statuses && params.statuses.length > 0) {
       filter.status = { $in: params.statuses };
+    } else if (params.excludePaid !== false) {
+      // Default: exclude paid quotes unless explicitly requested
+      // If statuses are provided, they override this default
+      filter.status = { $ne: QuoteStatus.PAID };
     }
 
     // Handle user IDs filter
     if (params.userIds && params.userIds.length > 0) {
       filter.userId = { $in: params.userIds };
+    }
+
+    // Handle search query (searches quoteId, tripName, eventType, customEventType)
+    if (params.searchQuery && params.searchQuery.trim().length > 0) {
+      filter.$or = [
+        { quoteId: { $regex: params.searchQuery.trim(), $options: 'i' } },
+        { tripName: { $regex: params.searchQuery.trim(), $options: 'i' } },
+        { eventType: { $regex: params.searchQuery.trim(), $options: 'i' } },
+        { customEventType: { $regex: params.searchQuery.trim(), $options: 'i' } },
+      ];
     }
 
     return filter;

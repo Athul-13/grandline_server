@@ -36,6 +36,24 @@ export enum DriverStatus {
 }
 
 /**
+ * Driver assignment configuration constants
+ */
+export const DRIVER_ASSIGNMENT_CONFIG = {
+  /**
+   * Cooldown period after trip ends before driver becomes AVAILABLE (in milliseconds)
+   * Default: 24 hours
+   */
+  COOLDOWN_PERIOD_MS: 24 * 60 * 60 * 1000,
+  
+  /**
+   * Threshold for "soon-start" trips (in milliseconds)
+   * If a trip starts within this threshold, driver MUST be AVAILABLE
+   * Default: 2 hours
+   */
+  SOON_START_THRESHOLD_MS: 2 * 60 * 60 * 1000,
+} as const;
+
+/**
  * Vehicle status enumeration
  * Tracks the current state of vehicles in the system
  */
@@ -58,6 +76,7 @@ export enum QuoteStatus {
   REJECTED = 'rejected',        // Quote has been rejected
   PAID = 'paid',                // Quote has been paid (becomes reservation)
   QUOTED = 'quoted',            // Quote has been quoted with actual driver pricing
+  EXPIRED = 'expired',          // Quote expired after 24-hour payment window
 }
 
 /**

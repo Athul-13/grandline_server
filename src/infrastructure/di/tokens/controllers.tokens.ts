@@ -19,6 +19,7 @@ export const CONTROLLER_TOKENS = {
   // Reservation controllers
   ReservationController: Symbol.for('ReservationController'),
   AdminReservationController: Symbol.for('AdminReservationController'),
+  AdminTripController: Symbol.for('AdminTripController'),
   ChargePaymentController: Symbol.for('ChargePaymentController'),
   // Other controllers
   AmenityController: Symbol.for('AmenityController'),

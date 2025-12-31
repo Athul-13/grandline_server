@@ -38,6 +38,8 @@ export class ReservationQueryBuilder {
 
   /**
    * Builds admin filter with statuses, userIds, and search query
+   * Excludes past trips: completedAt != null OR tripEndAt < now
+   * Note: tripEndAt filtering is done in use case after deriving from itinerary
    * @param params Filter parameters
    * @returns MongoDB filter object for admin queries
    */
@@ -45,6 +47,7 @@ export class ReservationQueryBuilder {
     statuses?: ReservationStatus[];
     userIds?: string[];
     searchQuery?: string;
+    excludePastTrips?: boolean;
   }): Record<string, unknown> {
     const filter: Record<string, unknown> = {};
 
@@ -61,6 +64,12 @@ export class ReservationQueryBuilder {
         { reservationId: { $regex: params.searchQuery, $options: 'i' } },
         { tripName: { $regex: params.searchQuery, $options: 'i' } },
       ];
+    }
+
+    // Exclude past trips: completedAt != null
+    // Note: tripEndAt < now filtering is done in use case after deriving from itinerary
+    if (params.excludePastTrips !== false) {
+      filter.completedAt = { $eq: null };
     }
 
     return filter;

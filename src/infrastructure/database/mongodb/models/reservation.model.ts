@@ -66,6 +66,8 @@ export interface IReservationModel extends Document {
   refundedAt?: Date;
   cancellationReason?: string;
   cancelledAt?: Date;
+  startedAt?: Date;
+  completedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

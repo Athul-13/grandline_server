@@ -65,20 +65,23 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
       }
     }
 
-    // Store old image URLs for comparison and cleanup
+    // Track existing images for rollback if update fails
     const oldImageUrls = existingVehicle.imageUrls || [];
-    // Only compare if imageUrls is being updated
-    const newImageUrls = request.imageUrls !== undefined ? request.imageUrls : oldImageUrls;
     
-    // Identify images to delete (old images not in new list) - only if imageUrls is being updated
-    const imagesToDelete = request.imageUrls !== undefined
-      ? oldImageUrls.filter(url => !newImageUrls.includes(url))
-      : [];
-    
-    // Identify new images (for rollback if update fails) - only if imageUrls is being updated
+    // Identify newly uploaded images for rollback tracking
     const newImages = request.imageUrls !== undefined
-      ? newImageUrls.filter(url => !oldImageUrls.includes(url))
+      ? request.imageUrls.filter(url => !oldImageUrls.includes(url))
       : [];
+    
+    // Extract images marked for deletion
+    const getRemovedImageUrls = (removedUrls: unknown): string[] => {
+      if (Array.isArray(removedUrls) && removedUrls.length > 0) {
+        return removedUrls.filter((url): url is string => typeof url === 'string');
+      }
+      return [];
+    };
+    
+    const imagesToDelete = getRemovedImageUrls(request.removedImageUrls);
 
     // Validate amenities if being updated
     if (request.amenityIds !== undefined) {
@@ -104,8 +107,8 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
     if (request.year !== undefined) updateData.year = request.year;
     if (request.fuelConsumption !== undefined) updateData.fuelConsumption = request.fuelConsumption;
     if (request.imageUrls !== undefined) {
-      // If empty array, set to empty array (not undefined) - MongoDB will handle it correctly
-      // Empty array means user wants to remove all images
+      // imageUrls represents the final desired state (can be empty array)
+      // Empty array is valid - it means vehicle should have no images
       updateData.imageUrls = request.imageUrls;
     }
     if (request.amenityIds !== undefined) {
@@ -136,14 +139,14 @@ export class UpdateVehicleUseCase implements IUpdateVehicleUseCase {
         throw new AppError(ERROR_MESSAGES.VEHICLE_TYPE_NOT_FOUND, ERROR_CODES.VEHICLE_TYPE_NOT_FOUND, 404);
       }
 
-      // Delete old images that are no longer in use (after successful update)
+      // Delete images that were removed from the vehicle during update
       if (imagesToDelete.length > 0) {
         try {
           await this.cloudinaryService.deleteFiles(imagesToDelete);
-          logger.info(`Deleted ${imagesToDelete.length} old images from Cloudinary for vehicle: ${vehicleId}`);
+          logger.info(`Deleted ${imagesToDelete.length} images from Cloudinary for vehicle: ${vehicleId}`);
         } catch (error) {
-          // Log error but don't fail the update - images are orphaned but update succeeded
-          logger.error(`Failed to delete old images from Cloudinary for vehicle ${vehicleId}: ${error instanceof Error ? error.message : String(error)}`);
+          // Deletion is idempotent - safe to retry if images are already deleted
+          logger.warn(`Image deletion warning for vehicle ${vehicleId}: ${error instanceof Error ? error.message : String(error)}`);
         }
       }
 

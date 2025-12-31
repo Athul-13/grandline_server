@@ -3,6 +3,8 @@ import { UserController } from '../../controllers/user/user.controller';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
 import { UpdateUserProfileRequest, ChangePasswordRequest, DeleteUserAccountRequest } from '../../../application/dtos/user.dto';
+import { container } from '../../../infrastructure/di';
+import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 
 /**
  * Route configuration interface
@@ -83,9 +85,6 @@ export function createUserRoutes(config: UserRoutesConfig): Router {
 /**
  * Factory function to create user routes with DI resolution
  */
-import { container } from '../../../infrastructure/di';
-import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
-
 export function createUserRoutesWithDI(): Router {
   const userController = container.resolve<UserController>(CONTROLLER_TOKENS.UserController);
 

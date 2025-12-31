@@ -2,6 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IUpdateReservationStatusUseCase } from '../../../interface/admin/reservation/update_reservation_status_use_case.interface';
 import { IReservationRepository } from '../../../../../domain/repositories/reservation_repository.interface';
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
+import { IReservationChargeRepository } from '../../../../../domain/repositories/reservation_charge_repository.interface';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
 import { REPOSITORY_TOKENS, USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
@@ -24,6 +25,8 @@ export class UpdateReservationStatusUseCase implements IUpdateReservationStatusU
     private readonly reservationRepository: IReservationRepository,
     @inject(REPOSITORY_TOKENS.IReservationModificationRepository)
     private readonly modificationRepository: IReservationModificationRepository,
+    @inject(REPOSITORY_TOKENS.IReservationChargeRepository)
+    private readonly chargeRepository: IReservationChargeRepository,
     @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
     private readonly createNotificationUseCase: ICreateNotificationUseCase
   ) {}
@@ -70,6 +73,19 @@ export class UpdateReservationStatusUseCase implements IUpdateReservationStatusU
         'INVALID_STATUS_TRANSITION',
         400
       );
+    }
+
+    // Check for unpaid charges when transitioning to COMPLETED - block completion if any exist
+    if (status === ReservationStatus.COMPLETED) {
+      const unpaidCharges = await this.chargeRepository.findUnpaidByReservationId(reservationId);
+      if (unpaidCharges.length > 0) {
+        const totalUnpaid = unpaidCharges.reduce((sum, charge) => sum + charge.amount, 0);
+        throw new AppError(
+          `Cannot complete reservation with unpaid balance of ${totalUnpaid} ${unpaidCharges[0]?.currency || 'INR'}. Please ensure all charges are paid before completing the reservation.`,
+          'UNPAID_CHARGES_BLOCK_COMPLETION',
+          400
+        );
+      }
     }
 
     // Update reservation status

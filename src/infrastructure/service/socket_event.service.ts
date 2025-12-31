@@ -10,6 +10,9 @@ import { REPOSITORY_TOKENS } from '../../application/di/tokens';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
+import { IDriverRepository } from '../../domain/repositories/driver_repository.interface';
+import { IReservationRepository } from '../../domain/repositories/reservation_repository.interface';
+import { IQuoteRepository } from '../../domain/repositories/quote_repository.interface';
 import { MessageDeliveryStatus, NotificationType, QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus } from '../../shared/constants';
 import { User } from '../../domain/entities/user.entity';
 import { Driver } from '../../domain/entities/driver.entity';
@@ -41,6 +44,7 @@ export const ADMIN_DASHBOARD_SOCKET_EVENTS = {
   QUOTE_CREATED: 'admin:quote-created',
   QUOTE_UPDATED: 'admin:quote-updated',
   QUOTE_STATUS_CHANGED: 'admin:quote-status-changed',
+  QUOTE_EXPIRED: 'quote:expired',
   RESERVATION_CREATED: 'admin:reservation-created',
   RESERVATION_UPDATED: 'admin:reservation-updated',
   RESERVATION_STATUS_CHANGED: 'admin:reservation-status-changed',
@@ -55,6 +59,12 @@ export const ADMIN_DASHBOARD_SOCKET_EVENTS = {
   DRIVER_UPDATED: 'admin:driver-updated',
   DRIVER_STATUS_CHANGED: 'admin:driver-status-changed',
   DRIVER_DELETED: 'admin:driver-deleted',
+  DRIVER_ASSIGNED: 'driver:assigned',
+  TRIP_STARTED: 'trip:started',
+  TRIP_ENDED: 'trip:ended',
+  TRIP_DRIVER_CHANGED: 'trip:driver_changed',
+  TRIP_VEHICLE_CHANGED: 'trip:vehicle_changed',
+  LOCATION_UPDATE: 'location:update',
 } as const;
 
 /**
@@ -477,6 +487,46 @@ export class SocketEventService implements ISocketEventService {
   }
 
   /**
+   * Emits quote expired event to admin dashboard and user rooms
+   */
+  async emitQuoteExpired(payload: { quoteId: string; expiredAt: Date }): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit quote expired event. ` +
+        `Method: emitQuoteExpired, QuoteId: ${payload.quoteId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch quote to get userId
+      const quoteRepository = container.resolve<IQuoteRepository>(REPOSITORY_TOKENS.IQuoteRepository);
+      const quote = await quoteRepository.findById(payload.quoteId);
+
+      const eventData = {
+        quoteId: payload.quoteId,
+        expiredAt: payload.expiredAt.toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit('quote:expired', eventData);
+      
+      // Emit to user room if quote exists
+      if (quote) {
+        const userRoom = `user:${quote.userId}`;
+        this.io.to(userRoom).emit('quote:expired', eventData);
+        logger.debug(`Quote expired event emitted to user room: ${userRoom}, quote: ${payload.quoteId}`);
+      } else {
+        // Fallback: emit globally if quote not found (shouldn't happen, but safe)
+        this.io.emit('quote:expired', eventData);
+        logger.warn(`Quote not found for expiry event, emitted globally: ${payload.quoteId}`);
+      }
+    } catch (error) {
+      logger.error(`Error emitting quote expired event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
    * Emits reservation created event to admin dashboard room
    */
   emitReservationCreated(reservation: Reservation): void {
@@ -823,6 +873,264 @@ export class SocketEventService implements ISocketEventService {
       logger.debug(`Driver deleted event emitted to admin dashboard: ${driverId}`);
     } catch (error) {
       logger.error(`Error emitting driver deleted event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits driver assigned event to admin dashboard and user rooms
+   */
+  emitDriverAssigned(payload: {
+    reservationId?: string;
+    quoteId?: string;
+    tripName: string;
+    driverId: string;
+    driverName: string;
+    userId: string;
+  }): void {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit driver assigned event. ` +
+        `Method: emitDriverAssigned, DriverId: ${payload.driverId}.`
+      );
+      return;
+    }
+
+    try {
+      const eventData = {
+        reservationId: payload.reservationId,
+        quoteId: payload.quoteId,
+        tripName: payload.tripName,
+        driverId: payload.driverId,
+        driverName: payload.driverName,
+        userId: payload.userId,
+        assignedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_ASSIGNED, eventData);
+      
+      // Emit to user room
+      this.io.to(`user:${payload.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.DRIVER_ASSIGNED, eventData);
+      
+      logger.debug(
+        `Driver assigned event emitted: Driver ${payload.driverName} (${payload.driverId}) assigned to ${payload.tripName}`
+      );
+    } catch (error) {
+      logger.error(`Error emitting driver assigned event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits trip started event to admin dashboard, user, and driver rooms
+   */
+  async emitTripStarted(reservationId: string, driverId: string): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit trip started event. ` +
+        `Method: emitTripStarted, ReservationId: ${reservationId}, DriverId: ${driverId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch reservation to get userId for targeted user room emission
+      const reservationRepository = container.resolve<IReservationRepository>(REPOSITORY_TOKENS.IReservationRepository);
+      const reservation = await reservationRepository.findById(reservationId);
+      
+      const tripData = {
+        reservationId,
+        driverId,
+        userId: reservation?.userId,
+        startedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_STARTED, tripData);
+      
+      // Emit to driver room
+      this.io.to(`driver:${driverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_STARTED, tripData);
+      
+      // Emit to user room if reservation exists
+      if (reservation?.userId) {
+        this.io.to(`user:${reservation.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_STARTED, tripData);
+      }
+      
+      logger.debug(`Trip started event emitted: reservation=${reservationId}, driver=${driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting trip started event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits trip ended event to admin dashboard, user, and driver rooms
+   */
+  async emitTripEnded(reservationId: string, driverId: string): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit trip ended event. ` +
+        `Method: emitTripEnded, ReservationId: ${reservationId}, DriverId: ${driverId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch reservation to get userId for targeted user room emission
+      const reservationRepository = container.resolve<IReservationRepository>(REPOSITORY_TOKENS.IReservationRepository);
+      const reservation = await reservationRepository.findById(reservationId);
+      
+      const tripData = {
+        reservationId,
+        driverId,
+        userId: reservation?.userId,
+        completedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_ENDED, tripData);
+      
+      // Emit to driver room
+      this.io.to(`driver:${driverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_ENDED, tripData);
+      
+      // Emit to user room if reservation exists
+      if (reservation?.userId) {
+        this.io.to(`user:${reservation.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_ENDED, tripData);
+      }
+      
+      logger.debug(`Trip ended event emitted: reservation=${reservationId}, driver=${driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting trip ended event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits driver changed event when admin changes driver for a reservation
+   * Targets: old driver, new driver, and admin dashboard
+   */
+  async emitDriverChanged(payload: {
+    reservationId: string;
+    oldDriverId: string | undefined;
+    newDriverId: string;
+    tripState: 'UPCOMING' | 'CURRENT' | 'PAST';
+  }): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit driver changed event. ` +
+        `Method: emitDriverChanged, ReservationId: ${payload.reservationId}.`
+      );
+      return;
+    }
+
+    try {
+      const eventData = {
+        reservationId: payload.reservationId,
+        oldDriverId: payload.oldDriverId,
+        newDriverId: payload.newDriverId,
+        tripState: payload.tripState,
+        changedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_DRIVER_CHANGED, eventData);
+      
+      // Emit to old driver room (if exists) - so they know they lost the trip
+      if (payload.oldDriverId) {
+        this.io.to(`driver:${payload.oldDriverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_DRIVER_CHANGED, eventData);
+      }
+      
+      // Emit to new driver room - so they know they got the trip
+      this.io.to(`driver:${payload.newDriverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_DRIVER_CHANGED, eventData);
+      
+      logger.debug(
+        `Driver changed event emitted: reservation=${payload.reservationId}, oldDriver=${payload.oldDriverId || 'none'} -> newDriver=${payload.newDriverId}, tripState=${payload.tripState}`
+      );
+    } catch (error) {
+      logger.error(`Error emitting driver changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits vehicle changed event when admin adjusts vehicles for a reservation
+   * Targets: assigned driver (if any) and admin dashboard
+   */
+  async emitVehicleChanged(payload: {
+    reservationId: string;
+    assignedDriverId: string | undefined;
+    vehicles: Array<{
+      vehicleId: string;
+      quantity: number;
+    }>;
+  }): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit vehicle changed event. ` +
+        `Method: emitVehicleChanged, ReservationId: ${payload.reservationId}.`
+      );
+      return;
+    }
+
+    try {
+      const eventData = {
+        reservationId: payload.reservationId,
+        vehicles: payload.vehicles,
+        changedAt: new Date().toISOString(),
+      };
+
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_VEHICLE_CHANGED, eventData);
+      
+      // Emit to assigned driver room (if exists) - so they know about vehicle changes
+      if (payload.assignedDriverId) {
+        this.io.to(`driver:${payload.assignedDriverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.TRIP_VEHICLE_CHANGED, eventData);
+      }
+      
+      logger.debug(
+        `Vehicle changed event emitted: reservation=${payload.reservationId}, driver=${payload.assignedDriverId || 'none'}, vehicleCount=${payload.vehicles.length}`
+      );
+    } catch (error) {
+      logger.error(`Error emitting vehicle changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+   * Emits location update event to admin dashboard, user, and driver rooms
+   */
+  async emitLocationUpdate(locationData: {
+    reservationId: string;
+    driverId: string;
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    heading?: number;
+    speed?: number;
+    timestamp: string;
+  }): Promise<void> {
+    if (!this.io) {
+      logger.error(
+        `[SocketEventService] Socket.io server not initialized, cannot emit location update event. ` +
+        `Method: emitLocationUpdate, ReservationId: ${locationData.reservationId}, DriverId: ${locationData.driverId}.`
+      );
+      return;
+    }
+
+    try {
+      // Fetch reservation to get userId for targeted user room emission
+      const reservationRepository = container.resolve<IReservationRepository>(REPOSITORY_TOKENS.IReservationRepository);
+      const reservation = await reservationRepository.findById(locationData.reservationId);
+      
+      // Emit to admin dashboard
+      this.io.to('admin:dashboard').emit(ADMIN_DASHBOARD_SOCKET_EVENTS.LOCATION_UPDATE, locationData);
+      
+      // Emit to driver room
+      this.io.to(`driver:${locationData.driverId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.LOCATION_UPDATE, locationData);
+      
+      // Emit to user room if reservation exists
+      if (reservation?.userId) {
+        this.io.to(`user:${reservation.userId}`).emit(ADMIN_DASHBOARD_SOCKET_EVENTS.LOCATION_UPDATE, locationData);
+      }
+      
+      logger.debug(`Location update event emitted: reservation=${locationData.reservationId}, driver=${locationData.driverId}`);
+    } catch (error) {
+      logger.error(`Error emitting location update event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

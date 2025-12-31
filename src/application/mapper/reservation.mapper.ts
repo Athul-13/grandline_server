@@ -3,6 +3,8 @@ import {
   ReservationResponse,
   ReservationListItemResponse,
 } from '../dtos/reservation.dto';
+import { deriveChatEnabled, deriveTripState, deriveTripWindow } from './driver_dashboard.mapper';
+import { ReservationStatus } from '../../shared/constants';
 
 /**
  * Reservation mapper
@@ -49,7 +51,8 @@ export class ReservationMapper {
       isPaid: boolean;
       paidAt?: Date;
       createdAt: Date;
-    }>
+    }>,
+    chatEnabled?: boolean
   ): ReservationResponse {
     return {
       reservationId: reservation.reservationId,
@@ -96,6 +99,7 @@ export class ReservationMapper {
         paidAt: charge.paidAt,
         createdAt: charge.createdAt,
       })) || undefined,
+      chatEnabled: chatEnabled ?? false,
     };
   }
 

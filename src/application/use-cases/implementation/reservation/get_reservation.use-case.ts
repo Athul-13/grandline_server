@@ -7,10 +7,11 @@ import { IPassengerRepository } from '../../../../domain/repositories/passenger_
 import { ReservationResponse } from '../../../dtos/reservation.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ReservationMapper } from '../../../mapper/reservation.mapper';
-import { ERROR_MESSAGES } from '../../../../shared/constants';
+import { ERROR_MESSAGES, ReservationStatus } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';
+import { deriveChatEnabled, deriveTripState, deriveTripWindow } from '../../../mapper/driver_dashboard.mapper';
 
 /**
  * Use case for getting a reservation by ID
@@ -176,8 +177,33 @@ export class GetReservationUseCase implements IGetReservationUseCase {
       // Don't fail reservation fetch if charge fetch fails
     }
 
-    // Map to response DTO with driver, itinerary, passengers, and charges
-    return ReservationMapper.toReservationResponse(reservation, driverDetails, itineraryStops, passengers, charges);
+    // Calculate chatEnabled flag (for driver chat - reservation-based)
+    // Only enabled if: reservation has assigned driver, itinerary exists, and within 24h window
+    let chatEnabled = false;
+    if (reservation.assignedDriverId && itineraryStops && itineraryStops.length > 0) {
+      try {
+        const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops);
+        const now = new Date();
+        const tripState = deriveTripState({
+          status: reservation.status,
+          tripStartAt,
+          tripEndAt,
+          now,
+          startedAt: reservation.startedAt,
+          completedAt: reservation.completedAt,
+        });
+        chatEnabled = deriveChatEnabled(tripStartAt, now, tripState);
+      } catch (error) {
+        logger.warn(
+          `Failed to calculate chatEnabled for reservation ${reservationId}: ${error instanceof Error ? error.message : 'Unknown error'}`
+        );
+        // Default to false if calculation fails
+        chatEnabled = false;
+      }
+    }
+
+    // Map to response DTO with driver, itinerary, passengers, charges, and chatEnabled
+    return ReservationMapper.toReservationResponse(reservation, driverDetails, itineraryStops, passengers, charges, chatEnabled);
   }
 }
 

@@ -56,4 +56,10 @@ export interface IUserRepository extends IBaseRepository<User> {
     }>;
 
     softDelete(userId: string): Promise<void>;
+
+    /**
+     * Finds users by IDs (driver dashboard / batch loading)
+     * Returns a map keyed by userId.
+     */
+    findByIds(userIds: string[]): Promise<Map<string, User>>;
 }

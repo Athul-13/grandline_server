@@ -48,6 +48,14 @@ export interface ISocketEventService {
   emitQuoteStatusChanged(quote: Quote, oldStatus: QuoteStatus): void;
 
   /**
+   * Emits quote expired event to admin dashboard and user rooms
+   */
+  emitQuoteExpired(payload: {
+    quoteId: string;
+    expiredAt: Date;
+  }): Promise<void>;
+
+  /**
    * Emits reservation created event to admin dashboard room
    */
   emitReservationCreated(reservation: Reservation): void;
@@ -111,5 +119,65 @@ export interface ISocketEventService {
    * Emits driver deleted event to admin dashboard room
    */
   emitDriverDeleted(driverId: string): void;
+
+  /**
+   * Emits driver assigned event to admin dashboard and user rooms
+   */
+  emitDriverAssigned(payload: {
+    reservationId?: string;
+    quoteId?: string;
+    tripName: string;
+    driverId: string;
+    driverName: string;
+    userId: string;
+  }): void;
+
+  /**
+   * Emits trip started event to admin dashboard, user, and driver rooms
+   */
+  emitTripStarted(reservationId: string, driverId: string): Promise<void>;
+
+  /**
+   * Emits trip ended event to admin dashboard, user, and driver rooms
+   */
+  emitTripEnded(reservationId: string, driverId: string): Promise<void>;
+
+  /**
+   * Emits driver changed event when admin changes driver for a reservation
+   * Targets: old driver, new driver, and admin dashboard
+   */
+  emitDriverChanged(payload: {
+    reservationId: string;
+    oldDriverId: string | undefined;
+    newDriverId: string;
+    tripState: 'UPCOMING' | 'CURRENT' | 'PAST';
+  }): Promise<void>;
+
+  /**
+   * Emits vehicle changed event when admin adjusts vehicles for a reservation
+   * Targets: assigned driver (if any) and admin dashboard
+   */
+  emitVehicleChanged(payload: {
+    reservationId: string;
+    assignedDriverId: string | undefined;
+    vehicles: Array<{
+      vehicleId: string;
+      quantity: number;
+    }>;
+  }): Promise<void>;
+
+  /**
+   * Emits location update event to admin dashboard, user, and driver rooms
+   */
+  emitLocationUpdate(locationData: {
+    reservationId: string;
+    driverId: string;
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+    heading?: number;
+    speed?: number;
+    timestamp: string;
+  }): Promise<void>;
 }
 

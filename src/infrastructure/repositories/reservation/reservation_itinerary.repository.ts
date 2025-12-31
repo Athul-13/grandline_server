@@ -68,5 +68,38 @@ export class ReservationItineraryRepositoryImpl
     const docs = await this.itineraryModel.find({ reservationId }, { sort: { stopOrder: 1 } });
     return ReservationItineraryRepositoryMapper.toEntities(docs);
   }
+
+  async findByReservationIdsOrdered(
+    reservationIds: string[]
+  ): Promise<Map<string, ReservationItinerary[]>> {
+    const map = new Map<string, ReservationItinerary[]>();
+    if (!reservationIds || reservationIds.length === 0) {
+      return map;
+    }
+
+    const docs = await this.itineraryModel.find(
+      { reservationId: { $in: reservationIds } },
+      { sort: { reservationId: 1, tripType: 1, stopOrder: 1 } }
+    );
+
+    const entities = ReservationItineraryRepositoryMapper.toEntities(docs);
+    for (const stop of entities) {
+      const existing = map.get(stop.reservationId);
+      if (existing) {
+        existing.push(stop);
+      } else {
+        map.set(stop.reservationId, [stop]);
+      }
+    }
+
+    // Ensure every requested reservationId has a key (itinerary guaranteed, but keep safe)
+    for (const reservationId of reservationIds) {
+      if (!map.has(reservationId)) {
+        map.set(reservationId, []);
+      }
+    }
+
+    return map;
+  }
 }
 

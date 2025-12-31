@@ -23,6 +23,9 @@ import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Vehicle } from '../../../../../domain/entities/vehicle.entity';
 import { Amenity } from '../../../../../domain/entities/amenity.entity';
 import { Driver } from '../../../../../domain/entities/driver.entity';
+import { canAssignDriverToQuote } from '../../../../../shared/utils/driver_assignment.util';
+import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
+import { container } from 'tsyringe';
 
 /**
  * Use case for recalculating quote pricing
@@ -138,10 +141,17 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
           );
 
           if (!bookedDriverIds.has(quote.assignedDriverId)) {
-            // Current driver is still available
+            // Current driver is still available - check eligibility
             driverToUse = await this.driverRepository.findById(quote.assignedDriverId);
             if (driverToUse) {
-              driverIdToAssign = quote.assignedDriverId;
+              const now = new Date();
+              const eligibility = canAssignDriverToQuote(driverToUse, itinerary, now);
+              if (eligibility.canAssign) {
+                driverIdToAssign = quote.assignedDriverId;
+              } else {
+                logger.info(`Quote ${quoteId}: Current driver ${quote.assignedDriverId} not eligible: ${eligibility.reason}`);
+                driverToUse = null; // Driver not eligible, need to find new one
+              }
             }
           }
         }
@@ -155,10 +165,18 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
             quoteId
           );
 
-          // Filter out booked drivers
-          const trulyAvailableDrivers = availableDrivers.filter(
-            (driver) => !bookedDriverIds.has(driver.driverId)
-          );
+          // Filter out booked drivers and check eligibility using the guard
+          const now = new Date();
+          const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+            // Skip if driver is booked in date range
+            if (bookedDriverIds.has(driver.driverId)) {
+              return false;
+            }
+            
+            // Check eligibility using the guard
+            const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+            return eligibility.canAssign;
+          });
 
           if (trulyAvailableDrivers.length > 0) {
             // Use first available driver
@@ -186,9 +204,18 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
           quoteId
         );
 
-        const trulyAvailableDrivers = availableDrivers.filter(
-          (driver) => !bookedDriverIds.has(driver.driverId)
-        );
+        // Filter out booked drivers and check eligibility using the guard
+        const now = new Date();
+        const trulyAvailableDrivers = availableDrivers.filter((driver) => {
+          // Skip if driver is booked in date range
+          if (bookedDriverIds.has(driver.driverId)) {
+            return false;
+          }
+          
+          // Check eligibility using the guard
+          const eligibility = canAssignDriverToQuote(driver, itinerary, now);
+          return eligibility.canAssign;
+        });
 
         if (trulyAvailableDrivers.length > 0) {
           driverToUse = trulyAvailableDrivers[0];
@@ -286,6 +313,9 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
       const tax = this.pricingCalculationService.calculateTax(subtotal, pricingConfig.taxPercentage);
       const total = subtotal + tax;
 
+      // Check if driver changed (new assignment)
+      const driverChanged = quote.assignedDriverId !== driverIdToAssign;
+
       // Update quote with new pricing and driver (if changed)
       const quotedAt = new Date();
       await this.quoteRepository.updateById(quoteId, {
@@ -308,6 +338,18 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
         pricingLastUpdatedAt: quotedAt,
         quotedAt, // Reset quotedAt to extend payment window
       } as Partial<Quote>);
+
+      // Update driver's lastAssignedAt for fair assignment (only if driver changed)
+      if (driverChanged) {
+        try {
+          await this.driverRepository.updateLastAssignedAt(driverIdToAssign, quotedAt);
+        } catch (updateError) {
+          // Log error but don't fail recalculation
+          logger.error(
+            `Error updating lastAssignedAt for driver ${driverIdToAssign}: ${updateError instanceof Error ? updateError.message : 'Unknown error'}`
+          );
+        }
+      }
 
       // Fetch updated quote
       const updatedQuote = await this.quoteRepository.findById(quoteId);
@@ -360,6 +402,25 @@ export class RecalculateQuoteUseCase implements IRecalculateQuoteUseCase {
           `Failed to send recalculated quote email for quote ${quoteId}: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
         );
         // Don't fail the recalculation if email fails
+      }
+
+      // Emit driver assigned notification (only if driver changed)
+      if (driverChanged) {
+        try {
+          const socketEventService = container.resolve<ISocketEventService>(SERVICE_TOKENS.ISocketEventService);
+          socketEventService.emitDriverAssigned({
+            quoteId,
+            tripName: updatedQuote.tripName || 'Trip',
+            driverId: driverIdToAssign,
+            driverName: driverToUse.fullName,
+            userId: quote.userId,
+          });
+        } catch (notificationError) {
+          // Don't fail recalculation if notification fails
+          logger.error(
+            `Error emitting driver assigned notification: ${notificationError instanceof Error ? notificationError.message : 'Unknown error'}`
+          );
+        }
       }
 
       // Fetch itinerary and passengers for response
