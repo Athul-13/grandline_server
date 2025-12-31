@@ -31,5 +31,8 @@ export const REPOSITORY_TOKENS = {
   IReservationItineraryRepository: Symbol.for('IReservationItineraryRepository'),
   IReservationModificationRepository: Symbol.for('IReservationModificationRepository'),
   IReservationChargeRepository: Symbol.for('IReservationChargeRepository'),
+  // Ticket repositories
+  ITicketRepository: Symbol.for('ITicketRepository'),
+  ITicketMessageRepository: Symbol.for('ITicketMessageRepository'),
 } as const;
 

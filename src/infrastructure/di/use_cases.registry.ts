@@ -124,6 +124,12 @@ import { CreateChargePaymentIntentUseCase } from '../../application/use-cases/im
 import { GetDashboardStatsUseCase } from '../../application/use-cases/implementation/dashboard/get_dashboard_stats.use-case';
 import { GetRecentActivityUseCase } from '../../application/use-cases/implementation/dashboard/get_recent_activity.use-case';
 import { GetAdminDashboardAnalyticsUseCase } from '../../application/use-cases/implementation/dashboard/get_admin_dashboard_analytics.use-case';
+import { AddMessageUseCase } from '../../application/use-cases/implementation/support/add_message.use-case';
+import { CreateTicketUseCase } from '../../application/use-cases/implementation/support/create_ticket.use-case';
+import { GetTicketsByActorUseCase } from '../../application/use-cases/implementation/support/get_tickets_by_actor.use-case';
+import { GetTicketByIdUseCase } from '../../application/use-cases/implementation/support/get_ticket_by_id.use-case';
+import { GetMessagesByTicketUseCase } from '../../application/use-cases/implementation/support/get_messages_by_ticket.use-case';
+import { GetAllTicketsUseCase } from '../../application/use-cases/implementation/support/get_all_tickets.use-case';
 
 /**
  * Registers all use case dependencies in the DI container
@@ -272,5 +278,12 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetDashboardStatsUseCase, GetDashboardStatsUseCase);
   container.register(USE_CASE_TOKENS.GetRecentActivityUseCase, GetRecentActivityUseCase);
   container.register(USE_CASE_TOKENS.GetAdminDashboardAnalyticsUseCase, GetAdminDashboardAnalyticsUseCase);
+  // Ticket use cases
+  container.register(USE_CASE_TOKENS.AddMessageUseCase, AddMessageUseCase);
+  container.register(USE_CASE_TOKENS.CreateTicketUseCase, CreateTicketUseCase);
+  container.register(USE_CASE_TOKENS.GetAllTicketsUseCase, GetAllTicketsUseCase);
+  container.register(USE_CASE_TOKENS.GetMessagesByTicketUseCase, GetMessagesByTicketUseCase);
+  container.register(USE_CASE_TOKENS.GetTicketByIdUseCase, GetTicketByIdUseCase);
+  container.register(USE_CASE_TOKENS.GetTicketsByActorUseCase, GetTicketsByActorUseCase);
 }
 
