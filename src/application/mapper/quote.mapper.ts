@@ -77,6 +77,7 @@ export class QuoteMapper {
       routeData: quote.routeData,
       itinerary,
       passengers: passengersDto,
+      quotedAt: quote.quotedAt,
       createdAt: quote.createdAt,
       updatedAt: quote.updatedAt,
     };
@@ -152,6 +153,6 @@ export class QuoteMapper {
       createdAt: quote.createdAt,
       isDeleted: quote.isDeleted
     };
-  }
+  } 
 }
 

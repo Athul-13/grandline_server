@@ -309,6 +309,7 @@ export interface QuoteResponse {
   passengers?: PassengerDto[];
   chatAvailable?: boolean;
   chatId?: string;
+  quotedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
 }

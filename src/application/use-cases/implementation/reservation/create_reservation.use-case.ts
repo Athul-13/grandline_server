@@ -13,7 +13,7 @@ import { ICreateNotificationUseCase } from '../../interface/notification/create_
 import { REPOSITORY_TOKENS, SERVICE_TOKENS, USE_CASE_TOKENS } from '../../../di/tokens';
 import { Reservation } from '../../../../domain/entities/reservation.entity';
 import { ReservationItinerary } from '../../../../domain/entities/reservation_itinerary.entity';
-import { ReservationStatus, TripType, ERROR_MESSAGES, NotificationType } from '../../../../shared/constants';
+import { ReservationStatus, TripType, ERROR_MESSAGES, NotificationType, QuoteStatus } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { randomUUID } from 'crypto';
