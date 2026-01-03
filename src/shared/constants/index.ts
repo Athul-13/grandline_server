@@ -121,6 +121,36 @@ export enum ParticipantType {
 }
 
 /**
+ * Actor type enumeration
+ * Defines the type of actor in a ticket
+ */
+export enum ActorType {
+  ADMIN = 'admin',
+  USER = 'user',
+  DRIVER = 'driver',
+}
+
+/**
+ * Linked entity type enumeration
+ * Defines the type of linked entity in a ticket
+ */
+export enum LinkedEntityType {
+  QUOTE = 'quote',
+  RESERVATION = 'reservation',
+}
+
+/**
+ * Ticket status enumeration
+ * Defines the status of a ticket
+ */
+export enum TicketStatus {
+  OPEN = 'open',
+  IN_PROGRESS = 'in_progress',
+  RESOLVED = 'resolved',
+  REJECTED = 'rejected',
+}
+
+/**
  * Message delivery status enumeration
  * Tracks the delivery and read status of messages
  */
@@ -146,6 +176,10 @@ export enum NotificationType {
   RESERVATION_CHARGE_ADDED = 'reservation_charge_added',   // Additional charge added to reservation
   RESERVATION_CANCELLED = 'reservation_cancelled',   // Reservation cancelled
   RESERVATION_REFUNDED = 'reservation_refunded',   // Reservation refund processed
+  TICKET_CREATED = 'ticket_created',   // Ticket created
+  TICKET_ASSIGNED_TO_ADMIN = 'ticket_assigned_to_admin',   // Ticket assigned to admin
+  TICKET_STATUS_CHANGED = 'ticket_status_changed',   // Ticket status changed
+  TICKET_MESSAGE_ADDED = 'ticket_message_added',   // Ticket message added
 }
 
 /**

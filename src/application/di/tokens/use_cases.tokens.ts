@@ -145,5 +145,14 @@ export const USE_CASE_TOKENS = {
   GetDashboardStatsUseCase: Symbol.for('GetDashboardStatsUseCase'),
   GetRecentActivityUseCase: Symbol.for('GetRecentActivityUseCase'),
   GetAdminDashboardAnalyticsUseCase: Symbol.for('GetAdminDashboardAnalyticsUseCase'),
+  // Ticket use cases
+  AddMessageUseCase: Symbol.for('AddMessageUseCase'),
+  CreateTicketUseCase: Symbol.for('CreateTicketUseCase'),
+  GetAllTicketsUseCase: Symbol.for('GetAllTicketsUseCase'),
+  GetTicketByIdUseCase: Symbol.for('GetTicketByIdUseCase'),
+  GetMessagesByTicketUseCase: Symbol.for('GetMessagesByTicketUseCase'),
+  GetTicketsByActorUseCase: Symbol.for('GetTicketsByActorUseCase'),
+  UpdateTicketStatusUseCase: Symbol.for('UpdateTicketStatusUseCase'),
+  AssignTicketToAdminUseCase: Symbol.for('AssignTicketToAdminUseCase'),
 } as const;
 

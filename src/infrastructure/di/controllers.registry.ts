@@ -23,6 +23,8 @@ import { ReservationController } from '../../presentation/controllers/reservatio
 import { AdminReservationController } from '../../presentation/controllers/admin/admin_reservation.controller';
 import { AdminTripController } from '../../presentation/controllers/admin/admin_trip.controller';
 import { ChargePaymentController } from '../../presentation/controllers/reservation/charge_payment.controller';
+import { TicketController } from '../../presentation/controllers/support/ticket.controller';
+import { TicketMessageController } from '../../presentation/controllers/support/ticket_message.controller';
 
 /**
  * Registers all controller dependencies in the DI container
@@ -59,5 +61,8 @@ export function registerControllers(): void {
   container.register(CONTROLLER_TOKENS.AdminReservationController, AdminReservationController);
   container.register(CONTROLLER_TOKENS.AdminTripController, AdminTripController);
   container.register(CONTROLLER_TOKENS.ChargePaymentController, ChargePaymentController);
+  // Support controllers
+  container.register(CONTROLLER_TOKENS.TicketController, TicketController);
+  container.register(CONTROLLER_TOKENS.TicketMessageController, TicketMessageController);
 }
 

@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { IGetQuotesListUseCase } from '../../interface/quote/get_quotes_list_use_case.interface';
+import { IGetQuotesListUseCase, QuoteDropdownItem } from '../../interface/quote/get_quotes_list_use_case.interface';
 import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
 import { IQuoteItineraryRepository } from '../../../../domain/repositories/quote_itinerary_repository.interface';
 import { IChatRepository } from '../../../../domain/repositories/chat_repository.interface';
@@ -42,8 +42,9 @@ export class GetQuotesListUseCase implements IGetQuotesListUseCase {
     limit: number = 20,
     status?: QuoteStatus[],
     sortBy?: string,
-    sortOrder: 'asc' | 'desc' = 'asc'
-  ): Promise<QuoteListResponse> {
+    sortOrder: 'asc' | 'desc' = 'asc',
+    forDropdown: boolean = false
+  ): Promise<QuoteListResponse | QuoteDropdownItem[]> {
     // Input validation
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_USER_ID', 400);
@@ -74,6 +75,19 @@ export class GetQuotesListUseCase implements IGetQuotesListUseCase {
 
     // Filter out paid quotes (they are reservations, not quotes)
     quotes = quotes.filter((quote) => quote.status !== QuoteStatus.PAID);
+
+    // If forDropdown is true, return minimal data without pagination
+    if (forDropdown) {
+      //Filter to only include quotes with tripname 
+      const quotesWithTripName = quotes.filter((quote) => quote.tripName && quote.tripName.trim().length > 0);
+
+      const dropdownItems: QuoteDropdownItem[] = quotesWithTripName.map((quote) => ({
+        quoteId: quote.quoteId,
+        tripName: quote.tripName!,
+        status: quote.status,
+      }));
+      return dropdownItems;
+    }
 
     // Fetch itinerary for all quotes to get start and end locations
     const quoteIds = quotes.map((quote) => quote.quoteId);

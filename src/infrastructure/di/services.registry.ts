@@ -29,6 +29,8 @@ import { IQueueService } from '../../domain/services/queue_service.interface';
 import { QueueServiceImpl } from '../service/queue.service';
 import { IExpoPushNotificationService } from '../../domain/services/expo_push_notification_service.interface';
 import { ExpoPushNotificationService } from '../service/expo_push_notification.service';
+import { INotificationService } from '../../domain/services/notification_service.interface';
+import { NotificationService } from '../service/notification.service';
 
 /**
  * Registers all service dependencies in the DI container
@@ -114,5 +116,11 @@ export function registerServices(): void {
   container.register<IExpoPushNotificationService>(
     SERVICE_TOKENS.IExpoPushNotificationService,
     { useClass: ExpoPushNotificationService }
+  );
+
+  // Notification service
+  container.register<INotificationService>(
+    SERVICE_TOKENS.INotificationService,
+    { useClass: NotificationService }
   );
 }

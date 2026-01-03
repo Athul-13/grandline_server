@@ -6,7 +6,7 @@ import { Message } from '../../domain/entities/message.entity';
 import { Chat } from '../../domain/entities/chat.entity';
 import { Quote } from '../../domain/entities/quote.entity';
 import { Reservation } from '../../domain/entities/reservation.entity';
-import { REPOSITORY_TOKENS } from '../../application/di/tokens';
+import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../application/di/tokens';
 import { IChatRepository } from '../../domain/repositories/chat_repository.interface';
 import { IMessageRepository } from '../../domain/repositories/message_repository.interface';
 import { IUserRepository } from '../../domain/repositories/user_repository.interface';
@@ -19,7 +19,9 @@ import { Driver } from '../../domain/entities/driver.entity';
 import { CreateNotificationRequest } from '../../application/dtos/notification.dto';
 import { logger } from '../../shared/logger';
 import { ChatSocketHandler } from '../../presentation/socket_handlers/chat_socket.handler';
-import { NotificationSocketHandler } from '../../presentation/socket_handlers/notification_socket.handler';
+import { NOTIFICATION_SOCKET_EVENTS, NotificationSocketHandler } from '../../presentation/socket_handlers/notification_socket.handler';
+import { IExpoPushNotificationService } from '../../domain/services/expo_push_notification_service.interface';
+import { IGetUnreadNotificationCountUseCase } from '../../application/use-cases/interface/notification/get_unread_notification_count_use_case.interface';
 
 /**
  * Socket event names for messages
@@ -1131,6 +1133,51 @@ export class SocketEventService implements ISocketEventService {
       logger.debug(`Location update event emitted: reservation=${locationData.reservationId}, driver=${locationData.driverId}`);
     } catch (error) {
       logger.error(`Error emitting location update event: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  async emitNotification(notification: {
+    userId: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    data?: Record<string, unknown>;
+  }): Promise<void> {
+    if (!this.notificationSocketHandler) {
+      logger.warn('[SocketEventService] Notification socket handler not initialized');
+      return;
+    }
+  
+    try {
+      // Check if user is online
+      const isOnline = await this.notificationSocketHandler.isUserOnline(notification.userId);
+      
+      if (isOnline) {
+        // User is online - emit socket event
+        this.io?.to(`user:${notification.userId}`).emit(NOTIFICATION_SOCKET_EVENTS.NOTIFICATION_RECEIVED, {
+          notificationId: notification.data?.notificationId as string,
+          userId: notification.userId,
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          data: notification.data,
+          isRead: false,
+          createdAt: new Date(),
+        });
+        
+        // Update unread count
+        const getUnreadCountUseCase = container.resolve<IGetUnreadNotificationCountUseCase>(
+          USE_CASE_TOKENS.GetUnreadNotificationCountUseCase
+        );
+        const unreadCount = await getUnreadCountUseCase.execute(notification.userId);
+        this.io?.to(`user:${notification.userId}`).emit(NOTIFICATION_SOCKET_EVENTS.UNREAD_COUNT_UPDATED, unreadCount);
+      } else {
+        // User is offline (web client) - no push notification available
+        // Notification is stored in DB, user will see it when they come back online
+        logger.info(`User ${notification.userId} is offline (web client), notification stored in DB`);
+      }
+    } catch (error) {
+      logger.error(`Error sending notification: ${error}`);
     }
   }
 }

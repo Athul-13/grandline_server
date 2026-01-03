@@ -60,9 +60,12 @@ export class ReservationController {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 20;
 
-      logger.info(`Reservations list request by user: ${userId}, page: ${page}, limit: ${limit}`);
+      // Extract optional dropdown parameter for support modal
+      const forDropdown = req.query.forDropdown === 'true' || req.query.forDropdown === '1';
 
-      const response = await this.getReservationsListUseCase.execute(userId, page, limit);
+      logger.info(`Reservations list request by user: ${userId}, page: ${page}, limit: ${limit}, forDropdown: ${forDropdown}`);
+
+      const response = await this.getReservationsListUseCase.execute(userId, page, limit, forDropdown);
 
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {

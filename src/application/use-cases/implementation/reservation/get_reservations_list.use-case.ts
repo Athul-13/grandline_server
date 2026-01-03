@@ -1,5 +1,5 @@
 import { injectable, inject } from 'tsyringe';
-import { IGetReservationsListUseCase } from '../../interface/reservation/get_reservations_list_use_case.interface';
+import { IGetReservationsListUseCase, ReservationDropdownItem } from '../../interface/reservation/get_reservations_list_use_case.interface';
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
 import { IReservationItineraryRepository } from '../../../../domain/repositories/reservation_itinerary_repository.interface';
 import { ReservationListResponse, ReservationListItemResponse } from '../../../dtos/reservation.dto';
@@ -25,8 +25,9 @@ export class GetReservationsListUseCase implements IGetReservationsListUseCase {
   async execute(
     userId: string,
     page: number = 1,
-    limit: number = 20
-  ): Promise<ReservationListResponse> {
+    limit: number = 20,
+    forDropdown: boolean = false
+  ): Promise<ReservationListResponse | ReservationDropdownItem[]> {
     // Input validation
     if (!userId || typeof userId !== 'string' || userId.trim().length === 0) {
       throw new AppError(ERROR_MESSAGES.BAD_REQUEST, 'INVALID_USER_ID', 400);
@@ -42,6 +43,22 @@ export class GetReservationsListUseCase implements IGetReservationsListUseCase {
       normalizedPage,
       normalizedLimit
     );
+
+    // If forDropdown is true, return minimal data without pagination
+    if (forDropdown) {
+      //Filter to only include reservations with tripname 
+      const { reservations: reservationsWithTripName, total: totalWithTripName } = await this.reservationRepository.findByUserId(
+        userId,
+        1,
+        1000
+      );
+      const dropdownItems: ReservationDropdownItem[] = reservationsWithTripName.map((reservation) => ({
+        reservationId: reservation.reservationId,
+        tripName: reservation.tripName!,
+        status: reservation.status,
+      }));
+      return dropdownItems
+    }
 
     // Fetch itinerary for start/end locations
     const reservationIds = reservations.map((r) => r.reservationId);

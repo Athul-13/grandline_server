@@ -4,7 +4,7 @@ import { Quote } from '../entities/quote.entity';
 import { Reservation } from '../entities/reservation.entity';
 import { User } from '../entities/user.entity';
 import { Driver } from '../entities/driver.entity';
-import { QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus } from '../../shared/constants';
+import { QuoteStatus, ReservationStatus, UserStatus, UserRole, DriverStatus, NotificationType } from '../../shared/constants';
 
 /**
  * Socket event service interface
@@ -178,6 +178,17 @@ export interface ISocketEventService {
     heading?: number;
     speed?: number;
     timestamp: string;
+  }): Promise<void>;
+
+  /**
+   * Emits notification event to a user
+   */
+  emitNotification(notification: {
+    userId: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    data?: Record<string, unknown>;
   }): Promise<void>;
 }
 

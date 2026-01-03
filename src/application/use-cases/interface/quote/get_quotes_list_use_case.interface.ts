@@ -2,6 +2,15 @@ import { QuoteListResponse } from '../../../dtos/quote.dto';
 import { QuoteStatus } from '../../../../shared/constants';
 
 /**
+ * Minimal quote dropdown response
+ */
+export interface QuoteDropdownItem {
+  quoteId: string;
+  tripName: string;
+  status: QuoteStatus;
+}
+
+/**
  * Use case interface for getting quotes list
  */
 export interface IGetQuotesListUseCase {
@@ -11,7 +20,8 @@ export interface IGetQuotesListUseCase {
     limit?: number,
     status?: QuoteStatus[],
     sortBy?: string,
-    sortOrder?: 'asc' | 'desc'
-  ): Promise<QuoteListResponse>;
+    sortOrder?: 'asc' | 'desc',
+    forDropdown?: boolean
+  ): Promise<QuoteListResponse | QuoteDropdownItem[]>;
 }
 

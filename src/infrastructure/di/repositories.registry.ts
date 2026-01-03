@@ -38,6 +38,10 @@ import { IReservationChargeRepository } from '../../domain/repositories/reservat
 import { ReservationChargeRepositoryImpl } from '../repositories/reservation/reservation_charge.repository';
 import { IDriverFcmTokenRepository } from '../../domain/repositories/driver_fcm_token_repository.interface';
 import { DriverFcmTokenRepositoryImpl } from '../repositories/driver_fcm_token.repository';
+import { ITicketRepository } from '../../domain/repositories/ticket_repository.interface';
+import { TicketRepositoryImpl } from '../repositories/ticket.repository';
+import { ITicketMessageRepository } from '../../domain/repositories/ticket_message_repository.interface';
+import { TicketMessageRepositoryImpl } from '../repositories/ticket_message.repository';
 
 /**
  * Registers all repository dependencies in the DI container
@@ -149,5 +153,17 @@ export function registerRepositories(): void {
   container.register<IDriverFcmTokenRepository>(
     REPOSITORY_TOKENS.IDriverFcmTokenRepository,
     { useClass: DriverFcmTokenRepositoryImpl }
+  );
+
+  // Ticket repository
+  container.register<ITicketRepository>(
+    REPOSITORY_TOKENS.ITicketRepository,
+    { useClass: TicketRepositoryImpl }
+  );
+
+  // Ticket Message repository
+  container.register<ITicketMessageRepository>(
+    REPOSITORY_TOKENS.ITicketMessageRepository,
+    { useClass: TicketMessageRepositoryImpl }
   );
 }
