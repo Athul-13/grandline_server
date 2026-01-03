@@ -1,13 +1,14 @@
 import { injectable, inject } from 'tsyringe';
 import { ITicketRepository } from '../../../../domain/repositories/ticket_repository.interface';
-import { REPOSITORY_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { Ticket } from '../../../../domain/entities/ticket.entity';
-import { UserRole, ERROR_MESSAGES, ERROR_CODES, TicketStatus } from '../../../../shared/constants';
+import { UserRole, ERROR_MESSAGES, ERROR_CODES, TicketStatus, NotificationType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
 import { GetTicketByIdResponse } from '../../../dtos/ticket.dto';
 import { IAssignTicketToAdminUseCase, AssignTicketToAdminRequest } from '../../interface/support/assign_ticket_to_admin_use_case.interface';
+import { INotificationService } from '../../../../domain/services/notification_service.interface';
 
 /**
  * Use case for assigning ticket to admin
@@ -19,7 +20,9 @@ export class AssignTicketToAdminUseCase implements IAssignTicketToAdminUseCase {
     @inject(REPOSITORY_TOKENS.ITicketRepository)
     private readonly ticketRepository: ITicketRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IUserRepository,
+    @inject (SERVICE_TOKENS.INotificationService)
+    private readonly notificationService: INotificationService,
   ) {}
 
   async execute(
@@ -90,6 +93,15 @@ export class AssignTicketToAdminUseCase implements IAssignTicketToAdminUseCase {
     }
 
     logger.info(`Ticket assigned to admin: ${ticketId} -> ${request.adminId} by admin: ${requesterId}`);
+
+    // Ticket assigned to admin notification  
+    await this.notificationService.sendNotification({
+      userId: assignedAdmin.userId,
+      type: NotificationType.TICKET_ASSIGNED_TO_ADMIN,
+      title: `Ticket assigned to you: ${updatedTicket.subject}`,
+      message: `A ticket has been assigned to you by ${requesterUser.fullName}`,
+    });
+    logger.info(`Notification sent to admin: ${assignedAdmin.userId} for ticket: ${ticketId}`);
 
     // Convert to response format
     return {

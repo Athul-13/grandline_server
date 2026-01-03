@@ -1,7 +1,7 @@
 import { injectable, inject } from 'tsyringe';
 import { ITicketRepository } from '../../../../domain/repositories/ticket_repository.interface';
 import { ITicketMessageRepository } from '../../../../domain/repositories/ticket_message_repository.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { Ticket } from '../../../../domain/entities/ticket.entity';
 import { TicketMessage } from '../../../../domain/entities/ticket_message.entity';
 import { ActorType, LinkedEntityType, TicketStatus, ERROR_MESSAGES, ERROR_CODES, NotificationType, UserRole } from '../../../../shared/constants';
@@ -10,8 +10,8 @@ import { logger } from '../../../../shared/logger';
 import { randomUUID } from 'crypto';
 import { CreateTicketRequest, CreateTicketResponse } from '../../../dtos/ticket.dto';
 import { ICreateTicketUseCase } from '../../interface/support/create_ticket_use_case.interface';
-import { ICreateNotificationUseCase } from '../../interface/notification/create_notification_use_case.interface';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
+import { INotificationService } from '../../../../domain/services/notification_service.interface';
 
 /**
  * Use case for creating a support ticket
@@ -24,8 +24,8 @@ export class CreateTicketUseCase implements ICreateTicketUseCase {
     private readonly ticketRepository: ITicketRepository,
     @inject(REPOSITORY_TOKENS.ITicketMessageRepository)
     private readonly ticketMessageRepository: ITicketMessageRepository,
-    @inject (USE_CASE_TOKENS.CreateNotificationUseCase)
-    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    @inject (SERVICE_TOKENS.INotificationService)
+    private readonly notificationService: INotificationService,
     @inject(REPOSITORY_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,
   ) {}
@@ -135,12 +135,13 @@ export class CreateTicketUseCase implements ICreateTicketUseCase {
 
     // Create notification for admins
     for (const admin of admins) {
-      await this.createNotificationUseCase.execute({
+      await this.notificationService.sendNotification({
         userId: admin.userId,
         type: NotificationType.TICKET_CREATED,
         title: `New ticket created: ${ticket.subject}`,
-        message: `A new ticket has been created by ${request.actorType}:${request.actorId}`,
-      })
+        message: `A new ticket has been created by ${request.actorType}`,
+      });
+      logger.info(`Notification sent to admin: ${admin.userId} for ticket: ${ticketId}`);
     }
 
     return {

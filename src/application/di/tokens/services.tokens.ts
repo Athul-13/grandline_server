@@ -24,5 +24,7 @@ export const SERVICE_TOKENS = {
   IQueueService: Symbol.for('IQueueService'),
   // Push notification service
   IExpoPushNotificationService: Symbol.for('IExpoPushNotificationService'),
+  // Notification service
+  INotificationService: Symbol.for('INotificationService'),
 } as const;
 
