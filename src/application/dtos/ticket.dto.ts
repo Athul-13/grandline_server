@@ -71,8 +71,6 @@ export interface CreateTicketResponse {
  * Validates input data before processing
  */
 export class AddMessageRequest {
-  @IsString()
-  @IsNotEmpty()
   ticketId!: string;
 
   @IsString()
@@ -139,6 +137,7 @@ export interface GetAllTicketsResponse {
     ticketId: string;
     actorType: ActorType;
     actorId: string;
+    actorName: string; // Full name of user or driver
     subject: string;
     status: TicketStatus;
     priority: string;

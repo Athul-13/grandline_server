@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { ITicketRepository } from '../../../../domain/repositories/ticket_repository.interface';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { Ticket } from '../../../../domain/entities/ticket.entity';
-import { UserRole, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
+import { UserRole, ERROR_MESSAGES, ERROR_CODES, TicketStatus } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
@@ -71,10 +71,17 @@ export class AssignTicketToAdminUseCase implements IAssignTicketToAdminUseCase {
       throw new AppError('Ticket not found', 'TICKET_NOT_FOUND', 404);
     }
 
-    // Update ticket assignedAdminId
-    await this.ticketRepository.updateById(ticketId, {
+    // Update ticket assignedAdminId and automatically change status to IN_PROGRESS if currently OPEN
+    const updateData: Record<string, unknown> = {
       assignedAdminId: request.adminId,
-    } as Partial<Ticket>);
+    };
+    
+    // Automatically change status to IN_PROGRESS when assigning admin (if currently OPEN)
+    if (ticket.status === TicketStatus.OPEN) {
+      updateData.status = TicketStatus.IN_PROGRESS;
+    }
+    
+    await this.ticketRepository.updateById(ticketId, updateData as Partial<Ticket>);
 
     // Fetch updated ticket
     const updatedTicket = await this.ticketRepository.findById(ticketId);

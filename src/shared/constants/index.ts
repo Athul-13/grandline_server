@@ -176,6 +176,10 @@ export enum NotificationType {
   RESERVATION_CHARGE_ADDED = 'reservation_charge_added',   // Additional charge added to reservation
   RESERVATION_CANCELLED = 'reservation_cancelled',   // Reservation cancelled
   RESERVATION_REFUNDED = 'reservation_refunded',   // Reservation refund processed
+  TICKET_CREATED = 'ticket_created',   // Ticket created
+  TICKET_ASSIGNED_TO_ADMIN = 'ticket_assigned_to_admin',   // Ticket assigned to admin
+  TICKET_STATUS_CHANGED = 'ticket_status_changed',   // Ticket status changed
+  TICKET_MESSAGE_ADDED = 'ticket_message_added',   // Ticket message added
 }
 
 /**

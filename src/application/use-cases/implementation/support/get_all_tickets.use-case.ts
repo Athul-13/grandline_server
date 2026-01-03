@@ -6,6 +6,7 @@ import { ActorType, TicketStatus, UserRole, ERROR_MESSAGES, ERROR_CODES } from '
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
+import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { GetAllTicketsRequest, GetAllTicketsResponse } from '../../../dtos/ticket.dto';
 import { IGetAllTicketsUseCase } from '../../interface/support/get_all_tickets_use_case.interface';
 
@@ -20,7 +21,9 @@ export class GetAllTicketsUseCase implements IGetAllTicketsUseCase {
     @inject(REPOSITORY_TOKENS.ITicketRepository)
     private readonly ticketRepository: ITicketRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IUserRepository,
+    @inject(REPOSITORY_TOKENS.IDriverRepository)
+    private readonly driverRepository: IDriverRepository
   ) {}
 
   async execute(request: GetAllTicketsRequest, requesterId: string): Promise<GetAllTicketsResponse> {
@@ -104,21 +107,72 @@ export class GetAllTicketsUseCase implements IGetAllTicketsUseCase {
       `Admin tickets list: returning ${paginatedTickets.length} tickets out of ${total} total (page ${page}, filters: status=${request.status || 'all'}, actorType=${request.actorType || 'all'}, assignedAdminId=${request.assignedAdminId || 'all'})`
     );
 
-    // Convert to response format
-    const ticketResponses = paginatedTickets.map((ticket) => ({
-      ticketId: ticket.ticketId,
-      actorType: ticket.actorType,
-      actorId: ticket.actorId,
-      subject: ticket.subject,
-      status: ticket.status,
-      priority: ticket.priority,
-      linkedEntityType: ticket.linkedEntityType,
-      linkedEntityId: ticket.linkedEntityId,
-      assignedAdminId: ticket.assignedAdminId,
-      lastMessageAt: ticket.lastMessageAt,
-      createdAt: ticket.createdAt,
-      updatedAt: ticket.updatedAt,
-    }));
+    // Fetch actor names (user or driver) for all tickets
+    const actorIdsByType = new Map<ActorType, Set<string>>();
+    paginatedTickets.forEach((ticket) => {
+      if (!actorIdsByType.has(ticket.actorType)) {
+        actorIdsByType.set(ticket.actorType, new Set());
+      }
+      actorIdsByType.get(ticket.actorType)!.add(ticket.actorId);
+    });
+
+    // Fetch users
+    const usersMap = new Map<string, string>(); // actorId -> fullName
+    const userIds = actorIdsByType.get(ActorType.USER);
+    if (userIds) {
+      for (const userId of userIds) {
+        try {
+          const user = await this.userRepository.findById(userId);
+          if (user) {
+            usersMap.set(userId, user.fullName);
+          }
+        } catch {
+          logger.warn(`User not found for ticket: ${userId}`);
+        }
+      }
+    }
+
+    // Fetch drivers
+    const driversMap = new Map<string, string>(); // actorId -> fullName
+    const driverIds = actorIdsByType.get(ActorType.DRIVER);
+    if (driverIds) {
+      for (const driverId of driverIds) {
+        try {
+          const driver = await this.driverRepository.findById(driverId);
+          if (driver) {
+            driversMap.set(driverId, driver.fullName);
+          }
+        } catch {
+          logger.warn(`Driver not found for ticket: ${driverId}`);
+        }
+      }
+    }
+
+    // Convert to response format with actor names
+    const ticketResponses = paginatedTickets.map((ticket) => {
+      let actorName = 'Unknown';
+      if (ticket.actorType === ActorType.USER) {
+        actorName = usersMap.get(ticket.actorId) || 'Unknown User';
+      } else if (ticket.actorType === ActorType.DRIVER) {
+        actorName = driversMap.get(ticket.actorId) || 'Unknown Driver';
+      }
+
+      return {
+        ticketId: ticket.ticketId,
+        actorType: ticket.actorType,
+        actorId: ticket.actorId,
+        actorName,
+        subject: ticket.subject,
+        status: ticket.status,
+        priority: ticket.priority,
+        linkedEntityType: ticket.linkedEntityType,
+        linkedEntityId: ticket.linkedEntityId,
+        assignedAdminId: ticket.assignedAdminId,
+        lastMessageAt: ticket.lastMessageAt,
+        createdAt: ticket.createdAt,
+        updatedAt: ticket.updatedAt,
+      };
+    });
 
     return {
       tickets: ticketResponses,
