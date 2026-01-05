@@ -1,7 +1,6 @@
 import { injectable, inject } from 'tsyringe';
 import { ITicketRepository } from '../../../../domain/repositories/ticket_repository.interface';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
-import { Ticket } from '../../../../domain/entities/ticket.entity';
 import { ActorType, TicketStatus, UserRole, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
@@ -55,61 +54,67 @@ export class GetAllTicketsUseCase implements IGetAllTicketsUseCase {
     // Validate sort parameters
     const sortBy = request.sortBy === 'lastMessageAt' || request.sortBy === 'createdAt' 
       ? request.sortBy 
-      : 'lastMessageAt'; // Default to lastMessageAt
+      : 'lastMessageAt';
     const sortOrder = request.sortOrder === 'asc' || request.sortOrder === 'desc' 
       ? request.sortOrder 
-      : 'desc'; // Default to desc (most recent first)
+      : 'desc';
 
-    // Fetch tickets based on filters
-    let tickets: Ticket[] = [];
+    // If search query exists, search for matching users/drivers by name
+    const matchingActorIds: string[] = [];
+    if (request.search && request.search.trim().length > 0) {
+      const searchQuery = request.search.trim();
+      
+      // Search users if actorType is not specified or is USER
+      if (!request.actorType || request.actorType === ActorType.USER) {
+        try {
+          const { users } = await this.userRepository.findRegularUsersWithFilters({
+            search: searchQuery,
+            limit: 100, // Get up to 100 matching users
+          });
+          matchingActorIds.push(...users.map(user => user.userId));
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          logger.warn(`Error searching users by name: ${errorMessage}`);
+        }
+      }
 
-    if (request.assignedAdminId && request.status) {
-      // Filter by assigned admin and status
-      tickets = await this.ticketRepository.findByAssignedAdminAndStatus(
-        request.assignedAdminId,
-        request.status
-      );
-    } else if (request.assignedAdminId) {
-      // Filter by assigned admin only
-      tickets = await this.ticketRepository.findByAssignedAdmin(request.assignedAdminId);
-    } else if (request.status && request.actorType) {
-      // Filter by status and actorType - need to filter in memory
-      const statusTickets = await this.ticketRepository.findByStatus(request.status);
-      tickets = statusTickets.filter((t) => t.actorType === request.actorType);
-    } else if (request.status) {
-      // Filter by status only
-      tickets = await this.ticketRepository.findByStatus(request.status);
-    } else if (request.actorType) {
-      // Filter by actorType only
-      tickets = await this.ticketRepository.findByActorType(request.actorType);
-    } else {
-      // No filters - get all tickets by combining results
-      // Note: This is not ideal for large datasets, but works for now
-      // In production, consider adding a findAll method to repository
-      const userTickets = await this.ticketRepository.findByActorType(ActorType.USER);
-      const driverTickets = await this.ticketRepository.findByActorType(ActorType.DRIVER);
-      tickets = [...userTickets, ...driverTickets];
+      // Search drivers if actorType is not specified or is DRIVER
+      if (!request.actorType || request.actorType === ActorType.DRIVER) {
+        try {
+          const { drivers } = await this.driverRepository.findDriversWithFilters({
+            search: searchQuery,
+            limit: 100, // Get up to 100 matching drivers
+          });
+          matchingActorIds.push(...drivers.map(driver => driver.driverId));
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          logger.warn(`Error searching drivers by name: ${errorMessage}`);
+        }
+      }
     }
 
-    // Apply sorting
-    tickets = this.sortTickets(tickets, sortBy, sortOrder);
+    // Use new repository method for database-level pagination and search
+    const { tickets, total } = await this.ticketRepository.findAllWithFilters({
+      status: request.status,
+      actorType: request.actorType,
+      assignedAdminId: request.assignedAdminId,
+      search: request.search,
+      actorIds: matchingActorIds.length > 0 ? matchingActorIds : undefined,
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+    });
 
-    // Calculate pagination
-    const total = tickets.length;
     const totalPages = Math.ceil(total / limit);
 
-    // Apply pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedTickets = tickets.slice(startIndex, endIndex);
-
     logger.info(
-      `Admin tickets list: returning ${paginatedTickets.length} tickets out of ${total} total (page ${page}, filters: status=${request.status || 'all'}, actorType=${request.actorType || 'all'}, assignedAdminId=${request.assignedAdminId || 'all'})`
+      `Admin tickets list: returning ${tickets.length} tickets out of ${total} total (page ${page}, filters: status=${request.status || 'all'}, actorType=${request.actorType || 'all'}, assignedAdminId=${request.assignedAdminId || 'all'}, search=${request.search || 'none'})`
     );
 
-    // Fetch actor names (user or driver) for all tickets
+    // Fetch actor names (user or driver) for paginated tickets only
     const actorIdsByType = new Map<ActorType, Set<string>>();
-    paginatedTickets.forEach((ticket) => {
+    tickets.forEach((ticket) => {
       if (!actorIdsByType.has(ticket.actorType)) {
         actorIdsByType.set(ticket.actorType, new Set());
       }
@@ -149,7 +154,7 @@ export class GetAllTicketsUseCase implements IGetAllTicketsUseCase {
     }
 
     // Convert to response format with actor names
-    const ticketResponses = paginatedTickets.map((ticket) => {
+    const ticketResponses = tickets.map((ticket) => {
       let actorName = 'Unknown';
       if (ticket.actorType === ActorType.USER) {
         actorName = usersMap.get(ticket.actorId) || 'Unknown User';
@@ -183,35 +188,6 @@ export class GetAllTicketsUseCase implements IGetAllTicketsUseCase {
         totalPages,
       },
     };
-  }
-
-  /**
-   * Sorts tickets array based on the specified field and order
-   */
-  private sortTickets(
-    tickets: Ticket[],
-    sortBy: 'lastMessageAt' | 'createdAt',
-    sortOrder: 'asc' | 'desc'
-  ): Ticket[] {
-    return [...tickets].sort((a, b) => {
-      let aValue: Date | null;
-      let bValue: Date | null;
-
-      if (sortBy === 'lastMessageAt') {
-        aValue = a.lastMessageAt || a.createdAt; // Fallback to createdAt if lastMessageAt is null
-        bValue = b.lastMessageAt || b.createdAt;
-      } else {
-        aValue = a.createdAt;
-        bValue = b.createdAt;
-      }
-
-      // Handle null values (shouldn't happen with fallback, but just in case)
-      if (aValue === null) return 1;
-      if (bValue === null) return -1;
-
-      const comparison = aValue.getTime() - bValue.getTime();
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
   }
 }
 

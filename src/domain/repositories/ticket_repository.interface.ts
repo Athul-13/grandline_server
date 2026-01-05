@@ -37,4 +37,19 @@ export interface ITicketRepository extends IBaseRepository<Ticket> {
    * Finds tickets assigned to an admin with specific status
    */
   findByAssignedAdminAndStatus(adminId: string, status: TicketStatus): Promise<Ticket[]>;
+
+  /**
+   * Finds all tickets with filters, search, pagination and sorting (for admin queries)
+   */
+  findAllWithFilters(params: {
+    status?: TicketStatus;
+    actorType?: ActorType;
+    assignedAdminId?: string;
+    search?: string;
+    actorIds?: string[]; // Actor IDs to search for (from user/driver name search)
+    page: number;
+    limit: number;
+    sortBy: 'lastMessageAt' | 'createdAt';
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ tickets: Ticket[]; total: number }>;
 }

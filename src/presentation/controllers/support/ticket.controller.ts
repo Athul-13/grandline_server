@@ -155,6 +155,7 @@ export class TicketController {
         status: req.query.status ? (req.query.status as TicketStatus) : undefined,
         actorType: req.query.actorType ? (req.query.actorType as ActorType) : undefined,
         assignedAdminId: req.query.assignedAdminId as string | undefined,
+        search: req.query.search as string | undefined,
         sortBy: req.query.sortBy ? (req.query.sortBy as 'lastMessageAt' | 'createdAt') : undefined,
         sortOrder: req.query.sortOrder ? (req.query.sortOrder as 'asc' | 'desc') : undefined,
       };

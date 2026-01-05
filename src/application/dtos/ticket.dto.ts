@@ -106,6 +106,11 @@ export class GetAllTicketsRequest {
   limit?: number;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(200, { message: 'Search query must be 200 characters or less' })
+  search?: string;
+
+  @IsOptional()
   @IsEnum(TicketStatus, { message: 'Status must be one of: open, in_progress, resolved, rejected' })
   status?: TicketStatus;
 
