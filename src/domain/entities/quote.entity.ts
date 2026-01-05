@@ -50,6 +50,7 @@ export class Quote {
   constructor(
     public readonly quoteId: string,
     public readonly userId: string,
+    public readonly quoteNumber: string,
     public readonly tripType: TripType,
     public readonly status: QuoteStatus,
     public readonly createdAt: Date,

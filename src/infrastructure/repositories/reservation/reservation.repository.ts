@@ -49,6 +49,7 @@ export class ReservationRepositoryImpl
       userId: entity.userId,
       quoteId: entity.quoteId,
       paymentId: entity.paymentId,
+      reservationNumber: entity.reservationNumber,
       tripType: entity.tripType,
       tripName: entity.tripName,
       eventType: entity.eventType,
@@ -93,6 +94,11 @@ export class ReservationRepositoryImpl
   async findByQuoteId(quoteId: string): Promise<Reservation | null> {
     const doc = await this.reservationModel.findOne({ quoteId });
     return doc ? this.toEntity(doc) : null;
+  }
+
+  async findByReservationNumber(reservationNumber: string): Promise<Reservation[] | null> {
+    const docs = await this.reservationModel.find({ reservationNumber });
+    return ReservationRepositoryMapper.toEntities(docs);
   }
 
   async findByPaymentId(paymentId: string): Promise<Reservation | null> {

@@ -17,6 +17,12 @@ export const QuoteSchema: Schema = new Schema(
       required: true,
       index: true,
     },
+    quoteNumber: {
+      type: String,
+      unique: true,
+      optional: true,
+      default: null,
+    },
     tripType: {
       type: String,
       enum: Object.values(TripType),

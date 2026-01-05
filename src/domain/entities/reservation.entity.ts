@@ -43,6 +43,7 @@ export class Reservation {
     public readonly userId: string,
     public readonly quoteId: string,
     public readonly paymentId: string,
+    public readonly reservationNumber: string,
     public readonly tripType: TripType,
     public readonly status: ReservationStatus,
     public readonly reservationDate: Date,

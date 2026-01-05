@@ -52,6 +52,11 @@ export interface IQuoteRepository extends IBaseRepository<Quote> {
   findByTripType(tripType: TripType): Promise<Quote[]>;
 
   /**
+   * Finds quotes by quote number
+   */
+  findByQuoteNumber(quoteNumber: string): Promise<Quote[] | null>;
+
+  /**
    * Finds all quotes for admin view
    * @param excludePaid If true, excludes quotes with status PAID (default: true)
    * Paid quotes appear only when filter explicitly selected

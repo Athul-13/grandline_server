@@ -9,6 +9,7 @@ import { randomUUID } from 'crypto';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
 import { container } from 'tsyringe';
+import { generateReferenceNumber } from '../../../../shared/utils/reference_number.util';
 
 /**
  * Use case for creating a quote draft
@@ -33,10 +34,12 @@ export class CreateQuoteDraftUseCase implements ICreateQuoteDraftUseCase {
 
     const quoteId = randomUUID();
     const now = new Date();
+    const referenceNumber = generateReferenceNumber('QOT');
 
     const quote = new Quote(
       quoteId,
       userId,
+      referenceNumber,
       request.tripType,
       QuoteStatus.DRAFT,
       now,

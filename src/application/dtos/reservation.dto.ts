@@ -18,6 +18,7 @@ export interface ReservationResponse {
   userId: string;
   quoteId: string;
   paymentId: string;
+  reservationNumber?: string;
   tripType: TripType;
   tripName?: string;
   eventType?: string;
@@ -80,6 +81,7 @@ export interface ReservationResponse {
 export interface ReservationListItemResponse {
   reservationId: string;
   tripName?: string;
+  reservationNumber?: string;
   tripType: TripType;
   status: ReservationStatus;
   reservationDate: Date;

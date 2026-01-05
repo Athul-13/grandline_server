@@ -46,6 +46,7 @@ export interface IReservationModel extends Document {
   userId: string;
   quoteId: string;
   paymentId: string;
+  reservationNumber?: string;
   tripType: TripType;
   tripName?: string;
   eventType?: string;

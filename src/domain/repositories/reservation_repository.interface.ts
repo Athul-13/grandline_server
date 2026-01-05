@@ -32,6 +32,11 @@ export interface IReservationRepository extends IBaseRepository<Reservation> {
   findByQuoteId(quoteId: string): Promise<Reservation | null>;
 
   /**
+   * Finds reservation by reservation number
+   */
+  findByReservationNumber(reservationNumber: string): Promise<Reservation[] | null>;
+
+  /**
    * Finds reservation by payment ID
    */
   findByPaymentId(paymentId: string): Promise<Reservation | null>;

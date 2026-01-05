@@ -53,6 +53,7 @@ export interface IRouteData {
 export interface IQuoteModel extends Document {
   quoteId: string;
   userId: string;
+  quoteNumber?: string;
   tripType: TripType;
   tripName?: string;
   eventType?: string;

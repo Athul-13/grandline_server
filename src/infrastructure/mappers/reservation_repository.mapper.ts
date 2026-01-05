@@ -12,6 +12,7 @@ export class ReservationRepositoryMapper {
       doc.userId,
       doc.quoteId,
       doc.paymentId,
+      doc.reservationNumber || '',
       doc.tripType,
       doc.status,
       doc.reservationDate,
