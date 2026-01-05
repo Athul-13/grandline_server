@@ -204,6 +204,7 @@ export interface GetTicketByIdResponse {
   priority: string;
   linkedEntityType: LinkedEntityType | null;
   linkedEntityId: string | null;
+  linkedEntityNumber: string | null;
   assignedAdminId: string | null;
   lastMessageAt: Date | null;
   createdAt: Date;
@@ -220,6 +221,7 @@ export interface GetTicketsByActorResponse {
     status: TicketStatus;
     priority: string;
     linkedEntityType: LinkedEntityType | null;
+    linkedEntityNumber: string | null;
     linkedEntityId: string | null;
     lastMessageAt: Date | null;
     createdAt: Date;

@@ -83,6 +83,7 @@ export class GetQuotesListUseCase implements IGetQuotesListUseCase {
 
       const dropdownItems: QuoteDropdownItem[] = quotesWithTripName.map((quote) => ({
         quoteId: quote.quoteId,
+        quoteNumber: quote.quoteNumber,
         tripName: quote.tripName!,
         status: quote.status,
       }));

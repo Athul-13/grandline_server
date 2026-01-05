@@ -56,6 +56,7 @@ export class GetReservationsListUseCase implements IGetReservationsListUseCase {
         reservationId: reservation.reservationId,
         tripName: reservation.tripName!,
         status: reservation.status,
+        reservationNumber: reservation.reservationNumber,
       }));
       return dropdownItems
     }

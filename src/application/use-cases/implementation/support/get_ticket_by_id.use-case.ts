@@ -1,7 +1,9 @@
 import { injectable, inject } from 'tsyringe';
 import { ITicketRepository } from '../../../../domain/repositories/ticket_repository.interface';
+import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
+import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
-import { UserRole, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
+import { UserRole, ERROR_MESSAGES, ERROR_CODES, LinkedEntityType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
@@ -18,7 +20,11 @@ export class GetTicketByIdUseCase implements IGetTicketByIdUseCase {
     @inject(REPOSITORY_TOKENS.ITicketRepository)
     private readonly ticketRepository: ITicketRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
-    private readonly userRepository: IUserRepository
+    private readonly userRepository: IUserRepository,
+    @inject(REPOSITORY_TOKENS.IQuoteRepository)
+    private readonly quoteRepository: IQuoteRepository,
+    @inject(REPOSITORY_TOKENS.IReservationRepository)
+    private readonly reservationRepository: IReservationRepository
   ) {}
 
   async execute(ticketId: string, requesterId: string): Promise<GetTicketByIdResponse> {
@@ -49,6 +55,27 @@ export class GetTicketByIdUseCase implements IGetTicketByIdUseCase {
       throw new AppError(ERROR_MESSAGES.FORBIDDEN, ERROR_CODES.FORBIDDEN, 403);
     }
 
+    // Fetch linked entity number if linked entity exists
+    let linkedEntityNumber: string | null = null;
+    if (ticket.linkedEntityType && ticket.linkedEntityId) {
+      try {
+        if (ticket.linkedEntityType === LinkedEntityType.QUOTE) {
+          const quote = await this.quoteRepository.findById(ticket.linkedEntityId);
+          if (quote) {
+            linkedEntityNumber = quote.quoteNumber;
+          }
+        } else if (ticket.linkedEntityType === LinkedEntityType.RESERVATION) {
+          const reservation = await this.reservationRepository.findById(ticket.linkedEntityId);
+          if (reservation) {
+            linkedEntityNumber = reservation.reservationNumber;
+          }
+        }
+      } catch (error) {
+        // Log error but don't fail the request if entity lookup fails
+        logger.warn(`Failed to fetch linked entity number for ticket ${ticket.ticketId}:`, error);
+      }
+    }
+
     // Convert to response format
     return {
       ticketId: ticket.ticketId,
@@ -59,6 +86,7 @@ export class GetTicketByIdUseCase implements IGetTicketByIdUseCase {
       priority: ticket.priority,
       linkedEntityType: ticket.linkedEntityType,
       linkedEntityId: ticket.linkedEntityId,
+      linkedEntityNumber,
       assignedAdminId: ticket.assignedAdminId,
       lastMessageAt: ticket.lastMessageAt,
       createdAt: ticket.createdAt,
