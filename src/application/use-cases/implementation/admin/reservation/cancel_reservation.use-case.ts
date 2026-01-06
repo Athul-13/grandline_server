@@ -2,14 +2,21 @@ import { injectable, inject } from 'tsyringe';
 import { ICancelReservationUseCase } from '../../../interface/admin/reservation/cancel_reservation_use_case.interface';
 import { IReservationRepository } from '../../../../../domain/repositories/reservation_repository.interface';
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
-import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
-import { REPOSITORY_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
+import { IPaymentRepository } from '../../../../../domain/repositories/payment_repository.interface';
+import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
+import { INotificationService } from '../../../../../domain/services/notification_service.interface';
+import { IEmailService } from '../../../../../domain/services/email_service.interface';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
-import { ReservationStatus, NotificationType, ERROR_MESSAGES } from '../../../../../shared/constants';
+import { ReservationStatus, NotificationType, ERROR_MESSAGES, TripType } from '../../../../../shared/constants';
+import { PaymentStatus } from '../../../../../domain/entities/payment.entity';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 import { randomUUID } from 'crypto';
+import { getStripeInstance } from '../../../../../infrastructure/service/stripe.service';
+import { EmailType, CancellationWithRefundEmailData } from '../../../../../shared/types/email.types';
+import { FRONTEND_CONFIG } from '../../../../../shared/config';
 
 /**
  * Use case for cancelling reservation
@@ -22,8 +29,14 @@ export class CancelReservationUseCase implements ICancelReservationUseCase {
     private readonly reservationRepository: IReservationRepository,
     @inject(REPOSITORY_TOKENS.IReservationModificationRepository)
     private readonly modificationRepository: IReservationModificationRepository,
-    @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
-    private readonly createNotificationUseCase: ICreateNotificationUseCase
+    @inject(REPOSITORY_TOKENS.IPaymentRepository as never)
+    private readonly paymentRepository: IPaymentRepository,
+    @inject(REPOSITORY_TOKENS.IUserRepository)
+    private readonly userRepository: IUserRepository,
+    @inject(SERVICE_TOKENS.INotificationService)
+    private readonly notificationService: INotificationService,
+    @inject(SERVICE_TOKENS.IEmailService)
+    private readonly emailService: IEmailService
   ) {}
 
   async execute(
@@ -64,10 +77,78 @@ export class CancelReservationUseCase implements ICancelReservationUseCase {
       );
     }
 
-    // Update reservation - cancel and free up driver/vehicles
     const now = new Date();
+    let refundId: string | undefined;
+    let refundAmount: number | undefined;
+    let currency: string | undefined;
+    let isFullyRefunded = false;
+
+    // Check if payment exists and process refund if applicable
+    try {
+      const payment = await this.paymentRepository.findById(reservation.paymentId);
+      if (payment && payment.canBeRefunded()) {
+        // Calculate refundable amount
+        const maxRefundAmount = payment.amount - (reservation.refundedAmount || 0);
+        
+        if (maxRefundAmount > 0) {
+          // Process refund via Stripe
+          try {
+            if (!payment.paymentIntentId) {
+              logger.warn(`Payment intent ID not found for reservation ${reservationId}, skipping refund`);
+            } else {
+              const stripe = getStripeInstance();
+              const refund = await stripe.refunds.create({
+                payment_intent: payment.paymentIntentId,
+                amount: Math.round(maxRefundAmount * 100), // Convert to cents
+                reason: 'requested_by_customer',
+                metadata: {
+                  reservationId,
+                  reason,
+                  refundedBy: adminUserId,
+                },
+              });
+
+              refundId = refund.id;
+              refundAmount = maxRefundAmount;
+              currency = payment.currency;
+              const newRefundedAmount = (reservation.refundedAmount || 0) + maxRefundAmount;
+              isFullyRefunded = newRefundedAmount >= payment.amount;
+
+              logger.info(`Stripe refund successful: ID=${refundId}, Amount=${refundAmount}, Reservation=${reservationId}`);
+
+              // Update payment status if fully refunded
+              if (isFullyRefunded) {
+                await this.paymentRepository.updateById(payment.paymentId, {
+                  status: PaymentStatus.REFUNDED,
+                } as Partial<import('../../../../../infrastructure/database/mongodb/models/payment.model').IPaymentModel>);
+              }
+
+              // Update reservation refund fields
+              await this.reservationRepository.updateById(reservationId, {
+                refundedAmount: newRefundedAmount,
+                refundedAt: now,
+                refundStatus: isFullyRefunded ? 'full' : 'partial',
+              } as Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel>);
+            }
+          } catch (stripeError) {
+            logger.error(
+              `Stripe refund failed for reservation ${reservationId}: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`
+            );
+            // Continue with cancellation even if refund fails
+          }
+        }
+      }
+    } catch (paymentError) {
+      logger.warn(
+        `Error checking payment for refund: ${paymentError instanceof Error ? paymentError.message : 'Unknown error'}`
+      );
+      // Continue with cancellation even if payment check fails
+    }
+
+    // Update reservation - cancel and free up driver/vehicles
+    const finalStatus = isFullyRefunded ? ReservationStatus.REFUNDED : ReservationStatus.CANCELLED;
     await this.reservationRepository.updateById(reservationId, {
-      status: ReservationStatus.CANCELLED,
+      status: finalStatus,
       cancelledAt: now,
       cancellationReason: reason,
       assignedDriverId: undefined, // Free up driver
@@ -75,30 +156,78 @@ export class CancelReservationUseCase implements ICancelReservationUseCase {
 
     // Create modification record
     const modificationId = randomUUID();
+    const modificationMessage = refundId
+      ? `Reservation cancelled and refunded: ${reason}. Refund: ${refundAmount} ${currency}`
+      : `Reservation cancelled: ${reason}`;
     const modification = new ReservationModification(
       modificationId,
       reservationId,
       adminUserId,
       'status_change',
-      `Reservation cancelled: ${reason}`,
+      modificationMessage,
       reservation.status,
-      ReservationStatus.CANCELLED,
+      finalStatus,
       {
         reason,
+        refundId,
+        refundAmount,
+        isFullyRefunded,
       }
     );
     await this.modificationRepository.create(modification);
 
+    // Send email if refund was processed
+    if (refundId && refundAmount && currency) {
+      try {
+        const user = await this.userRepository.findById(reservation.userId);
+        if (user && user.email) {
+          const tripTypeLabel = reservation.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way';
+          const viewReservationLink = `${FRONTEND_CONFIG.URL}/reservations/${reservationId}`;
+
+          const emailData: CancellationWithRefundEmailData = {
+            email: user.email,
+            fullName: user.fullName,
+            reservationNumber: reservation.reservationNumber,
+            cancellationReason: reason,
+            refundAmount,
+            refundId,
+            refundDate: now,
+            cancelledAt: now,
+            currency,
+            tripName: reservation.tripName,
+            tripType: tripTypeLabel,
+            viewReservationLink,
+            isFullRefund: isFullyRefunded,
+          };
+
+          await this.emailService.sendEmail(EmailType.CANCELLATION_WITH_REFUND, emailData);
+          logger.info(`Cancellation email with refund sent to ${user.email} for reservation ${reservationId}`);
+        }
+      } catch (emailError) {
+        logger.error(
+          `Failed to send cancellation email with refund: ${emailError instanceof Error ? emailError.message : 'Unknown error'}`
+        );
+        // Don't throw error - email failure shouldn't fail the cancellation
+      }
+    }
+
     // Send notification to user
     try {
-      await this.createNotificationUseCase.execute({
+      const notificationMessage = refundId
+        ? `Your reservation has been cancelled and ${refundAmount} ${currency} has been refunded. Refund ID: ${refundId}`
+        : `Your reservation has been cancelled. Reason: ${reason}`;
+
+      await this.notificationService.sendNotification({
         userId: reservation.userId,
         type: NotificationType.RESERVATION_CANCELLED,
         title: 'Reservation Cancelled',
-        message: `Your reservation has been cancelled. Reason: ${reason}`,
+        message: notificationMessage,
         data: {
           reservationId,
           reason,
+          refundId,
+          refundAmount,
+          isFullRefund: isFullyRefunded,
         },
       });
     } catch (notificationError) {

@@ -4,9 +4,9 @@ import { IReservationRepository } from '../../../../../domain/repositories/reser
 import { IPaymentRepository } from '../../../../../domain/repositories/payment_repository.interface';
 import { IReservationModificationRepository } from '../../../../../domain/repositories/reservation_modification_repository.interface';
 import { IUserRepository } from '../../../../../domain/repositories/user_repository.interface';
-import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
+import { INotificationService } from '../../../../../domain/services/notification_service.interface';
 import { IEmailService } from '../../../../../domain/services/email_service.interface';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS, USE_CASE_TOKENS } from '../../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
 import { ReservationStatus, NotificationType, ERROR_MESSAGES, TripType } from '../../../../../shared/constants';
@@ -33,8 +33,8 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
     private readonly modificationRepository: IReservationModificationRepository,
     @inject(REPOSITORY_TOKENS.IUserRepository)
     private readonly userRepository: IUserRepository,
-    @inject(USE_CASE_TOKENS.CreateNotificationUseCase)
-    private readonly createNotificationUseCase: ICreateNotificationUseCase,
+    @inject(SERVICE_TOKENS.INotificationService)
+    private readonly notificationService: INotificationService,
     @inject(SERVICE_TOKENS.IEmailService)
     private readonly emailService: IEmailService
   ) {}
@@ -119,7 +119,7 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
       });
 
       refundId = refund.id;
-      logger.info(`Stripe refund created: ${refundId} for reservation: ${reservationId}`);
+      logger.info(`Stripe refund successful: ID=${refundId}, Amount=${amount}, Reservation=${reservationId}`);
     } catch (stripeError) {
       logger.error(
         `Stripe refund failed: ${stripeError instanceof Error ? stripeError.message : 'Unknown error'}`
@@ -172,11 +172,11 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
 
     // Send notification to user
     try {
-      await this.createNotificationUseCase.execute({
+      await this.notificationService.sendNotification({
         userId: reservation.userId,
         type: NotificationType.RESERVATION_REFUNDED,
         title: 'Refund Processed',
-        message: `A refund of ${amount} ${payment.currency} has been processed for your reservation${reason ? `. Reason: ${reason}` : ''}`,
+        message: `A refund of ${amount} ${payment.currency} has been processed for your reservation${reason ? `. Reason: ${reason}` : ''}. Refund ID: ${refundId}`,
         data: {
           reservationId,
           refundAmount: amount,
@@ -213,7 +213,7 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
         };
 
         await this.emailService.sendEmail(EmailType.REFUND_CONFIRMATION, emailData);
-        logger.info(`Refund confirmation email sent to ${user.email} for reservation: ${reservationId}`);
+        logger.info(`Refund confirmation email sent to ${user.email} for reservation ${reservationId}, refund ID: ${refundId}`);
       }
     } catch (emailError) {
       logger.error(

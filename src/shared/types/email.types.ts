@@ -9,6 +9,7 @@ export enum EmailType {
   INVOICE = 'INVOICE',
   REFUND_CONFIRMATION = 'REFUND_CONFIRMATION',
   PAYMENT_REQUIRED = 'PAYMENT_REQUIRED',
+  CANCELLATION_WITH_REFUND = 'CANCELLATION_WITH_REFUND',
 }
 
 /**
@@ -103,5 +104,25 @@ export interface PaymentRequiredEmailData {
   paymentLink?: string;
   viewReservationLink?: string;
   dueDate?: Date;
+}
+
+/**
+ * Cancellation with refund email data interface
+ * Contains all data needed to send a cancellation email with refund information
+ */
+export interface CancellationWithRefundEmailData {
+  email: string;
+  fullName?: string;
+  reservationNumber: string;
+  cancellationReason: string;
+  refundAmount: number;
+  refundId: string;
+  refundDate: Date;
+  cancelledAt: Date;
+  currency: string;
+  tripName?: string;
+  tripType: string;
+  viewReservationLink?: string;
+  isFullRefund: boolean;
 }
 
