@@ -1,6 +1,6 @@
 import { inject, injectable } from 'tsyringe';
 import { IEndTripUseCase } from '../../interface/driver/end_trip_use_case.interface';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS, USE_CASE_TOKENS } from '../../../di/tokens';
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
 import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';
 import { Reservation } from '../../../../domain/entities/reservation.entity';
@@ -13,6 +13,7 @@ import { CONFIG_TOKENS } from '../../../../infrastructure/di/tokens';
 import { driverCooldownQueue } from '../../../../infrastructure/queue/driver_cooldown.queue';
 import { tripAutoCompleteQueue } from '../../../../infrastructure/queue/trip_auto_complete.queue';
 import { container } from 'tsyringe';
+import { CalculateDriverEarningsUseCase } from './calculate_driver_earnings.use-case';
 
 /**
  * Use case for ending a trip
@@ -24,7 +25,9 @@ export class EndTripUseCase implements IEndTripUseCase {
     @inject(REPOSITORY_TOKENS.IReservationRepository)
     private readonly reservationRepository: IReservationRepository,
     @inject(REPOSITORY_TOKENS.IReservationChargeRepository)
-    private readonly chargeRepository: IReservationChargeRepository
+    private readonly chargeRepository: IReservationChargeRepository,
+    @inject(USE_CASE_TOKENS.CalculateDriverEarningsUseCase)
+    private readonly calculateDriverEarningsUseCase: CalculateDriverEarningsUseCase
   ) {}
 
   async execute(driverId: string, reservationId: string): Promise<Reservation> {
@@ -152,6 +155,16 @@ export class EndTripUseCase implements IEndTripUseCase {
     } catch (error) {
       // Don't fail trip end if socket emission fails
       logger.error('Error emitting trip ended event:', error);
+    }
+
+    // Calculate driver earnings (non-blocking - don't fail trip end if this fails)
+    try {
+      await this.calculateDriverEarningsUseCase.execute(reservationId);
+    } catch (earningsError) {
+      // Log error but don't fail trip end
+      logger.error(
+        `Error calculating driver earnings for reservation ${reservationId}: ${earningsError instanceof Error ? earningsError.message : 'Unknown error'}`
+      );
     }
 
     logger.info(`Driver ${driverId} ended trip: ${reservationId}. Cooldown period started (24 hours)`);

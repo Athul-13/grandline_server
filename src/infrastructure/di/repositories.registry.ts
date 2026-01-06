@@ -4,6 +4,8 @@ import { IUserRepository } from '../../domain/repositories/user_repository.inter
 import { UserRepositoryImpl } from '../repositories/user.repository';
 import { IDriverRepository } from '../../domain/repositories/driver_repository.interface';
 import { DriverRepositoryImpl } from '../repositories/driver.repository';
+import { IDriverPaymentRepository } from '../../domain/repositories/driver_payment_repository.interface';
+import { DriverPaymentRepositoryImpl } from '../repositories/driver_payment.repository';
 import { IVehicleTypeRepository } from '../../domain/repositories/vehicle_type_repository.interface';
 import { VehicleTypeRepositoryImpl } from '../repositories/vehicle_type.repository';
 import { IVehicleRepository } from '../../domain/repositories/vehicle_repository.interface';
@@ -57,6 +59,12 @@ export function registerRepositories(): void {
   container.register<IDriverRepository>(
     REPOSITORY_TOKENS.IDriverRepository,
     { useClass: DriverRepositoryImpl }
+  );
+  
+  // Driver payment repository
+  container.register<IDriverPaymentRepository>(
+    REPOSITORY_TOKENS.IDriverPaymentRepository,
+    { useClass: DriverPaymentRepositoryImpl }
   );
 
   // Vehicle repositories

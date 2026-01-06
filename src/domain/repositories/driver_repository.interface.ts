@@ -102,4 +102,14 @@ export interface IDriverRepository extends IBaseRepository<Driver> {
      * Update driver's last assigned timestamp (for fair assignment)
      */
     updateLastAssignedAt(driverId: string, lastAssignedAt: Date): Promise<void>;
+
+    /**
+     * Update driver's last payment date
+     */
+    updateLastPaymentDate(driverId: string, lastPaymentDate: Date): Promise<void>;
+
+    /**
+     * Update driver's total earnings
+     */
+    incrementTotalEarnings(driverId: string, amount: number): Promise<void>;
 }
