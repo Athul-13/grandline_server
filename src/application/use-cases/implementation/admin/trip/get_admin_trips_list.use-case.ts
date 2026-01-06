@@ -231,6 +231,7 @@ export class GetAdminTripsListUseCase implements IGetAdminTripsListUseCase {
 
         tripItems.push({
           reservationId: reservation.reservationId,
+          reservationNumber: reservation.reservationNumber,
           tripName: reservation.tripName,
           userName,
           driverName,
