@@ -62,6 +62,7 @@ export class ReservationQueryBuilder {
     if (params.searchQuery && params.searchQuery.trim().length > 0) {
       filter.$or = [
         { reservationId: { $regex: params.searchQuery, $options: 'i' } },
+        { reservationNumber: { $regex: params.searchQuery, $options: 'i' } },
         { tripName: { $regex: params.searchQuery, $options: 'i' } },
       ];
     }

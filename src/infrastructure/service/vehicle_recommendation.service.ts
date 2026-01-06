@@ -62,6 +62,22 @@ export class VehicleRecommendationServiceImpl implements IVehicleRecommendationS
       });
     });
 
+    // Fallback: If no recommendations found, add smallest available vehicle
+    // This ensures we always return at least one recommendation
+    if (recommendations.length === 0 && uniqueVehicles.length > 0) {
+      // Sort vehicles by capacity and pick the smallest one
+      const sortedByCapacity = [...uniqueVehicles].sort((a, b) => a.capacity - b.capacity);
+      const smallestVehicle = sortedByCapacity[0];
+      
+      recommendations.push({
+        optionId: uuidv4(),
+        vehicles: [{ vehicle: smallestVehicle, quantity: 1 }],
+        totalCapacity: smallestVehicle.capacity,
+        estimatedPrice: smallestVehicle.baseFare,
+        isExactMatch: false, // Mark as not exact since it might be oversized
+      });
+    }
+
     // Sort by: exact matches first, then by score (considers capacity difference and waste factor)
     recommendations.sort((a, b) => {
       // Exact matches always come first

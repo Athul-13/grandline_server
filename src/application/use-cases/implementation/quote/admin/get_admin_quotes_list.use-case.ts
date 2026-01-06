@@ -67,13 +67,13 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
       // Exclude paid quotes by default (unless explicitly included in status filter)
       const excludePaid = !status || !status.includes(QuoteStatus.PAID);
       
-      // Step 2: Search quotes by ID, tripName, eventType, customEventType (if search provided)
+      // Step 2: Search quotes by ID, quoteNumber, tripName, eventType, customEventType (if search provided)
       let quotes = await this.quoteRepository.findAllForAdmin(
         includeDeleted,
         status,
         undefined,
         excludePaid,
-        normalizedSearch // Search quoteId, tripName, eventType, customEventType
+        normalizedSearch // Search quoteId, quoteNumber, tripName, eventType, customEventType
       );
 
       // Step 3: If search is provided, also search by user name/email and combine results
@@ -144,7 +144,7 @@ export class GetAdminQuotesListUseCase implements IGetAdminQuotesListUseCase {
       }
 
       // Step 5: Map quotes to admin response DTOs with user information
-      // Note: Search filtering is already done at repository level (quoteId, tripName, eventType, customEventType)
+      // Note: Search filtering is already done at repository level (quoteId, quoteNumber, tripName, eventType, customEventType)
       // and user level (user name/email), so no additional filtering needed here
       const quotesWithUsers: AdminQuoteListItemResponse[] = [];
       for (const quote of quotes) {

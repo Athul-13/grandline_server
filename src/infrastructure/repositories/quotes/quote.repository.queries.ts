@@ -70,10 +70,11 @@ export class QuoteQueryBuilder {
       filter.userId = { $in: params.userIds };
     }
 
-    // Handle search query (searches quoteId, tripName, eventType, customEventType)
+    // Handle search query (searches quoteId, quoteNumber, tripName, eventType, customEventType)
     if (params.searchQuery && params.searchQuery.trim().length > 0) {
       filter.$or = [
         { quoteId: { $regex: params.searchQuery.trim(), $options: 'i' } },
+        { quoteNumber: { $regex: params.searchQuery.trim(), $options: 'i' } },
         { tripName: { $regex: params.searchQuery.trim(), $options: 'i' } },
         { eventType: { $regex: params.searchQuery.trim(), $options: 'i' } },
         { customEventType: { $regex: params.searchQuery.trim(), $options: 'i' } },

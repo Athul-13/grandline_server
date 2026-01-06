@@ -209,6 +209,7 @@ export class GetAdminTripsListUseCase implements IGetAdminTripsListUseCase {
           const searchLower = normalizedSearch.toLowerCase();
           const matches =
             reservation.reservationId.toLowerCase().includes(searchLower) ||
+            (reservation.reservationNumber && reservation.reservationNumber.toLowerCase().includes(searchLower)) ||
             (reservation.tripName && reservation.tripName.toLowerCase().includes(searchLower)) ||
             userName.toLowerCase().includes(searchLower) ||
             (driverName && driverName.toLowerCase().includes(searchLower));
