@@ -72,8 +72,8 @@ export function renderRefundConfirmationHTML(data: RefundConfirmationEmailData):
                 
                 <table role="presentation" style="width: 100%; border-collapse: collapse;">
                   <tr>
-                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 40%;">Reservation ID:</td>
-                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.reservationId}</td>
+                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 40%;">Reservation Number:</td>
+                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.reservationNumber}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Refund ID:</td>
@@ -172,7 +172,7 @@ We have processed a ${refundType.toLowerCase()} for your reservation. The refund
 
 REFUND DETAILS
 --------------
-Reservation ID: ${data.reservationId}
+Reservation Number: ${data.reservationNumber}
 Refund ID: ${data.refundId}
 Refund Type: ${refundType}
 Refund Date: ${formatDate(data.refundDate)}

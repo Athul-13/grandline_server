@@ -35,8 +35,8 @@ export class PDFGenerationServiceImpl implements IPDFGenerationService {
         // Quote Details Section
         let yPosition = 130;
 
-        doc.fontSize(14).fillColor('#6b7280').text('Quote ID:', 50, yPosition);
-        doc.fillColor('#1a1a1a').text(data.quote.quoteId, 150, yPosition);
+        doc.fontSize(14).fillColor('#6b7280').text('Quote Number:', 50, yPosition);
+        doc.fillColor('#1a1a1a').text(data.quote.quoteNumber, 150, yPosition);
         yPosition += 25;
 
         if (data.quote.tripName) {
@@ -286,8 +286,8 @@ export class PDFGenerationServiceImpl implements IPDFGenerationService {
         doc.fillColor('#1a1a1a').text(data.invoiceNumber, 200, yPosition);
         yPosition += 25;
 
-        doc.fillColor('#6b7280').text('Reservation ID:', 50, yPosition);
-        doc.fillColor('#1a1a1a').text(data.reservation.reservationId, 200, yPosition);
+        doc.fillColor('#6b7280').text('Reservation Number:', 50, yPosition);
+        doc.fillColor('#1a1a1a').text(data.reservation.reservationNumber, 200, yPosition);
         yPosition += 25;
 
         doc.fillColor('#6b7280').text('Invoice Date:', 50, yPosition);

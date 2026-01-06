@@ -218,8 +218,8 @@ export class CreateReservationUseCase implements ICreateReservationUseCase {
         const emailData: InvoiceEmailData = {
           email: user.email,
           fullName: user.fullName,
-          reservationId,
-          invoiceNumber: reservationId,
+          reservationNumber: reservation.reservationNumber,
+          invoiceNumber: reservation.reservationNumber,
           paymentAmount: payment.amount,
           paymentDate: payment.paidAt || now,
           paymentMethod: payment.paymentMethod,

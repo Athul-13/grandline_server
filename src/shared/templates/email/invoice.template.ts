@@ -75,8 +75,8 @@ export function renderInvoiceHTML(data: InvoiceEmailData): string {
                     <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.invoiceNumber}</td>
                   </tr>
                   <tr>
-                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Reservation ID:</td>
-                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.reservationId}</td>
+                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Reservation Number:</td>
+                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.reservationNumber}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Payment Method:</td>
@@ -165,7 +165,7 @@ Thank you for your payment! Your reservation has been confirmed. Please find you
 PAYMENT DETAILS
 ---------------
 Invoice Number: ${data.invoiceNumber}
-Reservation ID: ${data.reservationId}
+Reservation Number: ${data.reservationNumber}
 Payment Method: ${data.paymentMethod}
 Payment Date: ${formatDate(data.paymentDate)}
 

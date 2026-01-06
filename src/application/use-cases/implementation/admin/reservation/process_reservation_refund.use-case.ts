@@ -200,7 +200,7 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
         const emailData: RefundConfirmationEmailData = {
           email: user.email,
           fullName: user.fullName,
-          reservationId,
+          reservationNumber: reservation.reservationNumber,
           refundAmount: amount,
           refundId,
           refundDate: now,

@@ -40,7 +40,7 @@ export interface PasswordResetEmailData {
 export interface QuoteEmailData {
   email: string;
   fullName?: string;
-  quoteId: string;
+  quoteNumber: string;
   tripName?: string;
   tripType: string;
   totalPrice: number;
@@ -56,7 +56,7 @@ export interface QuoteEmailData {
 export interface InvoiceEmailData {
   email: string;
   fullName?: string;
-  reservationId: string;
+  reservationNumber: string;
   invoiceNumber: string;
   paymentAmount: number;
   paymentDate: Date;
@@ -73,7 +73,7 @@ export interface InvoiceEmailData {
 export interface RefundConfirmationEmailData {
   email: string;
   fullName?: string;
-  reservationId: string;
+  reservationNumber: string;
   refundAmount: number;
   refundId: string;
   refundDate: Date;
@@ -92,7 +92,7 @@ export interface RefundConfirmationEmailData {
 export interface PaymentRequiredEmailData {
   email: string;
   fullName?: string;
-  reservationId: string;
+  reservationNumber: string;
   chargeId: string;
   chargeDescription: string;
   amount: number;

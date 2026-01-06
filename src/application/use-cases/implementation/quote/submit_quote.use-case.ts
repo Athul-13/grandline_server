@@ -279,7 +279,7 @@ export class SubmitQuoteUseCase implements ISubmitQuoteUseCase {
                   const emailData: QuoteEmailData = {
                     email: user.email,
                     fullName: user.fullName,
-                    quoteId: updatedQuote.quoteId,
+                    quoteNumber: updatedQuote.quoteNumber,
                     tripName: updatedQuote.tripName,
                     tripType: updatedQuote.tripType === TripType.ONE_WAY ? 'one_way' : 'two_way',
                     totalPrice: total,

@@ -252,7 +252,7 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
           const emailData: PaymentRequiredEmailData = {
             email: user.email,
             fullName: user.fullName,
-            reservationId,
+            reservationNumber: reservation.reservationNumber,
             chargeId,
             chargeDescription,
             amount: additionalChargeAmount,

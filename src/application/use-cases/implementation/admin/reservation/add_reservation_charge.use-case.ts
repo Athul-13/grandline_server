@@ -144,7 +144,7 @@ export class AddReservationChargeUseCase implements IAddReservationChargeUseCase
         const emailData: PaymentRequiredEmailData = {
           email: user.email,
           fullName: user.fullName,
-          reservationId,
+          reservationNumber: reservation.reservationNumber,
           chargeId,
           chargeDescription: description,
           amount,
