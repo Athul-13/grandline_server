@@ -47,7 +47,7 @@ export class GetReservationsListUseCase implements IGetReservationsListUseCase {
     // If forDropdown is true, return minimal data without pagination
     if (forDropdown) {
       //Filter to only include reservations with tripname 
-      const { reservations: reservationsWithTripName, total: totalWithTripName } = await this.reservationRepository.findByUserId(
+      const { reservations: reservationsWithTripName } = await this.reservationRepository.findByUserId(
         userId,
         1,
         1000

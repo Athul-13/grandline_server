@@ -2,7 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { IExportReservationCSVUseCase } from '../../../interface/admin/reservation/export_reservation_csv_use_case.interface';
 import { IGetAdminReservationUseCase } from '../../../interface/admin/reservation/get_admin_reservation_use_case.interface';
 import { USE_CASE_TOKENS } from '../../../../di/tokens';
-import { ERROR_MESSAGES } from '../../../../../shared/constants';
+import { ERROR_MESSAGES, TripType } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 
@@ -64,7 +64,7 @@ export class ExportReservationCSVUseCase implements IExportReservationCSVUseCase
       rows.push(`Trip Name,${escapeCSV(reservationDetails.tripName)}`);
     }
     rows.push(`Status,${escapeCSV(reservationDetails.status)}`);
-    rows.push(`Trip Type,${escapeCSV(reservationDetails.tripType === 'one_way' ? 'One Way' : 'Round Trip')}`);
+    rows.push(`Trip Type,${escapeCSV(reservationDetails.tripType === TripType.ONE_WAY ? 'One Way' : 'Round Trip')}`);
     if (reservationDetails.passengerCount) {
       rows.push(`Passengers,${escapeCSV(reservationDetails.passengerCount)}`);
     }

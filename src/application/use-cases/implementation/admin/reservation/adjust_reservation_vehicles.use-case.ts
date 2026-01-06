@@ -18,11 +18,12 @@ import { FRONTEND_CONFIG } from '../../../../../shared/config';
 import { Reservation } from '../../../../../domain/entities/reservation.entity';
 import { ReservationModification } from '../../../../../domain/entities/reservation_modification.entity';
 import { ReservationCharge } from '../../../../../domain/entities/reservation_charge.entity';
-import { NotificationType, ERROR_MESSAGES, ReservationStatus } from '../../../../../shared/constants';
+import { NotificationType, ERROR_MESSAGES, ReservationStatus, TripType } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 import { ISocketEventService } from '../../../../../domain/services/socket_event_service.interface';
 import { randomUUID } from 'crypto';
+import { QuoteItinerary } from '../../../../../domain/entities/quote_itinerary.entity';
 
 /**
  * Use case for adjusting reservation vehicles
@@ -146,7 +147,7 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
             stayingDuration: stop.stayingDuration,
           }));
 
-        const returnItinerary = reservation.tripType === 'two_way'
+        const returnItinerary = reservation.tripType === TripType.TWO_WAY
           ? itineraryStops
               .filter((stop) => stop.tripType === 'return')
               .map((stop) => ({
@@ -176,8 +177,8 @@ export class AdjustReservationVehiclesUseCase implements IAdjustReservationVehic
           selectedVehicles: vehiclesWithQuantity,
           selectedAmenities,
           itinerary: {
-            outbound: outboundItinerary as any,
-            return: returnItinerary as any,
+            outbound: outboundItinerary as QuoteItinerary[],
+            return: returnItinerary as QuoteItinerary[],
           },
           pricingConfig,
           tripType: reservation.tripType,

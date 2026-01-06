@@ -15,6 +15,7 @@ import { PaymentStatus } from '../../../../../domain/entities/payment.entity';
 import * as stripeService from '../../../../../infrastructure/service/stripe.service';
 import { ICreateNotificationUseCase } from '../../../interface/notification/create_notification_use_case.interface';
 import { IEmailService } from '../../../../../domain/services/email_service.interface';
+import Stripe from 'stripe';
 
 // Mock the Stripe service
 vi.mock('../../../../../infrastructure/services/stripe.service', () => ({
@@ -38,9 +39,11 @@ describe('ProcessReservationRefundUseCase', () => {
   let mockUserRepository: MockUserRepository;
   let mockCreateNotificationUseCase: ICreateNotificationUseCase;
   let mockEmailService: IEmailService;
+  let mockNotificationExecute: ReturnType<typeof vi.fn>;
+  let mockEmailSendEmail: ReturnType<typeof vi.fn>;
   let mockStripe: {
     refunds: {
-      create: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn<[Stripe.RefundCreateParams], Promise<Stripe.Refund>>>;
     };
   };
 
@@ -52,11 +55,13 @@ describe('ProcessReservationRefundUseCase', () => {
     mockPaymentRepository = new MockPaymentRepository();
     mockModificationRepository = new MockReservationModificationRepository();
     mockUserRepository = new MockUserRepository();
+    mockNotificationExecute = vi.fn().mockResolvedValue(undefined);
     mockCreateNotificationUseCase = {
-      execute: vi.fn().mockResolvedValue(undefined),
+      execute: mockNotificationExecute,
     } as unknown as ICreateNotificationUseCase;
+    mockEmailSendEmail = vi.fn().mockResolvedValue(undefined);
     mockEmailService = {
-      sendEmail: vi.fn().mockResolvedValue(undefined),
+      sendEmail: mockEmailSendEmail,
     } as unknown as IEmailService;
 
     // Register mocks in container
@@ -73,11 +78,11 @@ describe('ProcessReservationRefundUseCase', () => {
     // Create mock Stripe instance
     mockStripe = {
       refunds: {
-        create: vi.fn(),
+        create: vi.fn<[Stripe.RefundCreateParams], Promise<Stripe.Refund>>(),
       },
     };
 
-    vi.mocked(stripeService.getStripeInstance).mockReturnValue(mockStripe as any);
+    vi.mocked(stripeService.getStripeInstance).mockReturnValue(mockStripe as unknown as Stripe);
 
     // Create use case instance
     useCase = container.resolve(ProcessReservationRefundUseCase);
@@ -119,7 +124,7 @@ describe('ProcessReservationRefundUseCase', () => {
       mockUserRepository.findById.mockResolvedValue(user);
       mockStripe.refunds.create.mockResolvedValue({
         id: refundId,
-      } as any);
+      } as Stripe.Refund);
 
       // Act
       const result = await useCase.execute(reservationId, amount, adminUserId);
@@ -141,8 +146,8 @@ describe('ProcessReservationRefundUseCase', () => {
       });
       expect(mockReservationRepository.updateById).toHaveBeenCalled();
       expect(mockModificationRepository.create).toHaveBeenCalled();
-      expect(mockCreateNotificationUseCase.execute).toHaveBeenCalled();
-      expect(mockEmailService.sendEmail).toHaveBeenCalled();
+      expect(mockNotificationExecute).toHaveBeenCalled();
+      expect(mockEmailSendEmail).toHaveBeenCalled();
     });
 
     it('should process a partial refund successfully', async () => {
@@ -180,7 +185,7 @@ describe('ProcessReservationRefundUseCase', () => {
       mockUserRepository.findById.mockResolvedValue(user);
       mockStripe.refunds.create.mockResolvedValue({
         id: refundId,
-      } as any);
+      } as Stripe.Refund);
 
       // Act
       const result = await useCase.execute(reservationId, partialRefundAmount, adminUserId);
@@ -292,7 +297,7 @@ describe('ProcessReservationRefundUseCase', () => {
       mockReservationRepository.findById.mockResolvedValue(reservation);
       mockPaymentRepository.findById.mockResolvedValue(payment);
       mockUserRepository.findById.mockResolvedValue(user);
-      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as any);
+      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as Stripe.Refund);
 
       // Act
       await useCase.execute(reservationId, 5000, 'admin-123', reason);
@@ -333,7 +338,7 @@ describe('ProcessReservationRefundUseCase', () => {
       mockReservationRepository.findById.mockResolvedValue(reservation);
       mockPaymentRepository.findById.mockResolvedValue(payment);
       mockUserRepository.findById.mockResolvedValue(user);
-      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as any);
+      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as Stripe.Refund);
 
       // Act
       await useCase.execute(reservationId, amount, 'admin-123');
@@ -374,13 +379,13 @@ describe('ProcessReservationRefundUseCase', () => {
       mockReservationRepository.findById.mockResolvedValue(reservation);
       mockPaymentRepository.findById.mockResolvedValue(payment);
       mockUserRepository.findById.mockResolvedValue(user);
-      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as any);
+      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as Stripe.Refund);
 
       // Act
       await useCase.execute(reservationId, amount, 'admin-123', reason);
 
       // Assert
-      expect(mockCreateNotificationUseCase.execute).toHaveBeenCalledWith(
+      expect(mockNotificationExecute).toHaveBeenCalledWith(
         expect.objectContaining({
           userId,
           data: expect.objectContaining({
@@ -425,13 +430,13 @@ describe('ProcessReservationRefundUseCase', () => {
       mockReservationRepository.findById.mockResolvedValue(reservation);
       mockPaymentRepository.findById.mockResolvedValue(payment);
       mockUserRepository.findById.mockResolvedValue(user);
-      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as any);
+      mockStripe.refunds.create.mockResolvedValue({ id: 're_test_123' } as Stripe.Refund);
 
       // Act
       await useCase.execute(reservationId, amount, 'admin-123');
 
       // Assert
-      expect(mockEmailService.sendEmail).toHaveBeenCalledWith(
+      expect(mockEmailSendEmail).toHaveBeenCalledWith(
         expect.any(String), // EmailType.REFUND_CONFIRMATION
         expect.objectContaining({
           email: userEmail,

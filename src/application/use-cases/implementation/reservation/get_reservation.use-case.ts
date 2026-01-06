@@ -7,7 +7,7 @@ import { IPassengerRepository } from '../../../../domain/repositories/passenger_
 import { ReservationResponse } from '../../../dtos/reservation.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ReservationMapper } from '../../../mapper/reservation.mapper';
-import { ERROR_MESSAGES, ReservationStatus } from '../../../../shared/constants';
+import { ERROR_MESSAGES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';

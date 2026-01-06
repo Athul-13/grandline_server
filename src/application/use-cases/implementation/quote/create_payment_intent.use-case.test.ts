@@ -9,6 +9,7 @@ import { createQuotedQuoteFixture, createQuoteWithPricingFixture, createQuoteFix
 import { createPendingPaymentFixture } from '../../../../shared/test/fixtures/payment.fixture';
 import { QuoteStatus } from '../../../../shared/constants';
 import * as stripeService from '../../../../infrastructure/service/stripe.service';
+import Stripe from 'stripe';
 
 // Mock the Stripe service
 vi.mock('../../../../infrastructure/services/stripe.service', () => ({
@@ -30,8 +31,8 @@ describe('CreatePaymentIntentUseCase', () => {
   let mockPaymentRepository: MockPaymentRepository;
   let mockStripe: {
     paymentIntents: {
-      create: ReturnType<typeof vi.fn>;
-      retrieve: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn<[Stripe.PaymentIntentCreateParams], Promise<Stripe.PaymentIntent>>>;
+      retrieve: ReturnType<typeof vi.fn<[string], Promise<Stripe.PaymentIntent>>>;
     };
   };
 
@@ -49,12 +50,12 @@ describe('CreatePaymentIntentUseCase', () => {
     // Create mock Stripe instance
     mockStripe = {
       paymentIntents: {
-        create: vi.fn(),
-        retrieve: vi.fn(),
+        create: vi.fn<[Stripe.PaymentIntentCreateParams], Promise<Stripe.PaymentIntent>>(),
+        retrieve: vi.fn<[string], Promise<Stripe.PaymentIntent>>(),
       },
     };
 
-    vi.mocked(stripeService.getStripeInstance).mockReturnValue(mockStripe as any);
+    vi.mocked(stripeService.getStripeInstance).mockReturnValue(mockStripe as unknown as Stripe);
 
     // Create use case instance
     useCase = container.resolve(CreatePaymentIntentUseCase);
@@ -79,7 +80,7 @@ describe('CreatePaymentIntentUseCase', () => {
       mockStripe.paymentIntents.create.mockResolvedValue({
         id: paymentIntentId,
         client_secret: clientSecret,
-      } as any);
+      } as Stripe.PaymentIntent);
 
       // Act
       const result = await useCase.execute(quoteId, userId);
@@ -130,7 +131,7 @@ describe('CreatePaymentIntentUseCase', () => {
       mockStripe.paymentIntents.retrieve.mockResolvedValue({
         id: existingPaymentIntentId,
         client_secret: clientSecret,
-      } as any);
+      } as Stripe.PaymentIntent);
 
       // Act
       const result = await useCase.execute(quoteId, userId);

@@ -20,7 +20,6 @@ import { CreateNotificationRequest } from '../../application/dtos/notification.d
 import { logger } from '../../shared/logger';
 import { ChatSocketHandler } from '../../presentation/socket_handlers/chat_socket.handler';
 import { NOTIFICATION_SOCKET_EVENTS, NotificationSocketHandler } from '../../presentation/socket_handlers/notification_socket.handler';
-import { IExpoPushNotificationService } from '../../domain/services/expo_push_notification_service.interface';
 import { IGetUnreadNotificationCountUseCase } from '../../application/use-cases/interface/notification/get_unread_notification_count_use_case.interface';
 
 /**
@@ -1008,7 +1007,7 @@ export class SocketEventService implements ISocketEventService {
    * Emits driver changed event when admin changes driver for a reservation
    * Targets: old driver, new driver, and admin dashboard
    */
-  async emitDriverChanged(payload: {
+  emitDriverChanged(payload: {
     reservationId: string;
     oldDriverId: string | undefined;
     newDriverId: string;
@@ -1019,7 +1018,7 @@ export class SocketEventService implements ISocketEventService {
         `[SocketEventService] Socket.io server not initialized, cannot emit driver changed event. ` +
         `Method: emitDriverChanged, ReservationId: ${payload.reservationId}.`
       );
-      return;
+      return Promise.resolve();
     }
 
     try {
@@ -1048,13 +1047,15 @@ export class SocketEventService implements ISocketEventService {
     } catch (error) {
       logger.error(`Error emitting driver changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+
+    return Promise.resolve();
   }
 
   /**
    * Emits vehicle changed event when admin adjusts vehicles for a reservation
    * Targets: assigned driver (if any) and admin dashboard
    */
-  async emitVehicleChanged(payload: {
+  emitVehicleChanged(payload: {
     reservationId: string;
     assignedDriverId: string | undefined;
     vehicles: Array<{
@@ -1067,7 +1068,7 @@ export class SocketEventService implements ISocketEventService {
         `[SocketEventService] Socket.io server not initialized, cannot emit vehicle changed event. ` +
         `Method: emitVehicleChanged, ReservationId: ${payload.reservationId}.`
       );
-      return;
+      return Promise.resolve();
     }
 
     try {
@@ -1091,6 +1092,8 @@ export class SocketEventService implements ISocketEventService {
     } catch (error) {
       logger.error(`Error emitting vehicle changed event: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
+
+    return Promise.resolve();
   }
 
   /**
@@ -1177,7 +1180,7 @@ export class SocketEventService implements ISocketEventService {
         logger.info(`User ${notification.userId} is offline (web client), notification stored in DB`);
       }
     } catch (error) {
-      logger.error(`Error sending notification: ${error}`);
+      logger.error(`Error sending notification: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 }

@@ -33,11 +33,11 @@ export class GetDashboardStatsUseCase implements IGetDashboardStatsUseCase {
     // - earnings: sum of driver earnings from completed reservations
     // - rating: average rating from completed reservations
 
-    return {
+    return Promise.resolve({
       totalRides: 0,
       earnings: 0,
       rating: 0,
-    };
+    });
   }
 }
 
