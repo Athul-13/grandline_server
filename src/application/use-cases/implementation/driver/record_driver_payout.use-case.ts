@@ -4,13 +4,14 @@ import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
+import { IRecordDriverPayoutUseCase } from '../../interface/driver/record_driver_payout_use_case.interface';
 
 /**
  * Use case for recording a driver payout
  * Resets driver's total earnings to 0 and updates last payment date
  */
 @injectable()
-export class RecordDriverPayoutUseCase {
+export class RecordDriverPayoutUseCase implements IRecordDriverPayoutUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IDriverRepository)
     private readonly driverRepository: IDriverRepository

@@ -233,6 +233,12 @@ export interface GetDriverByIdResponse {
     createdAt: Date;
     updatedAt: Date;
   };
+  stats: {
+    totalRides: number;
+    earnings: number;
+    rating: number;
+    lastPaymentDate?: Date;
+  };
 }
 
 /**

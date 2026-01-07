@@ -105,6 +105,18 @@ export function createAdminDriverRoutesWithDI(): Router {
     (req, res) => void adminDriverController.deleteDriver(req, res)
   );
 
+  /**
+   * @route   POST /api/v1/admin/drivers/:driverId/payout
+   * @desc    Record driver payout (admin only)
+   * @access  Private (Admin)
+   */
+  router.post(
+    '/:driverId/payout',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminDriverController.recordDriverPayout(req, res)
+  );
+
   return router;
 }
 

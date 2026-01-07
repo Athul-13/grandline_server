@@ -16,6 +16,7 @@ import { IGetDriverDashboardUseCase } from '../../../application/use-cases/inter
 import { IGetDriverReservationUseCase } from '../../../application/use-cases/interface/driver/get_driver_reservation_use_case.interface';
 import { IStartTripUseCase } from '../../../application/use-cases/interface/driver/start_trip_use_case.interface';
 import { IEndTripUseCase } from '../../../application/use-cases/interface/driver/end_trip_use_case.interface';
+import { IGetDashboardStatsUseCase } from '../../../application/use-cases/interface/dashboard/get_dashboard_stats_use_case.interface';
 import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
@@ -63,6 +64,8 @@ export class DriverController {
     private readonly startTripUseCase: IStartTripUseCase,
     @inject(USE_CASE_TOKENS.EndTripUseCase)
     private readonly endTripUseCase: IEndTripUseCase,
+    @inject(USE_CASE_TOKENS.GetDashboardStatsUseCase)
+    private readonly getDashboardStatsUseCase: IGetDashboardStatsUseCase,
   ) {}
 
   /**
@@ -435,6 +438,37 @@ export class DriverController {
       logger.error(
         `Error fetching driver dashboard: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Get Driver Stats
+   * GET /api/v1/driver/stats
+   * Requires authentication
+   */
+  async getStats(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver stats attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      // Extract driverId from JWT payload
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Get driver stats attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      logger.info(`Driver stats fetch request for driver: ${driverId}`);
+      const response = await this.getDashboardStatsUseCase.execute(driverId);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error fetching driver stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

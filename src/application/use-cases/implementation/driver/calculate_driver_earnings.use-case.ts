@@ -9,13 +9,14 @@ import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { v4 as uuidv4 } from 'uuid';
+import { ICalculateDriverEarningsUseCase } from '../../interface/driver/calculate_driver_earnings_use_case.interface';
 
 /**
  * Use case for calculating driver earnings when a trip is completed
  * Creates a driver payment record and increments driver's total earnings
  */
 @injectable()
-export class CalculateDriverEarningsUseCase {
+export class CalculateDriverEarningsUseCase implements ICalculateDriverEarningsUseCase {
   constructor(
     @inject(REPOSITORY_TOKENS.IDriverRepository)
     private readonly driverRepository: IDriverRepository,

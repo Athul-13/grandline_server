@@ -1,6 +1,5 @@
 import { Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { IGetDashboardStatsUseCase } from '../../../application/use-cases/interface/dashboard/get_dashboard_stats_use_case.interface';
 import { IGetRecentActivityUseCase } from '../../../application/use-cases/interface/dashboard/get_recent_activity_use_case.interface';
 import { IGetAdminDashboardAnalyticsUseCase } from '../../../application/use-cases/interface/dashboard/get_admin_dashboard_analytics_use_case.interface';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
@@ -12,47 +11,16 @@ import { AdminDashboardAnalyticsRequest } from '../../../application/dtos/dashbo
 
 /**
  * Dashboard controller
- * Handles dashboard-related operations for drivers
+ * Handles dashboard-related operations
  */
 @injectable()
 export class DashboardController {
   constructor(
-    @inject(USE_CASE_TOKENS.GetDashboardStatsUseCase)
-    private readonly getDashboardStatsUseCase: IGetDashboardStatsUseCase,
     @inject(USE_CASE_TOKENS.GetRecentActivityUseCase)
     private readonly getRecentActivityUseCase: IGetRecentActivityUseCase,
     @inject(USE_CASE_TOKENS.GetAdminDashboardAnalyticsUseCase)
     private readonly getAdminDashboardAnalyticsUseCase: IGetAdminDashboardAnalyticsUseCase
   ) {}
-
-  /**
-   * Handles getting dashboard statistics
-   */
-  async getDashboardStats(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
-      if (!req.user) {
-        logger.warn('Get dashboard stats attempt without authentication');
-        sendErrorResponse(res, new Error('Unauthorized'));
-        return;
-      }
-
-      // Extract driverId from JWT payload
-      const driverId = req.user.userId;
-      if (!driverId) {
-        logger.warn('Get dashboard stats attempt without userId in token');
-        sendErrorResponse(res, new Error('Unauthorized'));
-        return;
-      }
-
-      logger.info(`Dashboard stats fetch request for driver: ${driverId}`);
-      const response = await this.getDashboardStatsUseCase.execute(driverId);
-
-      sendSuccessResponse(res, HTTP_STATUS.OK, response);
-    } catch (error) {
-      logger.error(`Error fetching dashboard stats: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      sendErrorResponse(res, error);
-    }
-  }
 
   /**
    * Handles getting recent activity
