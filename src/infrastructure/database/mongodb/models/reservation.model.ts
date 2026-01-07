@@ -69,6 +69,10 @@ export interface IReservationModel extends Document {
   cancelledAt?: Date;
   startedAt?: Date;
   completedAt?: Date;
+  driverReport?: {
+    content: string;
+    submittedAt: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

@@ -152,6 +152,18 @@ export const ReservationSchema: Schema = new Schema(
       type: Date,
       required: false,
     },
+    driverReport: {
+      content: {
+        type: String,
+        required: false,
+        trim: true,
+        maxlength: 2000,
+      },
+      submittedAt: {
+        type: Date,
+        required: false,
+      },
+    },
   },
   {
     timestamps: true,

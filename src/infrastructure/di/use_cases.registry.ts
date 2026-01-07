@@ -44,6 +44,7 @@ import { GetDriverDashboardUseCase } from '../../application/use-cases/implement
 import { GetDriverReservationUseCase } from '../../application/use-cases/implementation/driver/get_driver_reservation.use-case';
 import { StartTripUseCase } from '../../application/use-cases/implementation/driver/start_trip.use-case';
 import { EndTripUseCase } from '../../application/use-cases/implementation/driver/end_trip.use-case';
+import { SubmitDriverReportUseCase } from '../../application/use-cases/implementation/driver/submit_driver_report.use-case';
 import { UpdateLocationUseCase } from '../../application/use-cases/implementation/driver/update_location.use-case';
 import { CreateVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/create_vehicle_type.use-case';
 import { GetVehicleTypeUseCase } from '../../application/use-cases/implementation/vehicle_type/get_vehicle_type.use-case';
@@ -187,6 +188,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.GetDriverReservationUseCase, GetDriverReservationUseCase);
   container.register(USE_CASE_TOKENS.StartTripUseCase, StartTripUseCase);
   container.register(USE_CASE_TOKENS.EndTripUseCase, EndTripUseCase);
+  container.register(USE_CASE_TOKENS.SubmitDriverReportUseCase, SubmitDriverReportUseCase);
   container.register(USE_CASE_TOKENS.UpdateLocationUseCase, UpdateLocationUseCase);
   // Vehicle Type use cases
   container.register(USE_CASE_TOKENS.CreateVehicleTypeUseCase, CreateVehicleTypeUseCase);

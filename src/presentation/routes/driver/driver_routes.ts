@@ -208,6 +208,17 @@ export function createDriverRoutesWithDI(): Router {
     (req, res) => void driverController.endTrip(req, res)
   );
 
+  /**
+   * Submit Driver Report
+   * POST /api/v1/driver/trips/:reservationId/report
+   * Requires authentication
+   */
+  router.post(
+    '/trips/:reservationId/report',
+    authenticate,
+    (req, res) => void driverController.submitDriverReport(req, res)
+  );
+
   return router;
 }
 

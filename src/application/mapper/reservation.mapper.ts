@@ -99,6 +99,14 @@ export class ReservationMapper {
         createdAt: charge.createdAt,
       })) || undefined,
       chatEnabled: chatEnabled ?? false,
+      startedAt: reservation.startedAt,
+      completedAt: reservation.completedAt,
+      driverReport: reservation.driverReport
+        ? {
+            content: reservation.driverReport.content,
+            submittedAt: reservation.driverReport.submittedAt,
+          }
+        : undefined,
     };
   }
 

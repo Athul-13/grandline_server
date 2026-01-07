@@ -73,6 +73,12 @@ export interface ReservationResponse {
   }>;
   charges?: ReservationChargeResponse[];
   chatEnabled?: boolean;
+  startedAt?: Date;
+  completedAt?: Date;
+  driverReport?: {
+    content: string;
+    submittedAt: Date;
+  };
 }
 
 /**

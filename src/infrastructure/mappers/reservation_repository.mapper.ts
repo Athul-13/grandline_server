@@ -36,7 +36,8 @@ export class ReservationRepositoryMapper {
       doc.cancellationReason,
       doc.cancelledAt,
       doc.startedAt,
-      doc.completedAt
+      doc.completedAt,
+      doc.driverReport
     );
   }
 
