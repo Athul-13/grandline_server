@@ -12,6 +12,7 @@ import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';
 import { deriveChatEnabled, deriveTripState, deriveTripWindow } from '../../../mapper/driver_dashboard.mapper';
+import { ReservationItinerary } from '../../../../domain/entities/reservation_itinerary.entity';
 
 /**
  * Use case for getting a reservation by ID
@@ -182,7 +183,7 @@ export class GetReservationUseCase implements IGetReservationUseCase {
     let chatEnabled = false;
     if (reservation.assignedDriverId && itineraryStops && itineraryStops.length > 0) {
       try {
-        const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops);
+        const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops as ReservationItinerary[]);
         const now = new Date();
         const tripState = deriveTripState({
           status: reservation.status,

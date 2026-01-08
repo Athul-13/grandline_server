@@ -10,6 +10,7 @@ import { v4 as uuidv4 } from 'uuid';
 interface QuoteFixtureOptions {
   quoteId?: string;
   userId?: string;
+  quoteNumber?: string;
   tripType?: TripType;
   status?: QuoteStatus;
   tripName?: string;
@@ -46,10 +47,12 @@ export function createQuoteFixture(options: QuoteFixtureOptions = {}): Quote {
   const now = new Date();
   const quoteId = options.quoteId || uuidv4();
   const userId = options.userId || uuidv4();
+  const quoteNumber = options.quoteNumber || uuidv4();
 
   return new Quote(
     quoteId,
     userId,
+    quoteNumber,
     options.tripType || TripType.ONE_WAY,
     options.status || QuoteStatus.DRAFT,
     options.createdAt || now,

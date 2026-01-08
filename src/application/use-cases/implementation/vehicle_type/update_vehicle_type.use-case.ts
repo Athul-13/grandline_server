@@ -6,9 +6,13 @@ import { UpdateVehicleTypeRequest, VehicleTypeResponse } from '../../../dtos/veh
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { VehicleMapper } from '../../../mapper/vehicle.mapper';
-import { VehicleType } from '../../../../domain/entities/vehicle_type.entity';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+
+type VehicleTypeUpdateData = {
+  name?: string;
+  description?: string;
+};
 
 /**
  * Use case for updating vehicle type
@@ -51,7 +55,7 @@ export class UpdateVehicleTypeUseCase implements IUpdateVehicleTypeUseCase {
     }
 
     // Prepare update data
-    const updateData: Partial<VehicleType> = {};
+    const updateData: VehicleTypeUpdateData = {};
     if (request.name !== undefined) {
       updateData.name = request.name.trim();
     }

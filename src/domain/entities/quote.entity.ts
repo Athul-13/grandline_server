@@ -97,8 +97,7 @@ export class Quote {
    * EXPIRED quotes cannot be edited (user must resubmit)
    */
   canBeEdited(): boolean {
-    return (this.status === QuoteStatus.DRAFT || this.status === QuoteStatus.SUBMITTED) && 
-           this.status !== QuoteStatus.EXPIRED;
+    return (this.status === QuoteStatus.DRAFT || this.status === QuoteStatus.SUBMITTED)
   }
 
   /**

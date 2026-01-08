@@ -14,24 +14,10 @@ export class EventType {
   ) {}
 
   /**
-   * Checks if this is a custom event type
-   */
-  isCustom(): boolean {
-    return this.isCustom;
-  }
-
-  /**
    * Checks if this is a predefined event type
    */
   isPredefined(): boolean {
     return !this.isCustom;
-  }
-
-  /**
-   * Checks if the event type is active
-   */
-  isActive(): boolean {
-    return this.isActive;
   }
 
   /**

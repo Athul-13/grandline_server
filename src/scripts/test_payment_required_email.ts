@@ -32,7 +32,7 @@ async function testPaymentRequiredEmail() {
     const emailData: PaymentRequiredEmailData = {
       email: 'one@mailinator.com',
       fullName: 'John Doe',
-      reservationId: 'RES-2024-001234',
+      reservationNumber: 'RES-2024-001234',
       chargeId: 'CHG-2024-001234',
       chargeDescription: 'Additional charge for vehicle upgrade',
       amount: 2500,
@@ -47,7 +47,7 @@ async function testPaymentRequiredEmail() {
 
     console.log('📧 Sending payment required email...');
     console.log('   To:', emailData.email);
-    console.log('   Reservation ID:', emailData.reservationId);
+    console.log('   Reservation Number:', emailData.reservationNumber);
     console.log('   Charge ID:', emailData.chargeId);
     console.log('   Amount:', `${emailData.currency} ${emailData.amount}`);
     console.log('   Charge Type:', emailData.chargeType);

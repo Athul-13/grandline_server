@@ -4,6 +4,7 @@ import { validationMiddleware } from '../../middleware/validation.middleware';
 import { authenticate } from '../../middleware/auth.middleware';
 import { authorize } from '../../middleware/authorize.middleware';
 import { CreateVehicleTypeRequest, UpdateVehicleTypeRequest } from '../../../application/dtos/vehicle.dto';
+import { UserRole } from '../../../shared/constants';
 
 /**
  * Route configuration interface
@@ -27,7 +28,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
   router.post(
     '/',
     authenticate,
-    authorize(['admin']),
+    authorize([UserRole.ADMIN]),
     validationMiddleware(CreateVehicleTypeRequest),
     (req, res) => void vehicleTypeController.createVehicleType(req, res)
   );
@@ -57,7 +58,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
   router.put(
     '/:id',
     authenticate,
-    authorize(['admin']),
+    authorize([UserRole.ADMIN]),
     validationMiddleware(UpdateVehicleTypeRequest),
     (req, res) => void vehicleTypeController.updateVehicleType(req, res)
   );
@@ -69,7 +70,7 @@ export function createVehicleTypeRoutes(config: VehicleTypeRoutesConfig): Router
   router.delete(
     '/:id',
     authenticate,
-    authorize(['admin']),
+    authorize([UserRole.ADMIN]),
     (req, res) => void vehicleTypeController.deleteVehicleType(req, res)
   );
 
