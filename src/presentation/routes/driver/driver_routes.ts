@@ -165,6 +165,17 @@ export function createDriverRoutesWithDI(): Router {
   );
 
   /**
+   * Get Driver Stats
+   * GET /api/v1/driver/stats
+   * Requires authentication
+   */
+  router.get(
+    '/stats',
+    authenticate,
+    (req, res) => void driverController.getStats(req, res)
+  );
+
+  /**
    * Get Driver Reservation Details
    * GET /api/v1/driver/reservations/:id
    * Requires authentication
@@ -195,6 +206,17 @@ export function createDriverRoutesWithDI(): Router {
     '/trips/:reservationId/end',
     authenticate,
     (req, res) => void driverController.endTrip(req, res)
+  );
+
+  /**
+   * Submit Driver Report
+   * POST /api/v1/driver/trips/:reservationId/report
+   * Requires authentication
+   */
+  router.post(
+    '/trips/:reservationId/report',
+    authenticate,
+    (req, res) => void driverController.submitDriverReport(req, res)
   );
 
   return router;

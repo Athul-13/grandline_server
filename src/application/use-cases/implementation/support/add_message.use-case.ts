@@ -3,6 +3,7 @@ import { ITicketRepository } from '../../../../domain/repositories/ticket_reposi
 import { ITicketMessageRepository } from '../../../../domain/repositories/ticket_message_repository.interface';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { TicketMessage } from '../../../../domain/entities/ticket_message.entity';
+import { Ticket } from '../../../../domain/entities/ticket.entity';
 import { ActorType, UserRole, ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';

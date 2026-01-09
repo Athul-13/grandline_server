@@ -337,6 +337,13 @@ export const ERROR_MESSAGES = {
   QUOTE_PAYMENT_WINDOW_EXPIRED: 'Quote payment window has expired. Please request a new quote.',
   DRIVER_NOT_AVAILABLE: 'Driver is not available for the selected dates',
   VEHICLES_NOT_AVAILABLE: 'Selected vehicles are no longer available. Please select new vehicles.',
+  REPORT_CONTENT_REQUIRED: 'Report content is required',  
+  REPORT_CONTENT_EMPTY: 'Report content cannot be empty',
+  REPORT_CONTENT_TOO_LONG: 'Report content cannot exceed 2000 characters',
+  REPORT_ALREADY_SUBMITTED: 'Report has already been submitted and cannot be modified',
+  TRIP_NOT_COMPLETED: 'Trip must be completed before submitting a report',
+  UNAUTHORIZED_REPORT_SUBMISSION: 'Unauthorized: You can only submit reports for your own trips',
+  RESERVATION_NOT_FOUND: 'Reservation not found',
 } as const;
 
 /**
@@ -381,4 +388,9 @@ export const ERROR_CODES = {
   DRIVER_NOT_AVAILABLE: 'DRIVER_NOT_AVAILABLE',
   VEHICLES_NOT_AVAILABLE: 'VEHICLES_NOT_AVAILABLE',
   SERVER_ERROR: 'SERVER_ERROR',
+  INVALID_REPORT_CONTENT: 'INVALID_REPORT_CONTENT',
+  REPORT_ALREADY_SUBMITTED: 'REPORT_ALREADY_SUBMITTED',
+  TRIP_NOT_COMPLETED: 'TRIP_NOT_COMPLETED',
+  UNAUTHORIZED_REPORT_SUBMISSION: 'UNAUTHORIZED_REPORT_SUBMISSION',
+  RESERVATION_NOT_FOUND: 'RESERVATION_NOT_FOUND',
 } as const;

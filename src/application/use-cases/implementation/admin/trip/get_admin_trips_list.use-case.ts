@@ -8,6 +8,7 @@ import { AdminTripsListResponse, AdminTripListItemResponse, TripState } from '..
 import { REPOSITORY_TOKENS } from '../../../../di/tokens';
 import { deriveTripWindow } from '../../../../mapper/driver_dashboard.mapper';
 import { logger } from '../../../../../shared/logger';
+import { ReservationStatus } from '../../../../../shared/constants';
 
 /**
  * Allowed sort fields for admin trip sorting
@@ -23,10 +24,20 @@ const ALLOWED_SORT_FIELDS: readonly string[] = [
 ] as const;
 
 /**
+ * Terminal statuses that should always be considered PAST
+ */
+const TERMINAL_STATUSES = new Set<ReservationStatus>([
+  ReservationStatus.CANCELLED,
+  ReservationStatus.COMPLETED,
+  ReservationStatus.REFUNDED,
+]);
+
+/**
  * Derives trip state based on reservation data
  * Uses derived logic, not stored status
  */
 function deriveTripState(args: {
+  status: ReservationStatus;
   completedAt?: Date;
   startedAt?: Date;
   tripStartAt: Date;
@@ -39,10 +50,13 @@ function deriveTripState(args: {
   // Priority 2: Explicit lifecycle (startedAt && !completedAt) → CURRENT
   if (args.startedAt && !args.completedAt) return 'CURRENT';
 
-  // Priority 3: Time-based logic
+  // Priority 3: Terminal statuses (REFUNDED, CANCELLED, COMPLETED) → PAST
+  if (TERMINAL_STATUSES.has(args.status)) return 'PAST';
+
+  // Priority 4: Time-based logic
   if (args.tripStartAt > args.now) return 'UPCOMING';
 
-  // Priority 4: Legacy expired (completedAt == null && tripEndAt < now) → PAST
+  // Priority 5: Legacy expired (completedAt == null && tripEndAt < now) → PAST
   if (!args.completedAt && args.tripEndAt < args.now) return 'PAST';
 
   // Default: CURRENT (trip has started but not completed, or is currently active)
@@ -182,6 +196,7 @@ export class GetAdminTripsListUseCase implements IGetAdminTripsListUseCase {
 
         const { tripStartAt, tripEndAt } = tripWindow;
         const derivedState = deriveTripState({
+          status: reservation.status,
           completedAt: reservation.completedAt,
           startedAt: reservation.startedAt,
           tripStartAt,
@@ -209,6 +224,7 @@ export class GetAdminTripsListUseCase implements IGetAdminTripsListUseCase {
           const searchLower = normalizedSearch.toLowerCase();
           const matches =
             reservation.reservationId.toLowerCase().includes(searchLower) ||
+            (reservation.reservationNumber && reservation.reservationNumber.toLowerCase().includes(searchLower)) ||
             (reservation.tripName && reservation.tripName.toLowerCase().includes(searchLower)) ||
             userName.toLowerCase().includes(searchLower) ||
             (driverName && driverName.toLowerCase().includes(searchLower));
@@ -231,6 +247,7 @@ export class GetAdminTripsListUseCase implements IGetAdminTripsListUseCase {
 
         tripItems.push({
           reservationId: reservation.reservationId,
+          reservationNumber: reservation.reservationNumber,
           tripName: reservation.tripName,
           userName,
           driverName,

@@ -7,11 +7,9 @@ import { requireAdmin } from '../../middleware/authorize.middleware';
 import { validationMiddleware } from '../../middleware/validation.middleware';
 import {
   CreateTicketRequest,
-  GetAllTicketsRequest,
   UpdateTicketStatusRequest,
   AssignTicketToAdminRequest,
   AddMessageRequest,
-  GetMessagesByTicketRequest,
 } from '../../../application/dtos/ticket.dto';
 import { CONTROLLER_TOKENS } from '../../../infrastructure/di/tokens';
 

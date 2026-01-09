@@ -128,6 +128,14 @@ export class DriverReservationMapper {
       tripStartAt: tripStartAt.toISOString(),
       tripEndAt: tripEndAt.toISOString(),
       chatEnabled,
+      driverReport: input.reservation.driverReport
+        ? {
+            content: input.reservation.driverReport.content,
+            submittedAt: input.reservation.driverReport.submittedAt.toISOString(),
+          }
+        : undefined,
+      startedAt: input.reservation.startedAt?.toISOString(),
+      completedAt: input.reservation.completedAt?.toISOString(),
     };
   }
 }

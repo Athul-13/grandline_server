@@ -16,9 +16,11 @@ export class Driver {
     public readonly licenseCardPhotoUrl: string,
     public readonly status: DriverStatus,
     public readonly salary: number,
+    public readonly totalEarnings: number,
     public readonly isOnboarded: boolean,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
+    public readonly lastPaymentDate?: Date,
     public readonly lastAssignedAt?: Date
   ) {}
 

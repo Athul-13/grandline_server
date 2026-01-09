@@ -19,6 +19,8 @@ export interface IDriverModel extends Document {
   licenseCardPhotoUrl: string;
   status: DriverStatus;
   salary: number;
+  totalEarnings: number;
+  lastPaymentDate?: Date;
   isOnboarded: boolean;
   isDeleted: boolean;
   lastAssignedAt?: Date;

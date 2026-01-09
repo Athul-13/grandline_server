@@ -1,8 +1,10 @@
 import { injectable, inject } from 'tsyringe';
 import { ITicketRepository } from '../../../../domain/repositories/ticket_repository.interface';
+import { IQuoteRepository } from '../../../../domain/repositories/quote_repository.interface';
+import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../di/tokens';
 import { Ticket } from '../../../../domain/entities/ticket.entity';
-import { UserRole, ERROR_MESSAGES, ERROR_CODES, TicketStatus, NotificationType } from '../../../../shared/constants';
+import { UserRole, ERROR_MESSAGES, ERROR_CODES, TicketStatus, NotificationType, ActorType, LinkedEntityType } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IUserRepository } from '../../../../domain/repositories/user_repository.interface';
@@ -23,6 +25,10 @@ export class AssignTicketToAdminUseCase implements IAssignTicketToAdminUseCase {
     private readonly userRepository: IUserRepository,
     @inject (SERVICE_TOKENS.INotificationService)
     private readonly notificationService: INotificationService,
+    @inject(REPOSITORY_TOKENS.IQuoteRepository)
+    private readonly quoteRepository: IQuoteRepository,
+    @inject(REPOSITORY_TOKENS.IReservationRepository)
+    private readonly reservationRepository: IReservationRepository,
   ) {}
 
   async execute(
@@ -103,6 +109,38 @@ export class AssignTicketToAdminUseCase implements IAssignTicketToAdminUseCase {
     });
     logger.info(`Notification sent to admin: ${assignedAdmin.userId} for ticket: ${ticketId}`);
 
+    // Send notification to user when ticket is assigned (only if ticket was created by a user)
+    if (updatedTicket.actorType === ActorType.USER) {
+      await this.notificationService.sendNotification({
+        userId: updatedTicket.actorId,
+        type: NotificationType.TICKET_STATUS_CHANGED,
+        title: `Ticket Assigned: ${updatedTicket.subject}`,
+        message: 'Your support ticket has been assigned to an admin and is now being reviewed.',
+      });
+      logger.info(`Notification sent to user: ${updatedTicket.actorId} for ticket assignment: ${ticketId}`);
+    }
+
+    // Fetch linked entity number if linked entity exists
+    let linkedEntityNumber: string | null = null;
+    if (updatedTicket.linkedEntityType && updatedTicket.linkedEntityId) {
+      try {
+        if (updatedTicket.linkedEntityType === LinkedEntityType.QUOTE) {
+          const quote = await this.quoteRepository.findById(updatedTicket.linkedEntityId);
+          if (quote) {
+            linkedEntityNumber = quote.quoteNumber;
+          }
+        } else if (updatedTicket.linkedEntityType === LinkedEntityType.RESERVATION) {
+          const reservation = await this.reservationRepository.findById(updatedTicket.linkedEntityId);
+          if (reservation) {
+            linkedEntityNumber = reservation.reservationNumber;
+          }
+        }
+      } catch (error) {
+        // Log error but don't fail the request if entity lookup fails
+        logger.warn(`Failed to fetch linked entity number for ticket ${ticketId}:`, error);
+      }
+    }
+
     // Convert to response format
     return {
       ticketId: updatedTicket.ticketId,
@@ -113,6 +151,7 @@ export class AssignTicketToAdminUseCase implements IAssignTicketToAdminUseCase {
       priority: updatedTicket.priority,
       linkedEntityType: updatedTicket.linkedEntityType,
       linkedEntityId: updatedTicket.linkedEntityId,
+      linkedEntityNumber,
       assignedAdminId: updatedTicket.assignedAdminId,
       lastMessageAt: updatedTicket.lastMessageAt,
       createdAt: updatedTicket.createdAt,

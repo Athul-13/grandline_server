@@ -43,6 +43,7 @@ export class QuoteRepositoryImpl
     return {
       quoteId: entity.quoteId,
       userId: entity.userId,
+      quoteNumber: entity.quoteNumber,
       tripType: entity.tripType,
       tripName: entity.tripName,
       eventType: entity.eventType,
@@ -93,6 +94,11 @@ export class QuoteRepositoryImpl
 
   async findByTripType(tripType: TripType): Promise<Quote[]> {
     const docs = await this.quoteModel.find({ tripType, isDeleted: false });
+    return QuoteRepositoryMapper.toEntities(docs);
+  }
+
+  async findByQuoteNumber(quoteNumber: string): Promise<Quote[] | null> {
+    const docs = await this.quoteModel.find({ quoteNumber, isDeleted: false });
     return QuoteRepositoryMapper.toEntities(docs);
   }
 

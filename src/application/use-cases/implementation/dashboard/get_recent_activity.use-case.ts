@@ -34,7 +34,7 @@ export class GetRecentActivityUseCase implements IGetRecentActivityUseCase {
     // - date: activity date
     // - amount: optional amount (for payments/earnings)
 
-    return [];
+    return Promise.resolve([]);
   }
 }
 

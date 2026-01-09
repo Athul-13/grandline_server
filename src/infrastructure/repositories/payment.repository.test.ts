@@ -3,10 +3,8 @@ import mongoose from 'mongoose';
 import { PaymentRepositoryImpl } from './payment.repository';
 import { disconnectTestDatabase, clearTestDatabase } from '../../shared/test/helpers/database_helper';
 import {
-  createPaymentFixture,
   createPendingPaymentFixture,
   createSucceededPaymentFixture,
-  createFailedPaymentFixture,
 } from '../../shared/test/fixtures/payment.fixture';
 import { PaymentStatus, PaymentMethod } from '../../domain/entities/payment.entity';
 

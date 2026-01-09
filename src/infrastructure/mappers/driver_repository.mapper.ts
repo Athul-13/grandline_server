@@ -19,10 +19,12 @@ export class DriverRepositoryMapper {
       doc.licenseCardPhotoUrl || '',
       doc.status,
       doc.salary,
+      doc.totalEarnings || 0,
       doc.isOnboarded || false,
-      doc.createdAt,
-      doc.updatedAt,
-      doc.lastAssignedAt
+      doc.createdAt || null,
+      doc.updatedAt || null,
+      doc.lastPaymentDate,
+      doc.lastAssignedAt,
     );
   }
 

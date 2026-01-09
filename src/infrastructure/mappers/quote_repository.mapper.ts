@@ -10,6 +10,7 @@ export class QuoteRepositoryMapper {
     return new Quote(
       doc.quoteId,
       doc.userId,
+      doc.quoteNumber || '',
       doc.tripType,
       doc.status,
       doc.createdAt,

@@ -32,7 +32,7 @@ async function testRefundEmail() {
     const emailData: RefundConfirmationEmailData = {
       email: 'one@mailinator.com',
       fullName: 'John Doe',
-      reservationId: 'RES-2024-001234',
+      reservationNumber: 'RES-2024-001234',
       refundAmount: 5000,
       refundId: 're_test_1234567890',
       refundDate: new Date(),
@@ -46,7 +46,6 @@ async function testRefundEmail() {
 
     console.log('📧 Sending refund confirmation email...');
     console.log('   To:', emailData.email);
-    console.log('   Reservation ID:', emailData.reservationId);
     console.log('   Refund Amount:', `${emailData.currency} ${emailData.refundAmount}`);
     console.log('   Refund Type:', emailData.isFullRefund ? 'Full Refund' : 'Partial Refund');
     console.log('');
@@ -85,5 +84,4 @@ async function testRefundEmail() {
 }
 
 // Run the test
-testRefundEmail();
-
+void testRefundEmail();

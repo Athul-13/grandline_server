@@ -65,6 +65,16 @@ export const DriverSchema: Schema = new Schema(
       required: true,
       min: 0,
     },
+    totalEarnings: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    lastPaymentDate: {
+      type: Date,
+      required: false,
+      default: null,
+    },
     isOnboarded: {
       type: Boolean,
       default: false,

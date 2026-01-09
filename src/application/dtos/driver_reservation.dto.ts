@@ -88,5 +88,13 @@ export interface DriverReservationDetailsResponse {
   tripEndAt: string; // ISO
   // Messaging info
   chatEnabled: boolean;
+  // Driver report (optional, only if submitted)
+  driverReport?: {
+    content: string;
+    submittedAt: string; // ISO
+  };
+  // Trip lifecycle timestamps
+  startedAt?: string; // ISO
+  completedAt?: string; // ISO
 }
 

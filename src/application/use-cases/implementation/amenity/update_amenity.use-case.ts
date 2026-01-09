@@ -5,9 +5,13 @@ import { UpdateAmenityRequest, UpdateAmenityResponse } from '../../../dtos/ameni
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ERROR_MESSAGES, ERROR_CODES } from '../../../../shared/constants';
 import { AmenityMapper } from '../../../mapper/amenity.mapper';
-import { Amenity } from '../../../../domain/entities/amenity.entity';
 import { logger } from '../../../../shared/logger';
 import { AppError } from '../../../../shared/utils/app_error.util';
+
+type AmenityUpdateData = {
+  name?: string;
+  price?: number | null;
+};
 
 /**
  * Use case for updating amenity
@@ -48,7 +52,7 @@ export class UpdateAmenityUseCase implements IUpdateAmenityUseCase {
     }
 
     // Prepare update data
-    const updateData: Partial<Amenity> = {};
+    const updateData: AmenityUpdateData = {}
     if (request.name !== undefined) {
       updateData.name = request.name.trim();
     }

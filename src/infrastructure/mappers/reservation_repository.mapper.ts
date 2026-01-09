@@ -12,6 +12,7 @@ export class ReservationRepositoryMapper {
       doc.userId,
       doc.quoteId,
       doc.paymentId,
+      doc.reservationNumber || '',
       doc.tripType,
       doc.status,
       doc.reservationDate,
@@ -35,7 +36,8 @@ export class ReservationRepositoryMapper {
       doc.cancellationReason,
       doc.cancelledAt,
       doc.startedAt,
-      doc.completedAt
+      doc.completedAt,
+      doc.driverReport
     );
   }
 

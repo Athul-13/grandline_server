@@ -1,0 +1,87 @@
+# Dependencies (installed fresh in container)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnp.*
+.yarn/
+
+# Build outputs (built fresh in container)
+dist/
+build/
+*.tsbuildinfo
+
+# Environment & Secrets (passed at runtime)
+.env
+.env.local
+.env.*.local
+.env.production
+.env.development
+*.env
+*.secret
+
+# Git (not needed in Docker image)
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Docker files (not needed in build context)
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+
+# Testing & Coverage
+coverage/
+.nyc_output/
+.vitest/
+*.test.ts
+*.spec.ts
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.code-workspace
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+tmp/
+temp/
+*.bak
+*.backup
+
+# Config files (optional - keep if needed)
+# .cursorrules  # Uncomment if you want to exclude
+# .prettierrc   # Uncomment if you want to exclude
+# .eslintrc.*   # Uncomment if you want to exclude

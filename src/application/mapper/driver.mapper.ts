@@ -121,7 +121,15 @@ export class DriverMapper {
     };
   }
 
-  static toGetDriverByIdResponse(driver: Driver): GetDriverByIdResponse {
+  static toGetDriverByIdResponse(
+    driver: Driver,
+    stats: {
+      totalRides: number;
+      earnings: number;
+      rating: number;
+      lastPaymentDate?: Date;
+    }
+  ): GetDriverByIdResponse {
     return {
       driver: {
         driverId: driver.driverId,
@@ -136,6 +144,12 @@ export class DriverMapper {
         isOnboarded: driver.isOnboarded,
         createdAt: driver.createdAt,
         updatedAt: driver.updatedAt,
+      },
+      stats: {
+        totalRides: stats.totalRides,
+        earnings: stats.earnings,
+        rating: stats.rating,
+        lastPaymentDate: stats.lastPaymentDate,
       },
     };
   }

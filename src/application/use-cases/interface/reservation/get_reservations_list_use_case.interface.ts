@@ -8,6 +8,7 @@ export interface ReservationDropdownItem {
   reservationId: string;
   tripName: string;
   status: ReservationStatus;
+  reservationNumber: string;
 }
 
 /**

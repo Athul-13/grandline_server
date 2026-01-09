@@ -288,6 +288,7 @@ export interface PricingBreakdownResponse {
 export interface QuoteResponse {
   quoteId: string;
   userId: string;
+  quoteNumber?: string;
   tripType: TripType;
   tripName?: string;
   eventType?: string;
@@ -320,6 +321,7 @@ export interface QuoteResponse {
 export interface QuoteListItemResponse {
   quoteId: string;
   tripName?: string;
+  quoteNumber?: string;
   tripType: TripType;
   status: QuoteStatus;
   currentStep?: number;

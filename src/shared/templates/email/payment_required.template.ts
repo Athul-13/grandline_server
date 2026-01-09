@@ -74,8 +74,8 @@ export function renderPaymentRequiredHTML(data: PaymentRequiredEmailData): strin
                 
                 <table role="presentation" style="width: 100%; border-collapse: collapse;">
                   <tr>
-                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 40%;">Reservation ID:</td>
-                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.reservationId}</td>
+                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 40%;">Reservation Number:</td>
+                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.reservationNumber}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Charge Type:</td>
@@ -169,7 +169,7 @@ ${greeting}
 An additional charge has been added to your reservation. Please complete the payment to confirm your booking.
 
 CHARGE DETAILS:
-- Reservation ID: ${data.reservationId}
+- Reservation Number: ${data.reservationNumber}
 - Charge Type: ${chargeTypeLabel}
 - Description: ${data.chargeDescription}
 - Amount Due: ${formatCurrency(data.amount, data.currency)}

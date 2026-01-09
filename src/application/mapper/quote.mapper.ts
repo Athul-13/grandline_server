@@ -45,6 +45,7 @@ export class QuoteMapper {
     return {
       quoteId: quote.quoteId,
       userId: quote.userId,
+      quoteNumber: quote.quoteNumber,
       tripType: quote.tripType,
       tripName: quote.tripName,
       eventType: quote.eventType,
@@ -144,6 +145,7 @@ export class QuoteMapper {
     return {
       quoteId: quote.quoteId,
       tripName: quote.tripName,
+      quoteNumber: quote.quoteNumber,
       tripType: quote.tripType,
       status: quote.status,
       currentStep: quote.currentStep,

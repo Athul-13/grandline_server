@@ -7,11 +7,12 @@ import { IPassengerRepository } from '../../../../domain/repositories/passenger_
 import { ReservationResponse } from '../../../dtos/reservation.dto';
 import { REPOSITORY_TOKENS } from '../../../di/tokens';
 import { ReservationMapper } from '../../../mapper/reservation.mapper';
-import { ERROR_MESSAGES, ReservationStatus } from '../../../../shared/constants';
+import { ERROR_MESSAGES } from '../../../../shared/constants';
 import { AppError } from '../../../../shared/utils/app_error.util';
 import { logger } from '../../../../shared/logger';
 import { IReservationChargeRepository } from '../../../../domain/repositories/reservation_charge_repository.interface';
 import { deriveChatEnabled, deriveTripState, deriveTripWindow } from '../../../mapper/driver_dashboard.mapper';
+import { ReservationItinerary } from '../../../../domain/entities/reservation_itinerary.entity';
 
 /**
  * Use case for getting a reservation by ID
@@ -182,7 +183,7 @@ export class GetReservationUseCase implements IGetReservationUseCase {
     let chatEnabled = false;
     if (reservation.assignedDriverId && itineraryStops && itineraryStops.length > 0) {
       try {
-        const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops);
+        const { tripStartAt, tripEndAt } = deriveTripWindow(itineraryStops as ReservationItinerary[]);
         const now = new Date();
         const tripState = deriveTripState({
           status: reservation.status,

@@ -3,7 +3,7 @@ import { IExportReservationPDFUseCase } from '../../../interface/admin/reservati
 import { IGetAdminReservationUseCase } from '../../../interface/admin/reservation/get_admin_reservation_use_case.interface';
 import { IPDFGenerationService } from '../../../../../domain/services/pdf_generation_service.interface';
 import { USE_CASE_TOKENS, SERVICE_TOKENS } from '../../../../di/tokens';
-import { ERROR_MESSAGES } from '../../../../../shared/constants';
+import { ERROR_MESSAGES, TripType } from '../../../../../shared/constants';
 import { AppError } from '../../../../../shared/utils/app_error.util';
 import { logger } from '../../../../../shared/logger';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -94,7 +94,7 @@ export class ExportReservationPDFUseCase implements IExportReservationPDFUseCase
 
         doc.fillColor('#6b7280').text('Trip Type:', 50, yPosition);
         doc.fillColor('#1a1a1a').text(
-          reservationDetails.tripType === 'one_way' ? 'One Way' : 'Round Trip',
+          reservationDetails.tripType === TripType.ONE_WAY ? 'One Way' : 'Round Trip',
           200,
           yPosition
         );

@@ -50,6 +50,7 @@ export const USE_CASE_TOKENS = {
   GetDriverReservationUseCase: Symbol.for('GetDriverReservationUseCase'),
   StartTripUseCase: Symbol.for('StartTripUseCase'),
   EndTripUseCase: Symbol.for('EndTripUseCase'),
+  SubmitDriverReportUseCase: Symbol.for('SubmitDriverReportUseCase'),
   UpdateLocationUseCase: Symbol.for('UpdateLocationUseCase'),
   // Vehicle Type use cases
   CreateVehicleTypeUseCase: Symbol.for('CreateVehicleTypeUseCase'),
@@ -154,5 +155,8 @@ export const USE_CASE_TOKENS = {
   GetTicketsByActorUseCase: Symbol.for('GetTicketsByActorUseCase'),
   UpdateTicketStatusUseCase: Symbol.for('UpdateTicketStatusUseCase'),
   AssignTicketToAdminUseCase: Symbol.for('AssignTicketToAdminUseCase'),
+  // Driver payment use cases
+  CalculateDriverEarningsUseCase: Symbol.for('CalculateDriverEarningsUseCase'),
+  RecordDriverPayoutUseCase: Symbol.for('RecordDriverPayoutUseCase'),
 } as const;
 

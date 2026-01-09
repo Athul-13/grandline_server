@@ -44,6 +44,8 @@ export class DriverRepositoryImpl
       licenseCardPhotoUrl: entity.licenseCardPhotoUrl,
       status: entity.status,
       salary: entity.salary,
+      totalEarnings: entity.totalEarnings,
+      lastPaymentDate: entity.lastPaymentDate,
       isOnboarded: entity.isOnboarded,
     };
   }
@@ -60,6 +62,8 @@ export class DriverRepositoryImpl
       licenseCardPhotoUrl: driver.licenseCardPhotoUrl,
       status: driver.status,
       salary: driver.salary,
+      totalEarnings: driver.totalEarnings,
+      lastPaymentDate: driver.lastPaymentDate,
       isOnboarded: driver.isOnboarded,
     });
   }
@@ -435,6 +439,28 @@ export class DriverRepositoryImpl
     if (result.matchedCount === 0) {
       throw new Error(`Driver with id ${driverId} not found`);
     }
+  }
+
+  async updateLastPaymentDate(driverId: string, lastPaymentDate: Date): Promise<void> {
+    const result = await this.driverModel.updateOne(
+      { driverId },
+      { $set: {
+          totalEarnings: 0,
+          lastPaymentDate, 
+          updatedAt: new Date(),
+         } }
+    );
+    
+    if (result.matchedCount === 0) {
+      throw new Error(`Driver with id ${driverId} not found`);
+    }
+  }
+
+  async incrementTotalEarnings(driverId: string, amount: number): Promise<void> {
+    await this.driverModel.updateOne(
+      { driverId },
+      { $inc: { totalEarnings: amount }, updatedAt: new Date() }
+    );
   }
 }
 

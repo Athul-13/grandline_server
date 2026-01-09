@@ -3,8 +3,6 @@ import {
   ReservationResponse,
   ReservationListItemResponse,
 } from '../dtos/reservation.dto';
-import { deriveChatEnabled, deriveTripState, deriveTripWindow } from './driver_dashboard.mapper';
-import { ReservationStatus } from '../../shared/constants';
 
 /**
  * Reservation mapper
@@ -59,6 +57,7 @@ export class ReservationMapper {
       userId: reservation.userId,
       quoteId: reservation.quoteId,
       paymentId: reservation.paymentId,
+      reservationNumber: reservation.reservationNumber,
       tripType: reservation.tripType,
       tripName: reservation.tripName,
       eventType: reservation.eventType,
@@ -100,6 +99,14 @@ export class ReservationMapper {
         createdAt: charge.createdAt,
       })) || undefined,
       chatEnabled: chatEnabled ?? false,
+      startedAt: reservation.startedAt,
+      completedAt: reservation.completedAt,
+      driverReport: reservation.driverReport
+        ? {
+            content: reservation.driverReport.content,
+            submittedAt: reservation.driverReport.submittedAt,
+          }
+        : undefined,
     };
   }
 
@@ -114,6 +121,7 @@ export class ReservationMapper {
     return {
       reservationId: reservation.reservationId,
       tripName: reservation.tripName,
+      reservationNumber: reservation.reservationNumber,
       tripType: reservation.tripType,
       status: reservation.status,
       reservationDate: reservation.reservationDate,

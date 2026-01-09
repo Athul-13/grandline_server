@@ -3,7 +3,7 @@ import { driverCooldownQueue, DriverCooldownJobData } from '../driver_cooldown.q
 import { IDriverRepository } from '../../../domain/repositories/driver_repository.interface';
 import { IReservationRepository } from '../../../domain/repositories/reservation_repository.interface';
 import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../application/di/tokens';
-import { DriverStatus, DRIVER_ASSIGNMENT_CONFIG } from '../../../shared/constants';
+import { DriverStatus } from '../../../shared/constants';
 import { ISocketEventService } from '../../../domain/services/socket_event_service.interface';
 import { logger } from '../../../shared/logger';
 import { container } from 'tsyringe';
@@ -96,7 +96,7 @@ async function processDriverCooldownJob(job: Job<DriverCooldownJobData>): Promis
  * Processes jobs from the driver cooldown queue
  */
 export function initializeDriverCooldownWorker(): void {
-  driverCooldownQueue.process('driver-cooldown', async (job: Job<DriverCooldownJobData>) => {
+  void driverCooldownQueue.process('driver-cooldown', async (job: Job<DriverCooldownJobData>) => {
     return processDriverCooldownJob(job);
   });
 

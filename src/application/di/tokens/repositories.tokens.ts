@@ -6,6 +6,7 @@ export const REPOSITORY_TOKENS = {
   // User & Driver repositories
   IUserRepository: Symbol.for('IUserRepository'),
   IDriverRepository: Symbol.for('IDriverRepository'),
+  IDriverPaymentRepository: Symbol.for('IDriverPaymentRepository'),
   // Vehicle repositories
   IVehicleTypeRepository: Symbol.for('IVehicleTypeRepository'),
   IVehicleRepository: Symbol.for('IVehicleRepository'),

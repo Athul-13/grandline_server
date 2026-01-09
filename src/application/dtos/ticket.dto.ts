@@ -106,6 +106,11 @@ export class GetAllTicketsRequest {
   limit?: number;
 
   @IsOptional()
+  @IsString()
+  @MaxLength(200, { message: 'Search query must be 200 characters or less' })
+  search?: string;
+
+  @IsOptional()
   @IsEnum(TicketStatus, { message: 'Status must be one of: open, in_progress, resolved, rejected' })
   status?: TicketStatus;
 
@@ -204,6 +209,7 @@ export interface GetTicketByIdResponse {
   priority: string;
   linkedEntityType: LinkedEntityType | null;
   linkedEntityId: string | null;
+  linkedEntityNumber: string | null;
   assignedAdminId: string | null;
   lastMessageAt: Date | null;
   createdAt: Date;
@@ -220,6 +226,7 @@ export interface GetTicketsByActorResponse {
     status: TicketStatus;
     priority: string;
     linkedEntityType: LinkedEntityType | null;
+    linkedEntityNumber: string | null;
     linkedEntityId: string | null;
     lastMessageAt: Date | null;
     createdAt: Date;

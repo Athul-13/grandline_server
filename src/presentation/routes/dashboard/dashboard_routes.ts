@@ -15,17 +15,6 @@ export function createDashboardRoutesWithDI(): Router {
   );
 
   /**
-   * Get Dashboard Statistics
-   * GET /api/v1/dashboard/stats
-   * Requires authentication
-   */
-  router.get(
-    '/stats',
-    authenticate,
-    (req, res) => void dashboardController.getDashboardStats(req, res)
-  );
-
-  /**
    * Get Recent Activity
    * GET /api/v1/dashboard/activity
    * Requires authentication

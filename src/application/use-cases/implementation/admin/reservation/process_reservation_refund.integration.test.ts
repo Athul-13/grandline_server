@@ -1,3 +1,4 @@
+import { ReservationModificationRepositoryImpl } from './../../../../../infrastructure/repositories/reservation/reservation_modification.repository';
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import { container } from 'tsyringe';
 import { ProcessReservationRefundUseCase } from './process_reservation_refund.use-case';
@@ -12,7 +13,6 @@ import { ReservationStatus } from '../../../../../shared/constants';
 import { PaymentStatus } from '../../../../../domain/entities/payment.entity';
 import { ReservationRepositoryImpl } from '../../../../../infrastructure/repositories/reservation/reservation.repository';
 import { PaymentRepositoryImpl } from '../../../../../infrastructure/repositories/payment.repository';
-import { ReservationModificationRepositoryImpl } from '../../../../../infrastructure/repositories/reservation_modification.repository';
 import { UserRepositoryImpl } from '../../../../../infrastructure/repositories/user.repository';
 import { NotificationRepositoryImpl } from '../../../../../infrastructure/repositories/notification.repository';
 import { CreateNotificationUseCase } from '../../notification/create_notification.use-case';
@@ -21,6 +21,7 @@ import { createConfirmedReservationFixture } from '../../../../../shared/test/fi
 import { createSucceededPaymentFixture } from '../../../../../shared/test/fixtures/payment.fixture';
 import { createUserFixture } from '../../../../../shared/test/fixtures/user.fixture';
 import * as stripeService from '../../../../../infrastructure/service/stripe.service';
+import Stripe from 'stripe';
 
 // Mock Stripe service for integration tests
 vi.mock('../../../../../infrastructure/services/stripe.service', () => ({
@@ -44,7 +45,7 @@ describe('ProcessReservationRefundUseCase - Integration Tests', () => {
   let userRepository: UserRepositoryImpl;
   let mockStripe: {
     refunds: {
-      create: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn<[Stripe.RefundCreateParams], Promise<Stripe.Refund>>>;
     };
   };
 
@@ -84,10 +85,10 @@ describe('ProcessReservationRefundUseCase - Integration Tests', () => {
     // Mock Stripe
     mockStripe = {
       refunds: {
-        create: vi.fn(),
+        create: vi.fn<[Stripe.RefundCreateParams], Promise<Stripe.Refund>>(),
       },
     };
-    vi.mocked(stripeService.getStripeInstance).mockReturnValue(mockStripe as any);
+    vi.mocked(stripeService.getStripeInstance).mockReturnValue(mockStripe as unknown as Stripe);
 
     useCase = container.resolve(ProcessReservationRefundUseCase);
   });
@@ -133,7 +134,7 @@ describe('ProcessReservationRefundUseCase - Integration Tests', () => {
     // Mock Stripe refund
     mockStripe.refunds.create.mockResolvedValue({
       id: refundId,
-    } as any);
+    } as Stripe.Refund);
 
     // Act
     const result = await useCase.execute(reservationId, amount, 'admin-user', 'Integration test refund');
@@ -199,7 +200,7 @@ describe('ProcessReservationRefundUseCase - Integration Tests', () => {
     // Mock Stripe refund
     mockStripe.refunds.create.mockResolvedValue({
       id: refundId,
-    } as any);
+    } as Stripe.Refund);
 
     // Act
     const result = await useCase.execute(reservationId, partialRefund, 'admin-user');

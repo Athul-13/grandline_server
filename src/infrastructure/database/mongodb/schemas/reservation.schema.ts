@@ -27,6 +27,12 @@ export const ReservationSchema: Schema = new Schema(
       required: true,
       index: true,
     },
+    reservationNumber: {
+      type: String,
+      unique: true,
+      optional: true,
+      default: null,
+    },
     tripType: {
       type: String,
       enum: Object.values(TripType),
@@ -145,6 +151,18 @@ export const ReservationSchema: Schema = new Schema(
     completedAt: {
       type: Date,
       required: false,
+    },
+    driverReport: {
+      content: {
+        type: String,
+        required: false,
+        trim: true,
+        maxlength: 2000,
+      },
+      submittedAt: {
+        type: Date,
+        required: false,
+      },
     },
   },
   {

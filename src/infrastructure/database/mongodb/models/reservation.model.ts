@@ -46,6 +46,7 @@ export interface IReservationModel extends Document {
   userId: string;
   quoteId: string;
   paymentId: string;
+  reservationNumber?: string;
   tripType: TripType;
   tripName?: string;
   eventType?: string;
@@ -68,6 +69,10 @@ export interface IReservationModel extends Document {
   cancelledAt?: Date;
   startedAt?: Date;
   completedAt?: Date;
+  driverReport?: {
+    content: string;
+    submittedAt: Date;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

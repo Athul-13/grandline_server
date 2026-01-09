@@ -72,8 +72,8 @@ export function renderQuoteHTML(data: QuoteEmailData): string {
                 
                 <table role="presentation" style="width: 100%; border-collapse: collapse;">
                   <tr>
-                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 40%;">Quote ID:</td>
-                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.quoteId}</td>
+                    <td style="padding: 8px 0; color: #6b7280; font-size: 14px; width: 40%;">Quote Number:</td>
+                    <td style="padding: 8px 0; color: #1a1a1a; font-size: 14px; font-weight: 600;">${data.quoteNumber}</td>
                   </tr>
                   <tr>
                     <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Trip Name:</td>
@@ -153,7 +153,7 @@ Your quotation has been prepared with the assigned driver. Please find the detai
 
 QUOTE DETAILS
 -------------
-Quote ID: ${data.quoteId}
+Quote Number: ${data.quoteNumber}
 Trip Name: ${tripName}
 Trip Type: ${tripTypeLabel}
 Quote Date: ${formatDate(data.quoteDate)}

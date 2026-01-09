@@ -7,6 +7,7 @@ import {
   RefundAnalytics,
   ReservationConversionRates,
   RevenueMetrics,
+  TimeTrend,
   UserAnalytics,
   VehicleAnalytics,
 } from '../../../../application/dtos/dashboard.dto';
@@ -21,6 +22,7 @@ export class MockReservationRepository implements IReservationRepository {
   updateById = vi.fn<[string, Partial<Reservation>], Promise<void>>().mockResolvedValue(undefined);
   deleteById = vi.fn<[string], Promise<void>>().mockResolvedValue(undefined);
   findByQuoteId = vi.fn<[string], Promise<Reservation | null>>().mockResolvedValue(null);
+  findByReservationNumber = vi.fn<[string], Promise<Reservation[] | null>>().mockResolvedValue(null);
   findByPaymentId = vi.fn<[string], Promise<Reservation | null>>().mockResolvedValue(null);
   findByUserId = vi
     .fn<[string, number, number], Promise<{ reservations: Reservation[]; total: number }>>()
@@ -30,7 +32,7 @@ export class MockReservationRepository implements IReservationRepository {
   findByAssignedDriverId = vi.fn<[string], Promise<Reservation[]>>().mockResolvedValue([]);
   findAllForAdmin = vi
     .fn<
-      [number, number, boolean | undefined, ReservationStatus[] | undefined, string[] | undefined, string | undefined],
+      [number, number, boolean | undefined, ReservationStatus[] | undefined, string[] | undefined, string | undefined, boolean | undefined],
       Promise<{ reservations: Reservation[]; total: number }>
     >()
     .mockResolvedValue({ reservations: [], total: 0 });
@@ -54,7 +56,7 @@ export class MockReservationRepository implements IReservationRepository {
     } satisfies ReservationConversionRates);
   getTimeBasedTrends = vi
     .fn()
-    .mockResolvedValue([]);
+    .mockResolvedValue([] as TimeTrend[]);
   getGeographicAnalytics = vi.fn().mockResolvedValue([] as GeographicData[]);
   getVehicleAnalytics = vi.fn().mockResolvedValue([] as VehicleAnalytics[]);
   getUserAnalytics = vi.fn().mockResolvedValue([] as UserAnalytics[]);
@@ -64,5 +66,6 @@ export class MockReservationRepository implements IReservationRepository {
     averageRefundAmount: 0,
     refundsByStatus: {},
   } satisfies RefundAnalytics);
+  findActiveTrips = vi.fn<[], Promise<Reservation[]>>().mockResolvedValue([]);
 }
 

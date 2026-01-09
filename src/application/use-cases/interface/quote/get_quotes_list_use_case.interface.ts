@@ -6,6 +6,7 @@ import { QuoteStatus } from '../../../../shared/constants';
  */
 export interface QuoteDropdownItem {
   quoteId: string;
+  quoteNumber: string;
   tripName: string;
   status: QuoteStatus;
 }

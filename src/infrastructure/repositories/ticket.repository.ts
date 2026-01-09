@@ -1,7 +1,7 @@
 import { injectable } from 'tsyringe';
 import { ITicketRepository } from '../../domain/repositories/ticket_repository.interface';
 import { IDatabaseModel } from '../../domain/services/mongodb_model.interface';
-import { createTicketModel, ITicketModel } from '../database/mongodb/models/ticket.model';
+import { createTicketModel, ITicketModel, TicketDB } from '../database/mongodb/models/ticket.model';
 import { MongoBaseRepository } from './base/mongo_base.repository';
 import { Ticket } from '../../domain/entities/ticket.entity';
 import { TicketRepositoryMapper } from '../mappers/ticket_repository.mapper';
@@ -108,5 +108,82 @@ export class TicketRepositoryImpl
       isDeleted: false,
     });
     return TicketRepositoryMapper.toEntities(docs);
+  }
+
+  async findAllWithFilters(params: {
+    status?: TicketStatus;
+    actorType?: ActorType;
+    assignedAdminId?: string;
+    search?: string;
+    actorIds?: string[];
+    page: number;
+    limit: number;
+    sortBy: 'lastMessageAt' | 'createdAt';
+    sortOrder: 'asc' | 'desc';
+  }): Promise<{ tickets: Ticket[]; total: number }> {
+    // Build query filter
+    const filter: Record<string, unknown> = {
+      isDeleted: false,
+    };
+
+    if (params.status) {
+      filter.status = params.status;
+    }
+
+    if (params.actorType) {
+      filter.actorType = params.actorType;
+    }
+
+    if (params.assignedAdminId) {
+      filter.assignedAdminId = params.assignedAdminId;
+    }
+
+    // Add search filter - search in ticketId, subject, and actorIds
+    if (params.search && params.search.trim().length > 0) {
+      const searchRegex = new RegExp(params.search.trim(), 'i');
+      const searchConditions: Record<string, unknown>[] = [
+        { ticketId: searchRegex },
+        { subject: searchRegex },
+      ];
+
+      // If actorIds are provided (from name search), include them in search
+      if (params.actorIds && params.actorIds.length > 0) {
+        searchConditions.push({ actorId: { $in: params.actorIds } });
+      }
+
+      filter.$or = searchConditions;
+    } else if (params.actorIds && params.actorIds.length > 0) {
+      // If no search text but actorIds provided, filter by actorIds only
+      filter.actorId = { $in: params.actorIds };
+    }
+
+    // Build sort object
+    const sortField = params.sortBy === 'lastMessageAt' ? 'lastMessageAt' : 'createdAt';
+    const sortOrderValue: 1 | -1 = params.sortOrder === 'asc' ? 1 : -1;
+    const sort: Record<string, 1 | -1> = {};
+    sort[sortField] = sortOrderValue;
+    // Add secondary sort by createdAt for consistent ordering
+    if (sortField !== 'createdAt') {
+      sort.createdAt = -1;
+    }
+
+    // Calculate skip
+    const skip = (params.page - 1) * params.limit;
+
+    // Use Mongoose model directly for advanced queries with pagination
+    const [docs, totalDocs] = await Promise.all([
+      TicketDB.find(filter)
+        .sort(sort)
+        .skip(skip)
+        .limit(params.limit)
+        .lean<ITicketModel[]>()
+        .exec(),
+      TicketDB.countDocuments(filter).exec(),
+    ]);
+
+    return {
+      tickets: TicketRepositoryMapper.toEntities(docs),
+      total: totalDocs,
+    };
   }
 }

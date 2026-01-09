@@ -13,6 +13,7 @@ import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
+import { IRecordDriverPayoutUseCase } from '../../../application/use-cases/interface/driver/record_driver_payout_use_case.interface';
 
 /**
  * Admin driver controller
@@ -35,10 +36,14 @@ export class AdminDriverController {
     private readonly deleteDriverUseCase: IDeleteDriverUseCase,
     @inject(USE_CASE_TOKENS.GetDriverStatisticsUseCase)
     private readonly getDriverStatisticsUseCase: IGetDriverStatisticsUseCase,
+    @inject(USE_CASE_TOKENS.RecordDriverPayoutUseCase)
+    private readonly recordDriverPayoutUseCase: IRecordDriverPayoutUseCase,
   ) {}
 
   /**
    * Handles creating a new driver
+   * POST /api/v1/admin/drivers
+   * Requires admin authentication
    */
   async createDriver(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -63,6 +68,8 @@ export class AdminDriverController {
 
   /**
    * Handles listing drivers with pagination, filtering, and search
+   * GET /api/v1/admin/drivers
+   * Requires admin authentication
    */
   async listDrivers(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -111,6 +118,8 @@ export class AdminDriverController {
 
   /**
    * Handles getting driver details by ID
+   * GET /api/v1/admin/drivers/:driverId
+   * Requires admin authentication
    */
   async getDriverById(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -138,6 +147,8 @@ export class AdminDriverController {
 
   /**
    * Handles updating driver details
+   * PUT /api/v1/admin/drivers/:driverId
+   * Requires admin authentication
    */
   async updateDriver(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -166,6 +177,8 @@ export class AdminDriverController {
 
   /**
    * Handles updating driver status
+   * PUT /api/v1/admin/drivers/:driverId/status
+   * Requires admin authentication
    */
   async updateDriverStatus(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -194,6 +207,8 @@ export class AdminDriverController {
 
   /**
    * Handles deleting a driver (soft delete)
+   * DELETE /api/v1/admin/drivers/:driverId
+   * Requires admin authentication
    */
   async deleteDriver(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -221,6 +236,8 @@ export class AdminDriverController {
 
   /**
    * Handles getting driver statistics
+   * GET /api/v1/admin/drivers/:driverId/statistics
+   * Requires authentication
    */
   async getDriverStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
     try {
@@ -246,6 +263,57 @@ export class AdminDriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, response);
     } catch (error) {
       logger.error(`Error getting driver statistics: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+ 
+  /**
+   * Record Driver Payout
+   * POST /api/v1/admin/drivers/:driverId/payout
+   * Requires admin authentication
+   */
+  async recordDriverPayout(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Record driver payout attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      } 
+
+      const driverId = req.params.driverId;
+      if (!driverId) {
+        logger.warn('Record driver payout attempt without driverId parameter');
+        sendErrorResponse(res, new Error('Driver ID is required'));
+        return;
+      }
+
+      const request = req.body as { paymentDate: string | Date };
+      if (!request.paymentDate) {
+        logger.warn('Record driver payout attempt without paymentDate');
+        sendErrorResponse(res, new Error('Payment date is required'));
+        return;
+      }
+
+      // Convert paymentDate to Date object if it's a string
+      const paymentDate = request.paymentDate instanceof Date 
+        ? request.paymentDate 
+        : new Date(request.paymentDate);
+
+      // Validate date
+      if (isNaN(paymentDate.getTime())) {
+        logger.warn('Record driver payout attempt with invalid paymentDate');
+        sendErrorResponse(res, new Error('Invalid payment date format'));
+        return;
+      }
+
+      logger.info(`Admin ${req.user.userId} recording payout for driver: ${driverId}, paymentDate: ${paymentDate.toISOString()}`);
+
+      await this.recordDriverPayoutUseCase.execute(driverId, paymentDate);
+
+      logger.info(`Payout recorded successfully for driver: ${driverId}`);
+      sendSuccessResponse(res, HTTP_STATUS.OK, { message: 'Driver payout recorded successfully' }, 'Driver payout recorded successfully');
+    } catch (error) {
+      logger.error(`Error recording driver payout: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

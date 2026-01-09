@@ -62,7 +62,7 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
       );
 
       // Get reservations with filters
-      // Repository searches: reservationId, tripName
+      // Repository searches: reservationId, reservationNumber, tripName
       const { reservations } = await this.reservationRepository.findAllForAdmin(
         normalizedPage,
         normalizedLimit,
@@ -93,7 +93,7 @@ export class GetAdminReservationsListUseCase implements IGetAdminReservationsLis
             false,
             status,
             matchingUserIds,
-            undefined // Don't search reservationId/tripName again, we already have those
+            undefined // Don't search reservationId/reservationNumber/tripName again, we already have those
           );
           // Combine and deduplicate
           const existingIds = new Set(filteredReservations.map((r) => r.reservationId));

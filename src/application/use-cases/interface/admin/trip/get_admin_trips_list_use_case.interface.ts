@@ -10,7 +10,7 @@ export interface IGetAdminTripsListUseCase {
    * @param page Page number (default: 1)
    * @param limit Items per page (default: 20)
    * @param state Optional trip state filter (UPCOMING, CURRENT, PAST)
-   * @param search Optional search query (searches tripName, userName, driverName, reservationId)
+   * @param search Optional search query (searches tripName, userName, driverName, reservationId, reservationNumber)
    * @param sortBy Optional sort field
    * @param sortOrder Sort order (asc or desc, default: asc)
    * @returns Admin trips list response

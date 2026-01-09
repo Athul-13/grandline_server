@@ -92,6 +92,7 @@ export class CreateDriverUseCase implements ICreateDriverUseCase {
       '', // licenseCardPhotoUrl - empty initially
       DriverStatus.AVAILABLE, // Initial status: AVAILABLE (will change to OFFLINE later)
       request.salary,
+      0, // totalEarnings - 0 initially
       false, // isOnboarded - false initially
       now,
       now

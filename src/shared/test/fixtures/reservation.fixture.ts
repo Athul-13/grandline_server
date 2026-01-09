@@ -9,6 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface ReservationFixtureOptions {
   reservationId?: string;
+  reservationNumber?: string;
   userId?: string;
   quoteId?: string;
   paymentId?: string;
@@ -42,12 +43,14 @@ interface ReservationFixtureOptions {
 export function createReservationFixture(options: ReservationFixtureOptions = {}): Reservation {
   const now = new Date();
   const reservationId = options.reservationId || uuidv4();
+  const reservationNumber = options.reservationNumber || uuidv4();
   const userId = options.userId || uuidv4();
   const quoteId = options.quoteId || uuidv4();
   const paymentId = options.paymentId || uuidv4();
 
   return new Reservation(
     reservationId,
+    reservationNumber,
     userId,
     quoteId,
     paymentId,

@@ -21,6 +21,7 @@ import { EmailType, InvoiceEmailData } from '../../../../shared/types/email.type
 import { FRONTEND_CONFIG } from '../../../../shared/config';
 import { ISocketEventService } from '../../../../domain/services/socket_event_service.interface';
 import { container } from 'tsyringe';
+import { generateReferenceNumber } from '../../../../shared/utils/reference_number.util';
 
 /**
  * Use case for creating a reservation
@@ -100,13 +101,15 @@ export class CreateReservationUseCase implements ICreateReservationUseCase {
       // Create reservation ID
       const reservationId = randomUUID();
       const now = new Date();
-
+      const referenceNumber = generateReferenceNumber('RSV');
+      
       // Create reservation entity from quote data
       const reservation = new Reservation(
         reservationId,
         quote.userId,
         quoteId,
         paymentId,
+        referenceNumber,
         quote.tripType,
         ReservationStatus.CONFIRMED,
         now, // reservationDate
@@ -215,8 +218,8 @@ export class CreateReservationUseCase implements ICreateReservationUseCase {
         const emailData: InvoiceEmailData = {
           email: user.email,
           fullName: user.fullName,
-          reservationId,
-          invoiceNumber: reservationId,
+          reservationNumber: reservation.reservationNumber,
+          invoiceNumber: reservation.reservationNumber,
           paymentAmount: payment.amount,
           paymentDate: payment.paidAt || now,
           paymentMethod: payment.paymentMethod,
