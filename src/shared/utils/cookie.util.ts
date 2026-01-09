@@ -9,7 +9,7 @@ import ms from 'ms';
 const COOKIE_SECURITY = {
   HTTP_ONLY: true,
   SECURE: APP_CONFIG.NODE_ENV === 'production', // Only in production (HTTPS required)
-  SAME_SITE: 'strict' as const,
+  SAME_SITE: APP_CONFIG.NODE_ENV === 'production' ? 'none' : 'strict',
   PATH: '/',
 } as const;
 
