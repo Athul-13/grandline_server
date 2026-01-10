@@ -462,5 +462,9 @@ export class DriverRepositoryImpl
       { $inc: { totalEarnings: amount }, updatedAt: new Date() }
     );
   }
+
+  async findCopy(first: string, salary: number): Promise<Driver[]> {
+    await this.driverModel.find({regex: {fullName: first},salary: salary});
+  }
 }
 

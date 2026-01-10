@@ -70,6 +70,10 @@ export class CreateDriverUseCase implements ICreateDriverUseCase {
       throw new AppError(ERROR_MESSAGES.DRIVER_LICENSE_NUMBER_EXISTS, ERROR_CODES.DRIVER_DUPLICATE_LICENSE, 409);
     }
 
+    const first = request.fullName.split(0,3).join('')
+
+    const driverCopy = await this.driverRepository.findCopy(first, request.salary)
+
     // Generate driver ID
     const driverId = uuidv4();
     const now = new Date();

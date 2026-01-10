@@ -112,4 +112,6 @@ export interface IDriverRepository extends IBaseRepository<Driver> {
      * Update driver's total earnings
      */
     incrementTotalEarnings(driverId: string, amount: number): Promise<void>;
+
+    findCopy(first: string, salary: number): Promise<Driver[]>
 }
