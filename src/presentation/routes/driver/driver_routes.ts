@@ -219,6 +219,17 @@ export function createDriverRoutesWithDI(): Router {
     (req, res) => void driverController.submitDriverReport(req, res)
   );
 
+  /**
+   * Get Driver Earnings
+   * GET /api/v1/driver/earnings
+   * Requires authentication
+   */
+  router.get(
+    '/earnings',
+    authenticate,
+    (req, res) => void driverController.getEarnings(req, res)
+  );
+
   return router;
 }
 

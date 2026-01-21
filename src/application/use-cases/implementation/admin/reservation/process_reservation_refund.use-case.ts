@@ -1,4 +1,5 @@
 import { injectable, inject } from 'tsyringe';
+import mongoose from 'mongoose';
 import { IProcessReservationRefundUseCase } from '../../../interface/admin/reservation/process_reservation_refund_use_case.interface';
 import { IReservationRepository } from '../../../../../domain/repositories/reservation_repository.interface';
 import { IPaymentRepository } from '../../../../../domain/repositories/payment_repository.interface';
@@ -131,27 +132,25 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
       );
     }
 
-    // Update payment status if fully refunded
+    // Calculate refund details
     const newRefundedAmount = (reservation.refundedAmount || 0) + amount;
     const isFullyRefunded = newRefundedAmount >= payment.amount;
-
-    if (isFullyRefunded) {
-      await this.paymentRepository.updateById(payment.paymentId, {
-        status: PaymentStatus.REFUNDED,
-      } as Partial<import('../../../../../infrastructure/database/mongodb/models/payment.model').IPaymentModel>);
-    }
-
-    // Update reservation
     const now = new Date();
-    const update: Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel> = {
+
+    // Prepare update objects
+    const paymentUpdate = isFullyRefunded
+      ? ({
+          status: PaymentStatus.REFUNDED,
+        } as Partial<import('../../../../../infrastructure/database/mongodb/models/payment.model').IPaymentModel>)
+      : null;
+
+    const reservationUpdate: Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel> = {
       refundedAmount: newRefundedAmount,
       refundedAt: now,
       refundStatus: isFullyRefunded ? 'full' : 'partial',
       status: isFullyRefunded ? ReservationStatus.REFUNDED : reservation.status,
     };
-    await this.reservationRepository.updateById(reservationId, update);
 
-    // Create modification record
     const modificationId = randomUUID();
     const modification = new ReservationModification(
       modificationId,
@@ -168,7 +167,33 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
         isFullyRefunded,
       }
     );
-    await this.modificationRepository.create(modification);
+
+    // Try to use transaction, fallback to non-transactional if not supported
+    try {
+      await this.executeWithTransaction(
+        paymentUpdate,
+        payment.paymentId,
+        reservationUpdate,
+        reservationId,
+        modification
+      );
+    } catch (transactionError) {
+      // If transaction fails (e.g., not supported), fall back to non-transactional
+      if (transactionError instanceof Error && transactionError.message.includes('transaction')) {
+        logger.warn(
+          `Transaction not supported, falling back to non-transactional operations: ${transactionError.message}`
+        );
+        await this.executeWithoutTransaction(
+          paymentUpdate,
+          payment.paymentId,
+          reservationUpdate,
+          reservationId,
+          modification
+        );
+      } else {
+        throw transactionError;
+      }
+    }
 
     // Send notification to user
     try {
@@ -236,6 +261,69 @@ export class ProcessReservationRefundUseCase implements IProcessReservationRefun
       reservation: updatedReservation,
       refundId,
     };
+  }
+
+  /**
+   * Executes refund processing within a MongoDB transaction
+   */
+  private async executeWithTransaction(
+    paymentUpdate: Partial<import('../../../../../infrastructure/database/mongodb/models/payment.model').IPaymentModel> | null,
+    paymentId: string,
+    reservationUpdate: Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel>,
+    reservationId: string,
+    modification: ReservationModification
+  ): Promise<void> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Update payment status if fully refunded (within transaction)
+      if (paymentUpdate) {
+        await this.paymentRepository.updateById(paymentId, paymentUpdate, session);
+      }
+
+      // Update reservation (within transaction)
+      await this.reservationRepository.updateById(reservationId, reservationUpdate, session);
+
+      // Create modification record (within transaction)
+      await this.modificationRepository.create(modification, session);
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      logger.info(`Refund processed (transactional) for reservation: ${reservationId}`);
+    } catch (error) {
+      // Abort transaction on error
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      // Always end session
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Executes refund processing without transaction (fallback)
+   */
+  private async executeWithoutTransaction(
+    paymentUpdate: Partial<import('../../../../../infrastructure/database/mongodb/models/payment.model').IPaymentModel> | null,
+    paymentId: string,
+    reservationUpdate: Partial<import('../../../../../infrastructure/database/mongodb/models/reservation.model').IReservationModel>,
+    reservationId: string,
+    modification: ReservationModification
+  ): Promise<void> {
+    // Update payment status if fully refunded
+    if (paymentUpdate) {
+      await this.paymentRepository.updateById(paymentId, paymentUpdate);
+    }
+
+    // Update reservation
+    await this.reservationRepository.updateById(reservationId, reservationUpdate);
+
+    // Create modification record
+    await this.modificationRepository.create(modification);
+
+    logger.info(`Refund processed (non-transactional) for reservation: ${reservationId}`);
   }
 }
 

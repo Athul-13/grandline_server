@@ -117,6 +117,18 @@ export function createAdminDriverRoutesWithDI(): Router {
     (req, res) => void adminDriverController.recordDriverPayout(req, res)
   );
 
+  /**
+   * @route   GET /api/v1/admin/drivers/:driverId/earnings
+   * @desc    Get driver earnings (admin only)
+   * @access  Private (Admin)
+   */
+  router.get(
+    '/:driverId/earnings',
+    authenticate,
+    requireAdmin,
+    (req, res) => void adminDriverController.getDriverEarnings(req, res)
+  );
+
   return router;
 }
 

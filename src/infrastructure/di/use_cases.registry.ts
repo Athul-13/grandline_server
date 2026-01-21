@@ -134,6 +134,7 @@ import { GetAllTicketsUseCase } from '../../application/use-cases/implementation
 import { UpdateTicketStatusUseCase } from '../../application/use-cases/implementation/support/update_ticket_status.use-case';
 import { AssignTicketToAdminUseCase } from '../../application/use-cases/implementation/support/assign_ticket_to_admin.use-case';
 import { CalculateDriverEarningsUseCase } from '../../application/use-cases/implementation/driver/calculate_driver_earnings.use-case';
+import { GetDriverEarningsUseCase } from '../../application/use-cases/implementation/driver/get_driver_earnings.use-case';
 import { RecordDriverPayoutUseCase } from '../../application/use-cases/implementation/driver/record_driver_payout.use-case';
 
 /**
@@ -295,6 +296,7 @@ export function registerUseCases(): void {
   container.register(USE_CASE_TOKENS.AssignTicketToAdminUseCase, AssignTicketToAdminUseCase);
   // Driver payment use cases
   container.register(USE_CASE_TOKENS.CalculateDriverEarningsUseCase, CalculateDriverEarningsUseCase);
+  container.register(USE_CASE_TOKENS.GetDriverEarningsUseCase, GetDriverEarningsUseCase);
   container.register(USE_CASE_TOKENS.RecordDriverPayoutUseCase, RecordDriverPayoutUseCase);
 }
 

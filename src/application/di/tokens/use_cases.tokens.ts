@@ -144,6 +144,7 @@ export const USE_CASE_TOKENS = {
   CreateChargePaymentIntentUseCase: Symbol.for('CreateChargePaymentIntentUseCase'),
   // Dashboard use cases
   GetDashboardStatsUseCase: Symbol.for('GetDashboardStatsUseCase'),
+  GetDriverEarningsUseCase: Symbol.for('GetDriverEarningsUseCase'),
   GetRecentActivityUseCase: Symbol.for('GetRecentActivityUseCase'),
   GetAdminDashboardAnalyticsUseCase: Symbol.for('GetAdminDashboardAnalyticsUseCase'),
   // Ticket use cases
