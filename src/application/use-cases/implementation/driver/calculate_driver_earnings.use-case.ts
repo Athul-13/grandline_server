@@ -1,4 +1,5 @@
 import { injectable, inject } from 'tsyringe';
+import mongoose from 'mongoose';
 import { IDriverRepository } from '../../../../domain/repositories/driver_repository.interface';
 import { IDriverPaymentRepository } from '../../../../domain/repositories/driver_payment_repository.interface';
 import { IReservationRepository } from '../../../../domain/repositories/reservation_repository.interface';
@@ -14,6 +15,7 @@ import { ICalculateDriverEarningsUseCase } from '../../interface/driver/calculat
 /**
  * Use case for calculating driver earnings when a trip is completed
  * Creates a driver payment record and increments driver's total earnings
+ * Uses MongoDB transactions when available, falls back to non-transactional operations
  */
 @injectable()
 export class CalculateDriverEarningsUseCase implements ICalculateDriverEarningsUseCase {
@@ -89,14 +91,74 @@ export class CalculateDriverEarningsUseCase implements ICalculateDriverEarningsU
       now
     );
 
+    // Try to use transaction, fallback to non-transactional if not supported
+    try {
+      await this.executeWithTransaction(driverPayment, reservation.assignedDriverId, earningsAmount, reservationId);
+    } catch (transactionError) {
+      // If transaction fails (e.g., not supported), fall back to non-transactional
+      if (transactionError instanceof Error && transactionError.message.includes('transaction')) {
+        logger.warn(
+          `Transaction not supported, falling back to non-transactional operations: ${transactionError.message}`
+        );
+        await this.executeWithoutTransaction(driverPayment, reservation.assignedDriverId, earningsAmount, reservationId);
+      } else {
+        throw transactionError;
+      }
+    }
+  }
+
+  /**
+   * Executes driver earnings calculation within a MongoDB transaction
+   */
+  private async executeWithTransaction(
+    driverPayment: DriverPayment,
+    driverId: string,
+    earningsAmount: number,
+    reservationId: string
+  ): Promise<void> {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Create driver payment record within transaction
+      await this.driverPaymentRepository.createDriverPayment(driverPayment, session);
+
+      // Increment driver's total earnings within transaction
+      await this.driverRepository.incrementTotalEarnings(driverId, earningsAmount, session);
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      logger.info(
+        `Driver earnings calculated (transactional): ${earningsAmount} for driver ${driverId} from reservation ${reservationId}`
+      );
+    } catch (error) {
+      // Abort transaction on error
+      await session.abortTransaction();
+      throw error;
+    } finally {
+      // Always end session
+      await session.endSession();
+    }
+  }
+
+  /**
+   * Executes driver earnings calculation without transaction (fallback)
+   */
+  private async executeWithoutTransaction(
+    driverPayment: DriverPayment,
+    driverId: string,
+    earningsAmount: number,
+    reservationId: string
+  ): Promise<void> {
     // Save driver payment record
     await this.driverPaymentRepository.createDriverPayment(driverPayment);
 
     // Atomically increment driver's total earnings
-    await this.driverRepository.incrementTotalEarnings(reservation.assignedDriverId, earningsAmount);
+    await this.driverRepository.incrementTotalEarnings(driverId, earningsAmount);
 
     logger.info(
-      `Driver earnings calculated: ${earningsAmount} for driver ${reservation.assignedDriverId} from reservation ${reservationId}`
+      `Driver earnings calculated (non-transactional): ${earningsAmount} for driver ${driverId} from reservation ${reservationId}`
     );
   }
 }

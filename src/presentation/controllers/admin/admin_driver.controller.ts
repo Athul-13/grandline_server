@@ -14,6 +14,8 @@ import { AuthenticatedRequest } from '../../../shared/types/express.types';
 import { sendSuccessResponse, sendErrorResponse } from '../../../shared/utils/response.util';
 import { logger } from '../../../shared/logger';
 import { IRecordDriverPayoutUseCase } from '../../../application/use-cases/interface/driver/record_driver_payout_use_case.interface';
+import { IGetDriverEarningsUseCase } from '../../../application/use-cases/interface/driver/get_driver_earnings_use_case.interface';
+import { GetDriverEarningsRequest } from '../../../application/dtos/driver.dto';
 
 /**
  * Admin driver controller
@@ -38,6 +40,8 @@ export class AdminDriverController {
     private readonly getDriverStatisticsUseCase: IGetDriverStatisticsUseCase,
     @inject(USE_CASE_TOKENS.RecordDriverPayoutUseCase)
     private readonly recordDriverPayoutUseCase: IRecordDriverPayoutUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverEarningsUseCase)
+    private readonly getDriverEarningsUseCase: IGetDriverEarningsUseCase,
   ) {}
 
   /**
@@ -314,6 +318,44 @@ export class AdminDriverController {
       sendSuccessResponse(res, HTTP_STATUS.OK, { message: 'Driver payout recorded successfully' }, 'Driver payout recorded successfully');
     } catch (error) {
       logger.error(`Error recording driver payout: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Get Driver Earnings
+   * GET /api/v1/admin/drivers/:driverId/earnings
+   * Requires admin authentication
+   */
+  async getDriverEarnings(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver earnings attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.params.driverId;
+      if (!driverId) {
+        logger.warn('Get driver earnings attempt without driverId parameter');
+        sendErrorResponse(res, new Error('Driver ID is required'));
+        return;
+      }
+
+      const request: GetDriverEarningsRequest = {
+        driverId,
+        page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined,
+      };
+
+      logger.info(`Admin ${req.user.userId} fetching earnings for driver: ${driverId}`);
+      const response = await this.getDriverEarningsUseCase.execute(request);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error fetching driver earnings: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

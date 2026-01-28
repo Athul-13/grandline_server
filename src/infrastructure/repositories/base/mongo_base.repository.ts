@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import { IDatabaseModel } from '../../../domain/services/mongodb_model.interface';
 
 export abstract class MongoBaseRepository<TModel, TEntity> {
@@ -15,18 +16,18 @@ export abstract class MongoBaseRepository<TModel, TEntity> {
     return doc ? this.toEntity(doc) : null;
   }
 
-  async create(entity: TEntity): Promise<void> {
+  async create(entity: TEntity, session?: ClientSession): Promise<void> {
     const data = this.toPersistence(entity);
-    await this.model.create(data);
+    await this.model.create(data, session ? { session } : undefined);
   }
 
-  async updateById(id: string, update: Partial<TEntity>): Promise<void> {
+  async updateById(id: string, update: Partial<TEntity>, session?: ClientSession): Promise<void> {
     const filter = { [this.idField]: id };
     // Filter out undefined values - MongoDB $set doesn't handle undefined correctly
     const cleanUpdate = Object.fromEntries(
       Object.entries(update).filter(([_, value]) => value !== undefined)
     ) as Record<string, unknown>;
-    await this.model.updateOne(filter, { $set: cleanUpdate });
+    await this.model.updateOne(filter, { $set: cleanUpdate }, session ? { session } : undefined);
   }
 
   async deleteById(id: string): Promise<void> {

@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import { injectable } from "tsyringe";
 import { MongoBaseRepository } from "./base/mongo_base.repository";
 import { createDriverPaymentModel, IDriverPaymentModel } from "../database/mongodb/models/driver_payment.model";
@@ -32,8 +33,8 @@ export class DriverPaymentRepositoryImpl
             };
         }
 
-        async createDriverPayment(driverPayment: DriverPayment): Promise<void> {
-            await this.driverPaymentModel.create(this.toPersistence(driverPayment));
+        async createDriverPayment(driverPayment: DriverPayment, session?: ClientSession): Promise<void> {
+            await this.driverPaymentModel.create(this.toPersistence(driverPayment), session ? { session } : undefined);
         }
 
         async findDriverPaymentsByDriverId(driverId: string): Promise<DriverPayment[]> {

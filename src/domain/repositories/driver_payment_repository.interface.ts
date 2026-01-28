@@ -1,3 +1,4 @@
+import { ClientSession } from 'mongoose';
 import { DriverPayment } from "../entities/driver_payment.entity";
 import { IBaseRepository } from "./base_repository.interface";
 
@@ -5,7 +6,7 @@ export interface IDriverPaymentRepository extends IBaseRepository<DriverPayment>
     /**
      * Create a new driver payment
      */
-    createDriverPayment(driverPayment: DriverPayment): Promise<void>;
+    createDriverPayment(driverPayment: DriverPayment, session?: ClientSession): Promise<void>;
  
     /**
      * Find driver payments by driver ID

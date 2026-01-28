@@ -1,3 +1,5 @@
+import { ClientSession } from 'mongoose';
+
 /**
  * MongoDB model interface
  * Defines the contract for MongoDB model operations
@@ -7,41 +9,41 @@ export interface IDatabaseModel<T> {
   /**
    * Finds a single document by filter
    */
-  findOne(filter: Record<string, unknown>, options?: { select?: string; sort?: Record<string, 1 | -1> }): Promise<T | null>;
+  findOne(filter: Record<string, unknown>, options?: { select?: string; sort?: Record<string, 1 | -1>; session?: ClientSession }): Promise<T | null>;
 
   /**
    * Finds multiple documents by filter
    */
-  find(filter: Record<string, unknown>, options?: { sort?: Record<string, 1 | -1> }): Promise<T[]>;
+  find(filter: Record<string, unknown>, options?: { sort?: Record<string, 1 | -1>; session?: ClientSession }): Promise<T[]>;
 
   /**
    * Creates a new document
    */
-  create(data: Partial<T>): Promise<T>;
+  create(data: Partial<T>, options?: { session?: ClientSession }): Promise<T>;
 
   /**
    * Updates a single document
    */
-  updateOne(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<{ matchedCount: number }>;
+  updateOne(filter: Record<string, unknown>, update: Record<string, unknown>, options?: { session?: ClientSession }): Promise<{ matchedCount: number }>;
 
   /**
    * Updates multiple documents
    */
-  updateMany(filter: Record<string, unknown>, update: Record<string, unknown>): Promise<{ matchedCount: number }>;
+  updateMany(filter: Record<string, unknown>, update: Record<string, unknown>, options?: { session?: ClientSession }): Promise<{ matchedCount: number }>;
 
   /**
    * Deletes a single document
    */
-  deleteOne(filter: Record<string, unknown>): Promise<void>;
+  deleteOne(filter: Record<string, unknown>, options?: { session?: ClientSession }): Promise<void>;
 
   /**
    * Deletes multiple documents
    */
-  deleteMany(filter: Record<string, unknown>): Promise<void>;
+  deleteMany(filter: Record<string, unknown>, options?: { session?: ClientSession }): Promise<void>;
 
   /**
    * Executes an aggregation pipeline
    */
-  aggregate(pipeline: unknown[]): Promise<unknown[]>;
+  aggregate(pipeline: unknown[], options?: { session?: ClientSession }): Promise<unknown[]>;
 }
 

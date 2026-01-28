@@ -18,7 +18,8 @@ import { IStartTripUseCase } from '../../../application/use-cases/interface/driv
 import { IEndTripUseCase } from '../../../application/use-cases/interface/driver/end_trip_use_case.interface';
 import { ISubmitDriverReportUseCase } from '../../../application/use-cases/interface/driver/submit_driver_report_use_case.interface';
 import { IGetDashboardStatsUseCase } from '../../../application/use-cases/interface/dashboard/get_dashboard_stats_use_case.interface';
-import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest } from '../../../application/dtos/driver.dto';
+import { IGetDriverEarningsUseCase } from '../../../application/use-cases/interface/driver/get_driver_earnings_use_case.interface';
+import { LoginDriverRequest, ChangeDriverPasswordRequest, ForgotDriverPasswordRequest, ResetDriverPasswordRequest, UpdateProfilePictureRequest, UpdateLicenseCardPhotoRequest, UpdateOnboardingPasswordRequest, CompleteOnboardingRequest, SaveFcmTokenRequest, GetDriverEarningsRequest } from '../../../application/dtos/driver.dto';
 import { USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../../shared/constants';
 import { AuthenticatedRequest } from '../../../shared/types/express.types';
@@ -69,6 +70,8 @@ export class DriverController {
     private readonly submitDriverReportUseCase: ISubmitDriverReportUseCase,
     @inject(USE_CASE_TOKENS.GetDashboardStatsUseCase)
     private readonly getDashboardStatsUseCase: IGetDashboardStatsUseCase,
+    @inject(USE_CASE_TOKENS.GetDriverEarningsUseCase)
+    private readonly getDriverEarningsUseCase: IGetDriverEarningsUseCase,
   ) {}
 
   /**
@@ -617,6 +620,44 @@ export class DriverController {
       logger.error(
         `Error submitting driver report: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
+      sendErrorResponse(res, error);
+    }
+  }
+
+  /**
+   * Get Driver Earnings
+   * GET /api/v1/driver/earnings
+   * Requires authentication
+   */
+  async getEarnings(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.user) {
+        logger.warn('Get driver earnings attempt without authentication');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const driverId = req.user.userId;
+      if (!driverId) {
+        logger.warn('Get driver earnings attempt without userId in token');
+        sendErrorResponse(res, new Error('Unauthorized'));
+        return;
+      }
+
+      const request: GetDriverEarningsRequest = {
+        driverId,
+        page: req.query.page ? parseInt(req.query.page as string, 10) : undefined,
+        limit: req.query.limit ? parseInt(req.query.limit as string, 10) : undefined,
+        startDate: req.query.startDate as string | undefined,
+        endDate: req.query.endDate as string | undefined,
+      };
+
+      logger.info(`Driver earnings fetch request for driver: ${driverId}`);
+      const response = await this.getDriverEarningsUseCase.execute(request);
+
+      sendSuccessResponse(res, HTTP_STATUS.OK, response);
+    } catch (error) {
+      logger.error(`Error fetching driver earnings: ${error instanceof Error ? error.message : 'Unknown error'}`);
       sendErrorResponse(res, error);
     }
   }

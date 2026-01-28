@@ -1,6 +1,7 @@
 import { Driver } from "../entities/driver.entity";
 import { IBaseRepository } from "./base_repository.interface";
 import { DriverStatus } from "../../shared/constants";
+import { ClientSession } from "mongoose";
 
 /**
  * Repository interface for Driver entity operations
@@ -111,5 +112,5 @@ export interface IDriverRepository extends IBaseRepository<Driver> {
     /**
      * Update driver's total earnings
      */
-    incrementTotalEarnings(driverId: string, amount: number): Promise<void>;
+    incrementTotalEarnings(driverId: string, amount: number, session?: ClientSession): Promise<void>;
 }

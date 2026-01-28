@@ -3,7 +3,7 @@ import { container } from 'tsyringe';
 import { tripAutoCompleteQueue, TripAutoCompleteJobData } from '../trip_auto_complete.queue';
 import { IReservationRepository } from '../../../domain/repositories/reservation_repository.interface';
 import { IReservationItineraryRepository } from '../../../domain/repositories/reservation_itinerary_repository.interface';
-import { REPOSITORY_TOKENS, SERVICE_TOKENS } from '../../../application/di/tokens';
+import { REPOSITORY_TOKENS, SERVICE_TOKENS, USE_CASE_TOKENS } from '../../../application/di/tokens';
 import { ReservationStatus } from '../../../shared/constants';
 import { logger } from '../../../shared/logger';
 import { deriveTripWindow } from '../../../application/mapper/driver_dashboard.mapper';
@@ -12,6 +12,7 @@ import { driverCooldownQueue } from '../driver_cooldown.queue';
 import { DRIVER_ASSIGNMENT_CONFIG } from '../../../shared/constants';
 import { IRedisConnection } from '../../../domain/services/redis_connection.interface';
 import { CONFIG_TOKENS } from '../../../infrastructure/di/tokens';
+import { ICalculateDriverEarningsUseCase } from '../../../application/use-cases/interface/driver/calculate_driver_earnings_use_case.interface';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -22,12 +23,16 @@ const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 export class TripAutoCompleteWorker {
   private reservationRepository: IReservationRepository;
   private itineraryRepository: IReservationItineraryRepository;
+  private calculateDriverEarningsUseCase: ICalculateDriverEarningsUseCase;
 
   constructor() {
-    // Resolve repositories from DI container
+    // Resolve repositories and use cases from DI container
     this.reservationRepository = container.resolve<IReservationRepository>(REPOSITORY_TOKENS.IReservationRepository);
     this.itineraryRepository = container.resolve<IReservationItineraryRepository>(
       REPOSITORY_TOKENS.IReservationItineraryRepository
+    );
+    this.calculateDriverEarningsUseCase = container.resolve<ICalculateDriverEarningsUseCase>(
+      USE_CASE_TOKENS.CalculateDriverEarningsUseCase
     );
   }
 
@@ -160,6 +165,16 @@ export class TripAutoCompleteWorker {
         // Don't fail auto-complete if socket emission fails
         logger.error(
           `Failed to emit trip:ended event for reservation ${reservationId}: ${socketError instanceof Error ? socketError.message : 'Unknown error'}`
+        );
+      }
+
+      // Calculate driver earnings (non-blocking - don't fail auto-complete if this fails)
+      try {
+        await this.calculateDriverEarningsUseCase.execute(reservationId);
+      } catch (earningsError) {
+        // Log error but don't fail auto-complete
+        logger.error(
+          `Error calculating driver earnings for reservation ${reservationId} (Job ID: ${job.id}): ${earningsError instanceof Error ? earningsError.message : 'Unknown error'}`
         );
       }
 

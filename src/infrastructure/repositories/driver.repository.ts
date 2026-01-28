@@ -456,10 +456,11 @@ export class DriverRepositoryImpl
     }
   }
 
-  async incrementTotalEarnings(driverId: string, amount: number): Promise<void> {
+  async incrementTotalEarnings(driverId: string, amount: number, session?: import('mongoose').ClientSession): Promise<void> {
     await this.driverModel.updateOne(
       { driverId },
-      { $inc: { totalEarnings: amount }, updatedAt: new Date() }
+      { $inc: { totalEarnings: amount }, updatedAt: new Date() },
+      session ? { session } : undefined
     );
   }
 }

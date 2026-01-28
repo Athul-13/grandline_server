@@ -535,3 +535,44 @@ export interface SaveFcmTokenResponse {
   tokenId?: string;
 }
 
+/**
+ * Request DTO for getting driver earnings
+ * Supports pagination and date filtering
+ */
+export interface GetDriverEarningsRequest {
+  driverId: string;
+  page?: number;
+  limit?: number;
+  startDate?: string; // ISO date string
+  endDate?: string; // ISO date string
+}
+
+/**
+ * Driver earnings item with trip details
+ */
+export interface DriverEarningsItem {
+  paymentId: string;
+  reservationId: string;
+  amount: number;
+  createdAt: Date;
+  tripDetails: {
+    tripName?: string;
+    reservationDate: Date;
+    status: string;
+  };
+}
+
+/**
+ * Response DTO for getting driver earnings
+ * Contains paginated list of earnings with trip details
+ */
+export interface GetDriverEarningsResponse {
+  earnings: DriverEarningsItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
